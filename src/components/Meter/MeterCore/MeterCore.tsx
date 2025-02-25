@@ -1,16 +1,12 @@
 "use client";
 
 import { addMonths, eachDayOfInterval, format, setMonth } from "date-fns";
-import styles from "./meter.module.scss";
+import styles from "./MeterCore.module.scss";
 import { useState } from "react";
 
-function Meter() {
+function MeterCore() {
   const [date, setDate] = useState<Date>(new Date());
 
-  //   const months = Array.from({ length: 12 }, (_, i) =>
-  //     format(setMonth(new Date(), i), " yyyy MMMM")
-  //   );
-  // Get first day and last day of the selected month
   const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
   const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
@@ -52,4 +48,4 @@ function Meter() {
   );
 }
 
-export default Meter;
+export default MeterCore;
