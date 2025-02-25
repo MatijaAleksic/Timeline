@@ -1,0 +1,7 @@
+.monthDaysContainer {
+  display: flex;
+  justify-content: space-around;
+  // min-width: 100vw;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}

@@ -1,0 +1,17 @@
+.meterLineContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: center;
+
+  .meterLine {
+    height: 4rem;
+    width: 1px;
+    background: #000;
+    margin-bottom: 1rem;
+  }
+  .meterLineDisplayValue {
+    user-select: none;
+  }
+}
