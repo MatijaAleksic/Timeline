@@ -2,9 +2,11 @@
 
 import { addMonths } from "date-fns";
 import styles from "./MeterCore.module.scss";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import MeterHeader from "../MeterHeader/MeterHeader";
 import MeterMonth from "../MeterMonth/MeterMonth";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import DummyData from "@/util/DummyData";
 // import useDebounce from "@/util/useDebounce";
 
 //FOR VIRTUAL SCROLL PURPOSES USE NEXT LIBRARIES:
@@ -14,8 +16,6 @@ import MeterMonth from "../MeterMonth/MeterMonth";
 // React Lazyload
 
 function MeterCore() {
-  // console.log("RENDER");
-
   const minZoomPercentageValue = 30;
   const maxZoomPercentageValue = 100;
   const zoomStep = 5;
@@ -62,7 +62,7 @@ function MeterCore() {
   // ===============================================================
 
   const handleZoom = (event: any) => {
-    console.log("--------------------");
+    // console.log("--------------------");
     const mouseX = event.clientX;
 
     const element = meterComponentRef.current;
@@ -70,7 +70,7 @@ function MeterCore() {
 
     const boundingRect = element.getBoundingClientRect();
     const offsetX = mouseX - boundingRect.left;
-    console.log("offsetX:", offsetX);
+    // console.log("offsetX:", offsetX);
 
     // Determine the direction of zoom (in or out)
     const zoomDirection = event.deltaY > 0 ? -1 : 1;
@@ -81,20 +81,54 @@ function MeterCore() {
     );
     const prevZoomValue = scrollValue;
     setScrollValue(newZoom);
-    console.log("prevZoomValue:", scrollValue);
-    console.log("newZoomValue:", newZoom);
+    setElementWidth(screenWidth * (newZoom / 100));
+    // console.log("prevZoomValue:", scrollValue);
+    // console.log("newZoomValue:", newZoom);
 
     // Adjust scroll position based on zoom factor
     const zoomRatio = newZoom / prevZoomValue;
     const newScrollLeft = offsetX * zoomRatio;
-    console.log("zoomRatio", zoomRatio);
-    console.log("newScrollLeft", newScrollLeft);
+    // console.log("zoomRatio", zoomRatio);
+    // console.log("newScrollLeft", newScrollLeft);
 
     if (element) {
       element.scrollLeft = newScrollLeft * (newZoom / 100);
     }
-    console.log("--------------------");
+
+    // Trigger re-calculation of virtualizer's sizes
+    // rowVirtualizer.update(); // Force re-calculation of sizes after zoom
+    // console.log("--------------------");
   };
+
+  // =============
+  // VIRTUALIZER
+  // =============
+
+  const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
+  const [elementWidth, setElementWidth] = useState<number>(screenWidth);
+
+  console.log("screenWidth", screenWidth);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const updateWidth = () => setScreenWidth(window.innerWidth);
+      updateWidth();
+
+      window.addEventListener("resize", updateWidth);
+      return () => window.removeEventListener("resize", updateWidth);
+    }
+  }, []);
+
+  const monthData = DummyData.getMonths();
+
+  // The virtualizer
+  const rowVirtualizer = useVirtualizer({
+    count: monthData.length,
+    getScrollElement: () => meterComponentRef.current,
+    estimateSize: () => elementWidth, // Adjust the width of each item (e.g., 150px)
+    horizontal: true, // Enable horizontal scrolling
+  });
+
+  console.log("elementWidth: ", elementWidth, " px");
 
   return (
     <div className={styles.meterWrapper}>
@@ -103,7 +137,6 @@ function MeterCore() {
         handlePreviousMonth={handlePreviousMonth}
         date={date}
       />
-
       <div
         className={styles.meterComponent}
         onWheel={handleZoom}
@@ -113,28 +146,35 @@ function MeterCore() {
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
       >
-        <div className={styles.meterCenterLine} />
-        <MeterMonth widthPercentage={scrollValue} date={date}></MeterMonth>
-        <MeterMonth
-          widthPercentage={scrollValue}
-          date={addMonths(date, 1)}
-        ></MeterMonth>
-        <MeterMonth
-          widthPercentage={scrollValue}
-          date={addMonths(date, 2)}
-        ></MeterMonth>
-        <MeterMonth
-          widthPercentage={scrollValue}
-          date={addMonths(date, 3)}
-        ></MeterMonth>
-        <MeterMonth
-          widthPercentage={scrollValue}
-          date={addMonths(date, 4)}
-        ></MeterMonth>
-        <MeterMonth
-          widthPercentage={scrollValue}
-          date={addMonths(date, 5)}
-        ></MeterMonth>
+        {/* The large inner element to hold all of the items */}
+        <div
+          style={{
+            width: `${rowVirtualizer.getTotalSize() * (scrollValue / 100)}px`, // Total width of the items
+            height: "100%", // Full height of the container
+            position: "relative",
+            display: "flex", // Use flexbox to align the items horizontally
+          }}
+        >
+          <div className={styles.meterCenterLine} />
+          {/* Only the visible items in the virtualizer, manually positioned to be in view */}
+          {rowVirtualizer.getVirtualItems().map((virtualItem) => (
+            <div
+              key={virtualItem.key}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: virtualItem.start * (scrollValue / 100), // Horizontal position
+                width: `${virtualItem.size * (scrollValue / 100)}px`, // Item width
+                height: "100%", // Full height of the container
+              }}
+            >
+              <MeterMonth
+                date={monthData[virtualItem.index]}
+                width={elementWidth}
+              ></MeterMonth>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

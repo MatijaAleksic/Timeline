@@ -4,12 +4,12 @@ import styles from "./MeterMonth.module.scss";
 
 interface IProps {
   date: Date;
-  widthPercentage: number;
+  width: number;
 }
 
 const MeterMonth: React.FunctionComponent<IProps> = ({
   date,
-  widthPercentage,
+  width,
   ...props
 }) => {
   const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -20,14 +20,11 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
     end: lastDayOfMonth,
   });
 
-  const baseValue = 100;
-  const calculatedWidth = (widthPercentage / 100) * baseValue;
-
   return (
     <div
       className={styles.monthDaysContainer}
       {...props}
-      style={{ width: `${calculatedWidth}vw` }}
+      style={{ width: `${width}px` }}
     >
       {days.map((day, index) => {
         return <MeterLine key={index} displayValue={format(day, "d LLLLL")} />; //LLLLL
