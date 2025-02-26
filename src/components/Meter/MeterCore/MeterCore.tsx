@@ -16,8 +16,8 @@ import DummyData from "@/util/DummyData";
 // React Lazyload
 
 function MeterCore() {
-  const minZoomPercentageValue = 30;
-  const maxZoomPercentageValue = 100;
+  const minZoomPercentageValue = 50;
+  const maxZoomPercentageValue = 200;
   const zoomStep = 5;
 
   const [date, setDate] = useState<Date>(new Date());
@@ -26,6 +26,9 @@ function MeterCore() {
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const meterComponentRef = useRef<HTMLDivElement>(null);
+
+  const [lastVelocity, setLastVelocity] = useState(0);
+  const [lastDragTime, setLastDragTime] = useState(0); // Track last drag time
 
   const [scrollValue, setScrollValue] = useState<number>(100);
 
@@ -45,7 +48,9 @@ function MeterCore() {
     setIsDragging(true);
     setStartX(event.pageX - (meterComponentRef.current?.offsetLeft || 0));
     setScrollLeft(meterComponentRef.current?.scrollLeft || 0);
+    setLastDragTime(Date.now());
   };
+
   const handleMouseMove = (event: React.MouseEvent) => {
     if (!isDragging) return;
     const moveX = event.pageX - startX;
@@ -53,25 +58,45 @@ function MeterCore() {
       meterComponentRef.current.scrollLeft = scrollLeft - moveX;
     }
   };
-  const handleMouseUp = () => {
+  const handleMouseUp = (event: React.MouseEvent) => {
+    console.log("event", event);
+
     setIsDragging(false);
+    const endTime = Date.now();
+    const deltaTime = endTime - lastDragTime;
+    const moveX = event.pageX - startX;
+
+    // Calculate velocity (distance / time)
+    const velocity = deltaTime === 0 ? 0 : moveX / deltaTime;
+    setLastVelocity(velocity); // Store velocity for inertia
+    applyInertia(); // Apply inertia after release
   };
-  const handleMouseLeave = () => {
-    setIsDragging(false);
+
+  // Inertia application after mouse release
+  const applyInertia = () => {
+    const inertiaDamping = 0.95; // Damping factor to slow down
+    let velocity = lastVelocity;
+
+    const inertiaScroll = () => {
+      if (!meterComponentRef.current || Math.abs(velocity) < 0.1) return; // Stop when velocity is too small
+
+      const element = meterComponentRef.current;
+      element.scrollLeft += velocity; // Apply the current velocity to scroll
+      velocity *= inertiaDamping; // Gradually decrease velocity (damping)
+
+      requestAnimationFrame(inertiaScroll); // Continue inertia scrolling
+    };
+
+    inertiaScroll();
   };
   // ===============================================================
 
   const handleZoom = (event: any) => {
-    // console.log("--------------------");
     const mouseX = event.clientX;
-
     const element = meterComponentRef.current;
     if (!element) return;
-
     const boundingRect = element.getBoundingClientRect();
     const offsetX = mouseX - boundingRect.left;
-    // console.log("offsetX:", offsetX);
-
     // Determine the direction of zoom (in or out)
     const zoomDirection = event.deltaY > 0 ? -1 : 1;
     // Gets new zoom value from min to max zoom percentage value
@@ -82,32 +107,21 @@ function MeterCore() {
     const prevZoomValue = scrollValue;
     setScrollValue(newZoom);
     setElementWidth(screenWidth * (newZoom / 100));
-    // console.log("prevZoomValue:", scrollValue);
-    // console.log("newZoomValue:", newZoom);
-
     // Adjust scroll position based on zoom factor
     const zoomRatio = newZoom / prevZoomValue;
     const newScrollLeft = offsetX * zoomRatio;
-    // console.log("zoomRatio", zoomRatio);
-    // console.log("newScrollLeft", newScrollLeft);
-
     if (element) {
       element.scrollLeft = newScrollLeft * (newZoom / 100);
     }
-
-    // Trigger re-calculation of virtualizer's sizes
-    // rowVirtualizer.update(); // Force re-calculation of sizes after zoom
-    // console.log("--------------------");
+    rowVirtualizer.measure();
   };
 
   // =============
   // VIRTUALIZER
   // =============
-
   const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
   const [elementWidth, setElementWidth] = useState<number>(screenWidth);
 
-  console.log("screenWidth", screenWidth);
   useEffect(() => {
     if (typeof window !== "undefined") {
       const updateWidth = () => setScreenWidth(window.innerWidth);
@@ -118,17 +132,16 @@ function MeterCore() {
     }
   }, []);
 
-  const monthData = DummyData.getMonths();
+  const monthData = DummyData.getMonths(date);
 
   // The virtualizer
   const rowVirtualizer = useVirtualizer({
     count: monthData.length,
     getScrollElement: () => meterComponentRef.current,
     estimateSize: () => elementWidth, // Adjust the width of each item (e.g., 150px)
+    // estimateSize: () => screenWidth * (scrollValue / 100),
     horizontal: true, // Enable horizontal scrolling
   });
-
-  console.log("elementWidth: ", elementWidth, " px");
 
   return (
     <div className={styles.meterWrapper}>
@@ -144,28 +157,28 @@ function MeterCore() {
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
+        onMouseLeave={handleMouseUp}
       >
         {/* The large inner element to hold all of the items */}
         <div
           style={{
-            width: `${rowVirtualizer.getTotalSize() * (scrollValue / 100)}px`, // Total width of the items
-            height: "100%", // Full height of the container
+            width: `${rowVirtualizer.getTotalSize() * (scrollValue / 100)}px`,
+            height: "100%",
             position: "relative",
-            display: "flex", // Use flexbox to align the items horizontally
+            display: "flex",
+            alignItems: "center",
           }}
         >
           <div className={styles.meterCenterLine} />
-          {/* Only the visible items in the virtualizer, manually positioned to be in view */}
-          {rowVirtualizer.getVirtualItems().map((virtualItem) => (
+          {rowVirtualizer.getVirtualItems().map((virtualItem, index) => (
             <div
               key={virtualItem.key}
               style={{
                 position: "absolute",
                 top: 0,
-                left: virtualItem.start * (scrollValue / 100), // Horizontal position
-                width: `${virtualItem.size * (scrollValue / 100)}px`, // Item width
-                height: "100%", // Full height of the container
+                left: index * elementWidth,
+                width: `${elementWidth}px`,
+                height: "100%",
               }}
             >
               <MeterMonth
