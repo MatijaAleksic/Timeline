@@ -30,7 +30,7 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
       style={{ width: `${calculatedWidth}vw` }}
     >
       {days.map((day, index) => {
-        return <MeterLine key={index} displayValue={format(day, "d")} />;
+        return <MeterLine key={index} displayValue={format(day, "d LLLLL")} />; //LLLLL
       })}
     </div>
   );

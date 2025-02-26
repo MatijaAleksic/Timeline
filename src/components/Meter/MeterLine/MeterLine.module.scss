@@ -11,7 +11,14 @@
     background: #000;
     margin-bottom: 1rem;
   }
-  .meterLineDisplayValue {
+  .meterLineDisplayValueContainer {
     user-select: none;
+
+    .meterLineDisplayValue {
+      width: 0px;
+      display: flex;
+      justify-content: center;
+      white-space: nowrap;
+    }
   }
 }

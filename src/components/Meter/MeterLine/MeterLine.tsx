@@ -7,7 +7,9 @@ interface IProps {
 const MeterLine: React.FunctionComponent<IProps> = ({ displayValue }) => {
   return (
     <div className={styles.meterLineContainer}>
-      <div className={styles.meterLineDisplayValue}> {displayValue}</div>
+      <div className={styles.meterLineDisplayValueContainer}>
+        <div className={styles.meterLineDisplayValue}>{displayValue}</div>
+      </div>
       <div className={styles.meterLine} />
     </div>
   );
