@@ -6,4 +6,5 @@ export default class MeterContants {
   // Min number of Miliseconds for slide to take effect
   public static minTimeElapsedForSlidingEffect: number = 500;
   public static slidingInertiaDumping: number = 0.92;
+  public static slidingCutoff: number = 0.1;
 }
