@@ -6,8 +6,8 @@ import { useState, useRef, useEffect } from "react";
 import MeterHeader from "../MeterHeader/MeterHeader";
 import MeterMonth from "../MeterMonth/MeterMonth";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import DummyData from "@/util/DummyData";
-// import useDebounce from "@/util/useDebounce";
+import DummyData from "@/util/data/DummyData";
+import MeterConstants from "@/util/constants/MeterConstants";
 
 //FOR VIRTUAL SCROLL PURPOSES USE NEXT LIBRARIES:
 // React Window
@@ -23,12 +23,10 @@ function MeterCore() {
   const [date, setDate] = useState<Date>(new Date());
 
   const [isDragging, setIsDragging] = useState(false);
+  const [lastDragTime, setLastDragTime] = useState(0);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const meterComponentRef = useRef<HTMLDivElement>(null);
-
-  const [lastVelocity, setLastVelocity] = useState(0);
-  const [lastDragTime, setLastDragTime] = useState(0); // Track last drag time
 
   const [scrollValue, setScrollValue] = useState<number>(100);
 
@@ -50,43 +48,38 @@ function MeterCore() {
     setScrollLeft(meterComponentRef.current?.scrollLeft || 0);
     setLastDragTime(Date.now());
   };
-
   const handleMouseMove = (event: React.MouseEvent) => {
     if (!isDragging) return;
+
     const moveX = event.pageX - startX;
     if (meterComponentRef.current) {
       meterComponentRef.current.scrollLeft = scrollLeft - moveX;
     }
   };
   const handleMouseUp = (event: React.MouseEvent) => {
-    console.log("event", event);
-
     setIsDragging(false);
     const endTime = Date.now();
     const deltaTime = endTime - lastDragTime;
+
+    //If dragging lasts more than 0.5 seconds dont apply slide effect
+    if (deltaTime > MeterConstants.minTimeElapsedForSlidingEffect) return;
+
     const moveX = event.pageX - startX;
-
-    // Calculate velocity (distance / time)
-    const velocity = deltaTime === 0 ? 0 : moveX / deltaTime;
-    setLastVelocity(velocity); // Store velocity for inertia
-    applyInertia(); // Apply inertia after release
+    const velocity = deltaTime === 0 ? 0 : -(moveX / deltaTime);
+    applyInertia(velocity * 10);
   };
-
-  // Inertia application after mouse release
-  const applyInertia = () => {
-    const inertiaDamping = 0.95; // Damping factor to slow down
-    let velocity = lastVelocity;
-
+  const applyInertia = (vel: number) => {
+    let velocity = vel;
     const inertiaScroll = () => {
-      if (!meterComponentRef.current || Math.abs(velocity) < 0.1) return; // Stop when velocity is too small
-
-      const element = meterComponentRef.current;
-      element.scrollLeft += velocity; // Apply the current velocity to scroll
-      velocity *= inertiaDamping; // Gradually decrease velocity (damping)
-
-      requestAnimationFrame(inertiaScroll); // Continue inertia scrolling
+      if (
+        !meterComponentRef.current ||
+        Math.abs(velocity) < MeterConstants.slidingCutoff
+      )
+        return;
+      meterComponentRef.current.scrollLeft += velocity;
+      velocity *= MeterConstants.slidingInertiaDumping;
+      requestAnimationFrame(inertiaScroll);
     };
-
     inertiaScroll();
   };
   // ===============================================================
@@ -97,21 +90,21 @@ function MeterCore() {
     if (!element) return;
     const boundingRect = element.getBoundingClientRect();
     const offsetX = mouseX - boundingRect.left;
-    // Determine the direction of zoom (in or out)
+
     const zoomDirection = event.deltaY > 0 ? -1 : 1;
-    // Gets new zoom value from min to max zoom percentage value
+
     const newZoom = Math.max(
       minZoomPercentageValue,
       Math.min(maxZoomPercentageValue, scrollValue + zoomDirection * zoomStep)
     );
     const prevZoomValue = scrollValue;
     setScrollValue(newZoom);
-    setElementWidth(screenWidth * (newZoom / 100));
-    // Adjust scroll position based on zoom factor
+    setElementWidth(screenWidth * (scrollValue / 100));
+
     const zoomRatio = newZoom / prevZoomValue;
     const newScrollLeft = offsetX * zoomRatio;
     if (element) {
-      element.scrollLeft = newScrollLeft * (newZoom / 100);
+      element.scrollLeft = newScrollLeft * (scrollValue / 100);
     }
     rowVirtualizer.measure();
   };
@@ -134,13 +127,11 @@ function MeterCore() {
 
   const monthData = DummyData.getMonths(date);
 
-  // The virtualizer
   const rowVirtualizer = useVirtualizer({
     count: monthData.length,
     getScrollElement: () => meterComponentRef.current,
-    estimateSize: () => elementWidth, // Adjust the width of each item (e.g., 150px)
-    // estimateSize: () => screenWidth * (scrollValue / 100),
-    horizontal: true, // Enable horizontal scrolling
+    estimateSize: () => elementWidth,
+    horizontal: true,
   });
 
   return (
@@ -155,36 +146,30 @@ function MeterCore() {
         onWheel={handleZoom}
         ref={meterComponentRef}
         onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setIsDragging(false)}
       >
-        {/* The large inner element to hold all of the items */}
         <div
+          className={styles.virtualizerWrapper}
           style={{
             width: `${rowVirtualizer.getTotalSize() * (scrollValue / 100)}px`,
-            height: "100%",
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
           }}
         >
           <div className={styles.meterCenterLine} />
           {rowVirtualizer.getVirtualItems().map((virtualItem, index) => (
             <div
+              className={styles.virtualizerContainer}
               key={virtualItem.key}
               style={{
-                position: "absolute",
-                top: 0,
                 left: index * elementWidth,
                 width: `${elementWidth}px`,
-                height: "100%",
               }}
             >
               <MeterMonth
                 date={monthData[virtualItem.index]}
                 width={elementWidth}
-              ></MeterMonth>
+              />
             </div>
           ))}
         </div>
