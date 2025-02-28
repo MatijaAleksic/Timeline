@@ -8,7 +8,6 @@ import MeterMonth from "../MeterMonth/MeterMonth";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import DummyData from "@/util/data/DummyData";
 import MeterConstants from "@/util/constants/MeterConstants";
-import MeterRangeDTO from "@/util/dto/MeterRangeDTO";
 
 //FOR VIRTUAL SCROLL PURPOSES USE NEXT LIBRARIES:
 // React Window
@@ -21,7 +20,7 @@ function MeterCore() {
   const maxZoomPercentageValue = 200;
   const zoomStep = 5;
 
-  const [date, setDate] = useState<Date>(new Date());
+  const [date, setDate] = useState<Date>(new Date(2025, 0, 1, 10));
 
   const [isDragging, setIsDragging] = useState(false);
   const [lastDragTime, setLastDragTime] = useState(0);
@@ -53,7 +52,6 @@ function MeterCore() {
     if (!isDragging) return;
     const moveX = event.pageX - startX;
     rowVirtualizer!.scrollToOffset(scrollLeft - moveX);
-
     requestAnimationFrame(() => {
       rowVirtualizer.measure();
     });
@@ -86,12 +84,36 @@ function MeterCore() {
   };
   // ===============================================================
 
+  // const handleZoom = (event: any) => {
+  //   const mouseX = event.clientX;
+
+  //   const element = meterComponentRef.current;
+  //   if (!element) return;
+
+  //   const zoomDirection = event.deltaY > 0 ? -1 : 1;
+  //   const newZoom = Math.max(
+  //     minZoomPercentageValue,
+  //     Math.min(maxZoomPercentageValue, scrollValue + zoomDirection * zoomStep)
+  //   );
+  //   setScrollValue(newZoom);
+  //   setElementWidth(screenWidth * (newZoom / 100));
+
+  //   requestAnimationFrame(() => {
+  //     rowVirtualizer.measure();
+  //   });
+
+  //   rowVirtualizer.scrollToOffset(
+  //     (rowVirtualizer.scrollOffset! + event.pageX) * (newZoom / 100) - mouseX
+  //   );
+  // };
   const handleZoom = (event: any) => {
-    const mouseX = event.clientX;
+    event.preventDefault();
+
     const element = meterComponentRef.current;
     if (!element) return;
+
     const boundingRect = element.getBoundingClientRect();
-    const offsetX = mouseX - boundingRect.left;
+    const offsetX = event.clientX - boundingRect.left;
 
     const zoomDirection = event.deltaY > 0 ? -1 : 1;
 
@@ -99,22 +121,21 @@ function MeterCore() {
       minZoomPercentageValue,
       Math.min(maxZoomPercentageValue, scrollValue + zoomDirection * zoomStep)
     );
+
+    const scaleFactor = newZoom / scrollValue;
+
     setScrollValue(newZoom);
-    setElementWidth(screenWidth * (scrollValue / 100));
+    setElementWidth(screenWidth * (newZoom / 100));
 
-    const currentElement = rowVirtualizer.getVirtualItemForOffset(
-      rowVirtualizer.scrollOffset! + offsetX
-    );
-
-    rowVirtualizer.scrollToOffset(
-      (currentElement!.start + mouseX) * (scrollValue / 100)
-    );
+    const newScrollOffset =
+      (rowVirtualizer.scrollOffset! + offsetX) * scaleFactor - offsetX;
 
     requestAnimationFrame(() => {
       rowVirtualizer.measure();
     });
-  };
 
+    rowVirtualizer.scrollToOffset(newScrollOffset);
+  };
   // =============
   // VIRTUALIZER
   // =============
