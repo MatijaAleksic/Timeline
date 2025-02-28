@@ -15,7 +15,6 @@ export default class DummyData {
       addMonths(date, 9),
       addMonths(date, 10),
       addMonths(date, 11),
-      addMonths(date, 12),
     ];
   };
 }

@@ -1,4 +1,4 @@
-import { eachDayOfInterval, format } from "date-fns";
+import { eachDayOfInterval, format, isFirstDayOfMonth } from "date-fns";
 import MeterLine from "../MeterLine/MeterLine";
 import styles from "./MeterMonth.module.scss";
 
@@ -27,7 +27,13 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
       style={{ width: `${width}px` }}
     >
       {days.map((day, index) => {
-        return <MeterLine key={index} displayValue={format(day, "dLLLLL")} />;
+        return (
+          <MeterLine
+            key={index}
+            displayValue={format(day, "d LLL")}
+            isLarger={isFirstDayOfMonth(day)}
+          />
+        );
       })}
     </div>
   );

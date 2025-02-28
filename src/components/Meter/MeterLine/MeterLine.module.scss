@@ -5,12 +5,20 @@
   height: 100%;
   justify-content: center;
 
-  .meterLine {
+  .meterLineNormal {
     height: 4rem;
     width: 1px;
     background: #000;
     margin-bottom: 1rem;
   }
+
+  .meterLineLarge {
+    height: 6rem;
+    width: 5px;
+    background: #000;
+    margin-bottom: 1rem;
+  }
+
   .meterLineDisplayValueContainer {
     user-select: none;
 

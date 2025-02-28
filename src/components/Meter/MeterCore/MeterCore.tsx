@@ -8,6 +8,7 @@ import MeterMonth from "../MeterMonth/MeterMonth";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import DummyData from "@/util/data/DummyData";
 import MeterConstants from "@/util/constants/MeterConstants";
+import MeterRangeDTO from "@/util/dto/MeterRangeDTO";
 
 //FOR VIRTUAL SCROLL PURPOSES USE NEXT LIBRARIES:
 // React Window
@@ -28,6 +29,11 @@ function MeterCore() {
   const [scrollLeft, setScrollLeft] = useState(0);
   const meterComponentRef = useRef<HTMLDivElement>(null);
 
+  const [dragStartElementIndex, setDragStartElementIndex] =
+    useState<MeterRangeDTO>();
+  const [dragStartElementIndex1, setDragStartElementIndex1] =
+    useState<number>();
+
   const [scrollValue, setScrollValue] = useState<number>(100);
 
   // Meter Navigation
@@ -46,15 +52,51 @@ function MeterCore() {
     setIsDragging(true);
     setStartX(event.pageX - (meterComponentRef.current?.offsetLeft || 0));
     setScrollLeft(meterComponentRef.current?.scrollLeft || 0);
+
+    if (rowVirtualizer.range) {
+      setDragStartElementIndex({
+        start: rowVirtualizer.range.startIndex,
+        end: rowVirtualizer.range.endIndex,
+      });
+
+      const currentElementIndex = Math.floor(
+        (rowVirtualizer.scrollOffset! + event.pageX) / elementWidth
+      );
+
+      setDragStartElementIndex1(currentElementIndex);
+    }
+
     setLastDragTime(Date.now());
   };
   const handleMouseMove = (event: React.MouseEvent) => {
     if (!isDragging) return;
-
     const moveX = event.pageX - startX;
+
+    // console.log("scrollLeft", scrollLeft);
+    // console.log("scrollLeft - moveX", scrollLeft - moveX);
+
+    // console.log(rowVirtualizer.scrollBy(scrollLeft - moveX));
+
+    const currentElementIndex = Math.floor(
+      (rowVirtualizer.scrollOffset! + event.pageX) / elementWidth
+    );
+
+    const range = rowVirtualizer.calculateRange();
+    console.log("start", range?.startIndex, "end ", range?.endIndex);
+
+    // console.log("currentDragElement", currentElementIndex);
+
     if (meterComponentRef.current) {
-      meterComponentRef.current.scrollLeft = scrollLeft - moveX;
+      rowVirtualizer!.scrollToOffset(scrollLeft - moveX);
+      // meterComponentRef.current.scrollLeft = scrollLeft - moveX;
     }
+
+    requestAnimationFrame(() => {
+      rowVirtualizer.measure();
+    });
+
+    // console.log(rowVirtualizer.isScrolling);
+    // rowVirtualizer.measure();
   };
   const handleMouseUp = (event: React.MouseEvent) => {
     setIsDragging(false);
@@ -66,7 +108,7 @@ function MeterCore() {
 
     const moveX = event.pageX - startX;
     const velocity = deltaTime === 0 ? 0 : -(moveX / deltaTime);
-    applyInertia(velocity * 10);
+    // applyInertia(velocity * 10);
   };
   const applyInertia = (vel: number) => {
     let velocity = vel;
@@ -101,11 +143,24 @@ function MeterCore() {
     setScrollValue(newZoom);
     setElementWidth(screenWidth * (scrollValue / 100));
 
-    const zoomRatio = newZoom / prevZoomValue;
-    const newScrollLeft = offsetX * zoomRatio;
-    if (element) {
-      element.scrollLeft = newScrollLeft * (scrollValue / 100);
-    }
+    const currentElementIndex = Math.floor(
+      (rowVirtualizer.scrollOffset! + offsetX) / elementWidth
+    );
+    // console.log("currentElementIndex", currentElementIndex);
+
+    const currentElement =
+      rowVirtualizer.getVirtualItems()[currentElementIndex];
+    // console.log("currentElement", currentElement);
+
+    rowVirtualizer.scrollToOffset(
+      (currentElement.start + mouseX) * (scrollValue / 100)
+    );
+
+    // const zoomRatio = newZoom / prevZoomValue;
+    // const newScrollLeft = offsetX * zoomRatio;
+    // if (element) {
+    //   element.scrollLeft = newScrollLeft * (scrollValue / 100);
+    // }
     rowVirtualizer.measure();
   };
 
@@ -119,7 +174,6 @@ function MeterCore() {
     if (typeof window !== "undefined") {
       const updateWidth = () => setScreenWidth(window.innerWidth);
       updateWidth();
-
       window.addEventListener("resize", updateWidth);
       return () => window.removeEventListener("resize", updateWidth);
     }
