@@ -29,11 +29,6 @@ function MeterCore() {
   const [scrollLeft, setScrollLeft] = useState(0);
   const meterComponentRef = useRef<HTMLDivElement>(null);
 
-  const [dragStartElementIndex, setDragStartElementIndex] =
-    useState<MeterRangeDTO>();
-  const [dragStartElementIndex1, setDragStartElementIndex1] =
-    useState<number>();
-
   const [scrollValue, setScrollValue] = useState<number>(100);
 
   // Meter Navigation
@@ -52,51 +47,16 @@ function MeterCore() {
     setIsDragging(true);
     setStartX(event.pageX - (meterComponentRef.current?.offsetLeft || 0));
     setScrollLeft(meterComponentRef.current?.scrollLeft || 0);
-
-    if (rowVirtualizer.range) {
-      setDragStartElementIndex({
-        start: rowVirtualizer.range.startIndex,
-        end: rowVirtualizer.range.endIndex,
-      });
-
-      const currentElementIndex = Math.floor(
-        (rowVirtualizer.scrollOffset! + event.pageX) / elementWidth
-      );
-
-      setDragStartElementIndex1(currentElementIndex);
-    }
-
     setLastDragTime(Date.now());
   };
   const handleMouseMove = (event: React.MouseEvent) => {
     if (!isDragging) return;
     const moveX = event.pageX - startX;
-
-    // console.log("scrollLeft", scrollLeft);
-    // console.log("scrollLeft - moveX", scrollLeft - moveX);
-
-    // console.log(rowVirtualizer.scrollBy(scrollLeft - moveX));
-
-    const currentElementIndex = Math.floor(
-      (rowVirtualizer.scrollOffset! + event.pageX) / elementWidth
-    );
-
-    const range = rowVirtualizer.calculateRange();
-    console.log("start", range?.startIndex, "end ", range?.endIndex);
-
-    // console.log("currentDragElement", currentElementIndex);
-
-    if (meterComponentRef.current) {
-      rowVirtualizer!.scrollToOffset(scrollLeft - moveX);
-      // meterComponentRef.current.scrollLeft = scrollLeft - moveX;
-    }
+    rowVirtualizer!.scrollToOffset(scrollLeft - moveX);
 
     requestAnimationFrame(() => {
       rowVirtualizer.measure();
     });
-
-    // console.log(rowVirtualizer.isScrolling);
-    // rowVirtualizer.measure();
   };
   const handleMouseUp = (event: React.MouseEvent) => {
     setIsDragging(false);
@@ -108,7 +68,7 @@ function MeterCore() {
 
     const moveX = event.pageX - startX;
     const velocity = deltaTime === 0 ? 0 : -(moveX / deltaTime);
-    // applyInertia(velocity * 10);
+    applyInertia(velocity * 10);
   };
   const applyInertia = (vel: number) => {
     let velocity = vel;
@@ -139,29 +99,20 @@ function MeterCore() {
       minZoomPercentageValue,
       Math.min(maxZoomPercentageValue, scrollValue + zoomDirection * zoomStep)
     );
-    const prevZoomValue = scrollValue;
     setScrollValue(newZoom);
     setElementWidth(screenWidth * (scrollValue / 100));
 
-    const currentElementIndex = Math.floor(
-      (rowVirtualizer.scrollOffset! + offsetX) / elementWidth
+    const currentElement = rowVirtualizer.getVirtualItemForOffset(
+      rowVirtualizer.scrollOffset! + offsetX
     );
-    // console.log("currentElementIndex", currentElementIndex);
-
-    const currentElement =
-      rowVirtualizer.getVirtualItems()[currentElementIndex];
-    // console.log("currentElement", currentElement);
 
     rowVirtualizer.scrollToOffset(
-      (currentElement.start + mouseX) * (scrollValue / 100)
+      (currentElement!.start + mouseX) * (scrollValue / 100)
     );
 
-    // const zoomRatio = newZoom / prevZoomValue;
-    // const newScrollLeft = offsetX * zoomRatio;
-    // if (element) {
-    //   element.scrollLeft = newScrollLeft * (scrollValue / 100);
-    // }
-    rowVirtualizer.measure();
+    requestAnimationFrame(() => {
+      rowVirtualizer.measure();
+    });
   };
 
   // =============
@@ -186,6 +137,7 @@ function MeterCore() {
     getScrollElement: () => meterComponentRef.current,
     estimateSize: () => elementWidth,
     horizontal: true,
+    overscan: 20,
   });
 
   return (
