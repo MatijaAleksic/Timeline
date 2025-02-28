@@ -12,13 +12,19 @@ const MeterLine: React.FunctionComponent<IProps> = ({
   return (
     <div className={styles.meterLineContainer}>
       <div className={styles.meterLineDisplayValueContainer}>
-        <div className={styles.meterLineDisplayValue}>{displayValue}</div>
-      </div>
-      <div className={styles.lineContainer}>
         <div
-          className={isLarger ? styles.meterLineLarge : styles.meterLineNormal}
-        />
+          className={
+            isLarger
+              ? styles.meterLineDisplayValueLarge
+              : styles.meterLineDisplayValueNormal
+          }
+        >
+          {displayValue}
+        </div>
       </div>
+      <div
+        className={isLarger ? styles.meterLineLarge : styles.meterLineNormal}
+      />
     </div>
   );
 };

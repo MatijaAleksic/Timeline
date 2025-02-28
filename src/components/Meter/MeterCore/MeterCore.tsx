@@ -8,6 +8,8 @@ import MeterMonth from "../MeterMonth/MeterMonth";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import DummyData from "@/util/data/DummyData";
 import MeterConstants from "@/util/constants/MeterConstants";
+import useDebounce from "@/util/hooks/useDebounce";
+import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
 
 //FOR VIRTUAL SCROLL PURPOSES USE NEXT LIBRARIES:
 // React Window
@@ -16,10 +18,6 @@ import MeterConstants from "@/util/constants/MeterConstants";
 // React Lazyload
 
 function MeterCore() {
-  const minZoomPercentageValue = 50;
-  const maxZoomPercentageValue = 200;
-  const zoomStep = 5;
-
   const [date, setDate] = useState<Date>(new Date(2025, 0, 1, 10));
 
   const [isDragging, setIsDragging] = useState(false);
@@ -84,31 +82,7 @@ function MeterCore() {
   };
   // ===============================================================
 
-  // const handleZoom = (event: any) => {
-  //   const mouseX = event.clientX;
-
-  //   const element = meterComponentRef.current;
-  //   if (!element) return;
-
-  //   const zoomDirection = event.deltaY > 0 ? -1 : 1;
-  //   const newZoom = Math.max(
-  //     minZoomPercentageValue,
-  //     Math.min(maxZoomPercentageValue, scrollValue + zoomDirection * zoomStep)
-  //   );
-  //   setScrollValue(newZoom);
-  //   setElementWidth(screenWidth * (newZoom / 100));
-
-  //   requestAnimationFrame(() => {
-  //     rowVirtualizer.measure();
-  //   });
-
-  //   rowVirtualizer.scrollToOffset(
-  //     (rowVirtualizer.scrollOffset! + event.pageX) * (newZoom / 100) - mouseX
-  //   );
-  // };
   const handleZoom = (event: any) => {
-    event.preventDefault();
-
     const element = meterComponentRef.current;
     if (!element) return;
 
@@ -118,8 +92,11 @@ function MeterCore() {
     const zoomDirection = event.deltaY > 0 ? -1 : 1;
 
     const newZoom = Math.max(
-      minZoomPercentageValue,
-      Math.min(maxZoomPercentageValue, scrollValue + zoomDirection * zoomStep)
+      MeterConstants.minZoomPercentageValue,
+      Math.min(
+        MeterConstants.maxZoomPercentageValue,
+        scrollValue + zoomDirection * MeterConstants.zoomStep
+      )
     );
 
     const scaleFactor = newZoom / scrollValue;
@@ -136,6 +113,9 @@ function MeterCore() {
 
     rowVirtualizer.scrollToOffset(newScrollOffset);
   };
+
+  const debouncedFn = useDebouncedWheel(handleZoom, 200);
+
   // =============
   // VIRTUALIZER
   // =============

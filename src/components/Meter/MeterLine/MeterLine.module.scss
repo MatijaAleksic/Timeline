@@ -6,26 +6,33 @@
   justify-content: center;
   width: 0;
 
-  .lineContainer {
-    .meterLineNormal {
-      height: 4rem;
-      width: 1px;
-      background: #000;
-      margin-bottom: 1rem;
-    }
+  .meterLineNormal {
+    height: 4rem;
+    width: 1px;
+    background: #000;
+    margin-bottom: 1rem;
+  }
 
-    .meterLineLarge {
-      height: 6rem;
-      width: 4.6px;
-      background: #000;
-      margin-bottom: 1rem;
-    }
+  .meterLineLarge {
+    height: 6rem;
+    width: 4px;
+    background: red;
+    margin-bottom: 1rem;
   }
 
   .meterLineDisplayValueContainer {
     user-select: none;
 
-    .meterLineDisplayValue {
+    .meterLineDisplayValueNormal {
+      font-size: 0.6rem;
+      width: 0px;
+      display: flex;
+      justify-content: center;
+      white-space: nowrap;
+    }
+
+    .meterLineDisplayValueLarge {
+      font-size: 1rem;
       width: 0px;
       display: flex;
       justify-content: center;
