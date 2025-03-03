@@ -30,7 +30,9 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
         return (
           <MeterLine
             key={index}
-            displayValue={format(day, "d LLL")}
+            displayValue={
+              isFirstDayOfMonth(day) ? format(day, "d LLL") : format(day, "d")
+            }
             isLarger={isFirstDayOfMonth(day)}
           />
         );

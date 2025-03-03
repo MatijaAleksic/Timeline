@@ -1,7 +1,7 @@
 export default class MeterContants {
-  public static minZoomPercentageValue: number = 50;
-  public static maxZoomPercentageValue: number = 200;
-  public static zoomStep: number = 10;
+  public static minZoomPercentageValue: number = 20;
+  public static maxZoomPercentageValue: number = 620;
+  public static zoomStep: number = 20;
 
   // Min number of Miliseconds for slide to take effect
   public static minTimeElapsedForSlidingEffect: number = 500;

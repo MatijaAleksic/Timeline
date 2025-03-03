@@ -116,7 +116,7 @@ function MeterCore() {
   // =============
   // VIRTUALIZER
   // =============
-  const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
+  const [screenWidth, setScreenWidth] = useState<number>(0);
   const [elementWidth, setElementWidth] = useState<number>(screenWidth);
 
   useEffect(() => {
@@ -128,6 +128,10 @@ function MeterCore() {
     }
   }, []);
 
+  useEffect(() => {
+    setElementWidth(screenWidth); // Update element width after screenWidth is set
+  }, [screenWidth]);
+
   const monthData = DummyData.getMonths(date);
 
   const rowVirtualizer = useVirtualizer({
@@ -138,7 +142,7 @@ function MeterCore() {
     overscan: 20, // how many items to prerender on each side of virtual scroll
   });
 
-  const debouncedHandleZoom = useDebouncedWheel(handleZoom, 20);
+  const debouncedHandleZoom = useDebouncedWheel(handleZoom, 25);
 
   return (
     <div className={styles.meterWrapper}>
