@@ -5,11 +5,13 @@ import styles from "./MeterMonth.module.scss";
 interface IProps {
   date: Date;
   width: number;
+  zoomValue: number;
 }
 
 const MeterMonth: React.FunctionComponent<IProps> = ({
   date,
   width,
+  zoomValue,
   ...props
 }) => {
   const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -20,6 +22,8 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
     end: lastDayOfMonth,
   });
 
+  const hours = Array.from({ length: 24 }, (_, i) => i + 1);
+
   return (
     <div
       className={styles.monthDaysContainer}
@@ -28,13 +32,21 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
     >
       {days.map((day, index) => {
         return (
-          <MeterLine
-            key={index}
-            displayValue={
-              isFirstDayOfMonth(day) ? format(day, "d LLL") : format(day, "d")
-            }
-            isLarger={isFirstDayOfMonth(day)}
-          />
+          <div key={index} className={styles.daysContainer}>
+            <MeterLine
+              displayValue={
+                isFirstDayOfMonth(day) ? format(day, "d LLL") : format(day, "d")
+              }
+              isLarger={isFirstDayOfMonth(day)}
+            />
+            {zoomValue > 500 && (
+              <div className={styles.hoursContainer}>
+                {hours.map((hour, index) => (
+                  <div key={index} className={styles.hour} />
+                ))}
+              </div>
+            )}
+          </div>
         );
       })}
     </div>

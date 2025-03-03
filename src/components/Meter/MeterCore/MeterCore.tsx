@@ -177,8 +177,10 @@ function MeterCore() {
               }}
             >
               <MeterMonth
+                key={virtualItem.key}
                 date={monthData[virtualItem.index]}
                 width={elementWidth}
+                zoomValue={scrollValue}
               />
             </div>
           ))}

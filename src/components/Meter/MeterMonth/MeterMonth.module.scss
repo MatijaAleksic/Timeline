@@ -3,3 +3,22 @@
   display: flex;
   justify-content: stretch;
 }
+
+.daysContainer {
+  display: flex;
+  width: 100%;
+}
+
+.hoursContainer {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+  justify-content: space-evenly;
+
+  .hour {
+    height: 1.2rem;
+    width: 1px;
+    background: #000;
+  }
+}
