@@ -8,7 +8,6 @@ import MeterMonth from "../MeterMonth/MeterMonth";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import DummyData from "@/util/data/DummyData";
 import MeterConstants from "@/util/constants/MeterConstants";
-import useDebounce from "@/util/hooks/useDebounce";
 import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
 
 //FOR VIRTUAL SCROLL PURPOSES USE NEXT LIBRARIES:
@@ -114,8 +113,6 @@ function MeterCore() {
     rowVirtualizer.scrollToOffset(newScrollOffset);
   };
 
-  const debouncedFn = useDebouncedWheel(handleZoom, 200);
-
   // =============
   // VIRTUALIZER
   // =============
@@ -138,8 +135,10 @@ function MeterCore() {
     getScrollElement: () => meterComponentRef.current,
     estimateSize: () => elementWidth,
     horizontal: true,
-    overscan: 20,
+    overscan: 20, // how many items to prerender on each side of virtual scroll
   });
+
+  const debouncedHandleZoom = useDebouncedWheel(handleZoom, 20);
 
   return (
     <div className={styles.meterWrapper}>
@@ -150,7 +149,7 @@ function MeterCore() {
       />
       <div
         className={styles.meterComponent}
-        onWheel={handleZoom}
+        onWheel={debouncedHandleZoom}
         ref={meterComponentRef}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
