@@ -1,4 +1,4 @@
-import MeterCore from "@/components/Meter/MeterCore";
+import MeterCore from "@/components/Meter/MeterCoreVirtualizer";
 import ReactVirtual from "@/components/VirtualScroll/ReactVirtual/ReactVirtual";
 
 function MeterPage() {
