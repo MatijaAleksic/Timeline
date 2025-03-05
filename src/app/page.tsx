@@ -1,13 +1,13 @@
 import MeterCoreVirtualizer from "@/components/Meter/MeterCoreVirtualizer";
 import MeterCoreReactWindow from "@/components/Meter/MeterCoreReactWindow";
-import CustomVirtualScroll from "@/components/Test/CustomVirtualScroll";
+import HorizontalVirtualScroll from "@/components/VirtualScroll/HorizontalVirtualScroll";
 
 function MeterPage() {
   return (
     <>
       {/* <MeterCoreVirtualizer /> */}
       {/* <MeterCoreReactWindow /> */}
-      <CustomVirtualScroll />
+      <HorizontalVirtualScroll />
     </>
   );
 }
