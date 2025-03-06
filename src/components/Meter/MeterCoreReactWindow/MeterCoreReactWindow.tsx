@@ -64,7 +64,6 @@ function MeterCoreReactWindow() {
   // ===============================================================
 
   const handleMouseDown = (event: React.MouseEvent) => {
-    console.log("mouseDown");
     setIsDragging(true);
     setStartX(event.pageX);
     setScrollLeft(containerRef.current?.scrollLeft || 0);

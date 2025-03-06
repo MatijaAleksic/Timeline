@@ -33,7 +33,7 @@ const CustomVirtualScroll = () => {
     getScrollElement: () => meterComponentRef.current,
     elementWidth: elementWidth,
     horizontal: true,
-    overscan: calculateOverScan(),
+    overscan: 1,
     onChange: (event) => {
       // console.log("==============================");
       // console.log("range", event.calculateRange());
@@ -162,7 +162,7 @@ const CustomVirtualScroll = () => {
       newScrollOffset,
       virtualizer.getVirtualIndexes()[0]
     );
-    // remeasureVirtualizer();
+    remeasureVirtualizer();
   };
   const debouncedHandleZoom = useDebouncedWheel(
     handleZoom,
@@ -188,23 +188,34 @@ const CustomVirtualScroll = () => {
           }}
         >
           <div className={styles.meterCenterLine} />
-          {virtualizer.getVirtualItems().map((virtualItem, index) => (
-            <div
-              className={styles.virtualizerContainer}
-              key={virtualItem.key}
-              style={{
-                left: index * elementWidth,
-                width: `${elementWidth}px`,
-              }}
-            >
-              <MeterMonth
+
+          <div
+            className={styles.virtualizerOffset}
+            style={{
+              left: `${virtualizer.getVirtualIndexes()[0] * elementWidth}px`,
+              position: "absolute"
+            }}>
+            {virtualizer.getVirtualItems().map((virtualItem, index) => (
+              <div
+                className={styles.virtualizerContainer}
+
                 key={virtualItem.key}
-                date={dummyData[virtualItem.index]}
-                width={elementWidth}
-                zoomValue={scrollValue}
-              />
-            </div>
-          ))}
+                style={{
+                  left: index * elementWidth,
+                  width: `${elementWidth}px`,
+                }}
+              >
+                <MeterMonth
+                  key={virtualItem.key}
+                  date={dummyData[virtualItem.index]}
+                  width={elementWidth}
+                  zoomValue={scrollValue}
+                />
+              </div>
+            ))}
+
+          </div>
+
         </div>
       </div>
     </div>

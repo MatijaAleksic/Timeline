@@ -42,16 +42,16 @@ function MeterCoreVirtualizer() {
     horizontal: true,
     overscan: calculateOverScan(), // how many items to prerender on each side of virtual scroll
     onChange: (event: any) => {
-      console.log("============");
-      console.log("range", event.range); // same as event.calculateRange but just read value
-      console.log("virtualIndexes", event.getVirtualIndexes()); // get all virtual indexes
-      console.log("overscan", event.options.overscan);
-      console.log("scrollOffset", event.scrollOffset); // same as .getScrollOffset() but reads
+      // console.log("============");
+      // console.log("range", event.range); // same as event.calculateRange but just read value
+      // console.log("virtualIndexes", event.getVirtualIndexes()); // get all virtual indexes
+      // console.log("overscan", event.options.overscan);
+      // console.log("scrollOffset", event.scrollOffset); // same as .getScrollOffset() but reads
 
-      console.log("totalVirtualWidth", event.getTotalSize()); // get total size of the virtual width (totalWidth * oneElementWidth)
-      console.log("totalVirtualWidthCache", event.measurementsCache[0].size); // OVO SE NE UPDATUJE KAKO TREBA
+      // console.log("totalVirtualWidth", event.getTotalSize()); // get total size of the virtual width (totalWidth * oneElementWidth)
+      // console.log("totalVirtualWidthCache", event.measurementsCache[0].size); // OVO SE NE UPDATUJE KAKO TREBA
 
-      console.log(event.getSize()); // get size of virtual window
+      // console.log(event.getSize()); // get size of virtual window
       // console.log(event.calculateRange()); // { startIndex, endIndex}
       // console.log(event.getScrollOffset()); // gets virtual scroll offset
       // console.log(event.getMeasurements()); // all elements with their attributes { start(px), end(px), index, size, key, lane}
@@ -205,14 +205,6 @@ function MeterCoreVirtualizer() {
     MeterConstants.debounceWheelMilliseconds
   );
   // ===============================================================
-  // console.log(
-  //   "meterComponentRef.scrollLeft",
-  //   meterComponentRef!.current!.scrollLeft
-  // );
-  // console.log("rowVirtualizer", monthData.length * elementWidth);
-  // console.log("rowVirtualizer.scrollOffset", rowVirtualizer.scrollOffset);
-  // console.log(elementWidth * 12);
-  // console.log("render", screenWidth);
 
   return (
     <div className={styles.meterWrapper}>
