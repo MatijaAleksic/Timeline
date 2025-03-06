@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import useVirtualizer from "./useVirtualizer"; // adjust the import path as needed
 import styles from "./HorizontalVirtualScroll.module.scss";
 import MeterConstants from "@/util/constants/MeterConstants";
@@ -18,40 +12,39 @@ const CustomVirtualScroll = () => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [lastDragTime, setLastDragTime] = useState<number>(0);
   const [startX, setStartX] = useState<number>(0);
+  const [startVirtualElementIndex, setStartVirtualElementIndex] =
+    useState<number>(0);
   const [scrollLeft, setScrollLeft] = useState<number>(0);
   const [scrollValue, setScrollValue] = useState<number>(100);
   const [screenWidth, setScreenWidth] = useState<number>(0);
   const [elementWidth, setElementWidth] = useState<number>(0);
 
   const dummyData = DummyData.getMonths(new Date(2025, 0, 1, 10));
-  const scrollWrapperRef = useRef<HTMLDivElement>(null);
   const meterComponentRef = useRef<HTMLDivElement>(null);
 
   const calculateOverScan = (): number => {
     if (screenWidth && elementWidth)
-      return Math.ceil(screenWidth / elementWidth) * 3;
-    return 2;
+      return Math.ceil(screenWidth / elementWidth) * 2;
+    return 1;
   };
 
   const virtualizer = useVirtualizer({
     count: dummyData.length,
     getScrollElement: () => meterComponentRef.current,
-    getScrollWrapper: () => scrollWrapperRef.current,
-    estimateSize: elementWidth,
+    elementWidth: elementWidth,
     horizontal: true,
     overscan: calculateOverScan(),
     onChange: (event) => {
-      console.log("==============================");
+      // console.log("==============================");
       // console.log("range", event.calculateRange());
       // console.log("scrollOffset", event.getScrollOffset());
-      console.log("size", event.getSize());
-      console.log("elementWidth", elementWidth);
-
-      console.log("totalSize", event.getTotalSize());
-      console.log("virtualIndexes", event.getVirtualIndexes());
       // console.log("options", event.options);
-      console.log("range", event.range);
-      console.log("scrollOffset", event.scrollOffset);
+      // console.log("size", event.getSize());
+      // console.log("elementWidth", elementWidth);
+      // console.log("totalSize", event.getTotalSize());
+      // console.log("virtualIndexes", event.getVirtualIndexes());
+      // console.log("range", event.range);
+      // console.log("scrollOffset", event.scrollOffset);
     },
   });
 
@@ -62,10 +55,9 @@ const CustomVirtualScroll = () => {
         setScreenWidth(newWidth);
         setElementWidth(newWidth);
       };
-      updateWidth(); // Initial width set
-      window.addEventListener("resize", updateWidth); // Update on resize
-
-      return () => window.removeEventListener("resize", updateWidth); // Cleanup on unmount
+      updateWidth();
+      window.addEventListener("resize", updateWidth);
+      return () => window.removeEventListener("resize", updateWidth);
     }
   }, []);
 
@@ -86,15 +78,23 @@ const CustomVirtualScroll = () => {
   const handleMouseDown = (event: React.MouseEvent) => {
     setIsDragging(true);
     setStartX(event.pageX - (meterComponentRef.current?.offsetLeft || 0));
+    const virtualIndexes = virtualizer.getVirtualIndexes();
+    if (virtualIndexes.length > 0) {
+      setStartVirtualElementIndex(virtualIndexes[0]);
+    }
     setScrollLeft(meterComponentRef.current?.scrollLeft || 0);
     setLastDragTime(Date.now());
   };
   const handleMouseMove = (event: React.MouseEvent) => {
     if (!isDragging) return;
     const moveX = event.pageX - startX;
-    virtualizer!.scrollToOffset(scrollLeft - moveX);
-    remeasureVirtualizer();
+
+    // virtualizer!.scrollToOffset(scrollLeft - moveX, startVirtualElementIndex);
+    virtualizer!.scrollToOffset(scrollLeft - moveX, startVirtualElementIndex);
+
+    // remeasureVirtualizer();
   };
+
   const handleMouseUp = (event: React.MouseEvent) => {
     setIsDragging(false);
     const endTime = Date.now();
@@ -105,15 +105,25 @@ const CustomVirtualScroll = () => {
 
     const moveX = event.pageX - startX;
     const velocity = deltaTime === 0 ? 0 : -(moveX / deltaTime);
-    applyInertia(velocity * MeterConstants.velocityMultiplier);
+
+    // const currentElementIndex = Math.floor(
+    //   (startX + scrollLeft) / elementWidth
+    // );
+
+    applyInertia(
+      velocity * MeterConstants.velocityMultiplier,
+      startVirtualElementIndex
+    );
+
+    // remeasureVirtualizer();
   };
-  const applyInertia = (vel: number) => {
+  const applyInertia = (vel: number, startVirtualIndex: number) => {
     let velocity = vel;
     const inertiaScroll = () => {
       if (Math.abs(velocity) < MeterConstants.slidingCutoff) {
         return;
       }
-      virtualizer.scrollBy(velocity);
+      virtualizer.scrollBy(velocity, startVirtualIndex);
       velocity *= MeterConstants.slidingInertiaDumping;
       requestAnimationFrame(inertiaScroll);
     };
@@ -148,17 +158,20 @@ const CustomVirtualScroll = () => {
     const newScrollOffset =
       (virtualizer.scrollOffset! + offsetX) * scaleFactor - offsetX;
 
-    virtualizer.scrollToOffset(newScrollOffset);
-    remeasureVirtualizer();
+    virtualizer.scrollToOffset(
+      newScrollOffset,
+      virtualizer.getVirtualIndexes()[0]
+    );
+    // remeasureVirtualizer();
   };
   const debouncedHandleZoom = useDebouncedWheel(
     handleZoom,
     MeterConstants.debounceWheelMilliseconds
   );
+  // ===============================================================
 
   return (
     <div className={styles.meterWrapper}>
-      {/* <div ref={scrollWrapperRef} className={styles.scrollWrapper}> */}
       <div
         className={styles.meterComponent}
         onWheel={debouncedHandleZoom}
@@ -195,7 +208,6 @@ const CustomVirtualScroll = () => {
         </div>
       </div>
     </div>
-    // </div>
   );
 };
 

@@ -13,17 +13,11 @@
 .meterComponent {
   height: 20vh;
   width: 100%;
-  min-width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
 
   background-color: lightgreen;
 
-  overflow-x: hidden;
+  overflow-x: scroll;
   overflow-y: hidden;
-
-  transition: scroll-left 0.2s ease-in-out;
 }
 
 .meterCenterLine {
@@ -38,6 +32,7 @@
   position: relative;
   display: flex;
   align-items: center;
+  overflow-x: hidden;
 }
 
 .virtualizerContainer {
