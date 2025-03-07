@@ -66,15 +66,12 @@ const CustomVirtualScroll = () => {
 
   useEffect(() => {
     if (screenWidth > 0) {
-      remeasureVirtualizer();
+      requestAnimationFrame(() => {
+        virtualizer.measure();
+      });
     }
   }, [screenWidth]);
 
-  const remeasureVirtualizer = () => {
-    requestAnimationFrame(() => {
-      virtualizer.measure();
-    });
-  };
 
   // Handles dragging the meter so you dont have to use scroll wheel
   // ===============================================================
