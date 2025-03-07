@@ -1,7 +1,21 @@
+@use "@/styles/colors.module.scss";
+
 .monthDaysContainer {
   height: 100%;
   display: flex;
   justify-content: stretch;
+
+  .backgroundYear {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--red);
+    opacity: 0.4;
+  }
 }
 
 .daysContainer {

@@ -24,7 +24,7 @@ const CustomVirtualScroll = () => {
 
   const calculateOverScan = (): number => {
     if (screenWidth && elementWidth)
-      return Math.floor(Math.ceil(screenWidth / elementWidth) * 1.5);
+      return Math.ceil(Math.ceil(screenWidth / elementWidth) * 2);
     return 2;
   };
 
@@ -34,22 +34,14 @@ const CustomVirtualScroll = () => {
     elementWidth: elementWidth,
     horizontal: true,
     overscan: calculateOverScan(),
-    /*
-     onChange: (event) => {
-    console.log("==============================");
-    console.log("range", event.calculateRange());
-    console.log("scrollOffset", event.getScrollOffset());
-    console.log("options", event.options);
-    console.log("size", event.getSize());
-    console.log("elementWidth", elementWidth);
-    console.log("totalSize", event.getTotalSize());
-    console.log('overscan', calculateOverScan())
-    console.log("virtualIndexes", event.getVirtualIndexes());
-    console.log("range", event.range);
-    console.log("scrollOffset", event.scrollOffset);
-    },  */
   });
-
+  console.log("==============================");
+  console.log("overscan", calculateOverScan());
+  console.log("elementWidth", elementWidth);
+  console.log("totalSize", elementWidth * dummyData.length);
+  console.log("virtualIndexes", virtualizer.getVirtualIndexes());
+  console.log("range", virtualizer.getRange());
+  console.log("scrollLeft", virtualizer.scrollOffset);
 
   useLayoutEffect(() => {
     if (typeof window !== "undefined") {
@@ -72,7 +64,6 @@ const CustomVirtualScroll = () => {
     }
   }, [screenWidth]);
 
-
   // Handles dragging the meter so you dont have to use scroll wheel
   // ===============================================================
   const handleMouseDown = (event: React.MouseEvent) => {
@@ -90,7 +81,6 @@ const CustomVirtualScroll = () => {
     const moveX = event.pageX - startX;
     virtualizer!.scrollToOffset(scrollLeft - moveX, startVirtualElementIndex);
   };
-
   const handleMouseUp = (event: React.MouseEvent) => {
     setIsDragging(false);
     const endTime = Date.now();
@@ -148,10 +138,7 @@ const CustomVirtualScroll = () => {
     const newScrollOffset =
       (virtualizer.scrollOffset! + offsetX) * scaleFactor - offsetX;
 
-    virtualizer.scrollToOffset(
-      newScrollOffset,
-      startVirtualElementIndex
-    );
+    virtualizer.scrollToOffset(newScrollOffset, startVirtualElementIndex);
   };
   const debouncedHandleZoom = useDebouncedWheel(
     handleZoom,
@@ -181,7 +168,8 @@ const CustomVirtualScroll = () => {
             className={styles.virtualizerOffset}
             style={{
               left: `${virtualizer.getVirtualIndexes()[0] * elementWidth}px`,
-            }}>
+            }}
+          >
             {virtualizer.getVirtualItems().map((virtualItem, index) => (
               <div
                 className={styles.virtualizerContainer}

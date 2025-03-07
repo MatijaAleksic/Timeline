@@ -126,7 +126,7 @@ function useVirtualizer(options: VirtualizerOptions) {
     if (horizontal) {
       scrollElement.scrollLeft = offset - indexDelta * elementWidth;
     } else {
-      scrollElement.scrollTop = offset;
+      scrollElement.scrollTop = offset - indexDelta * elementWidth;
     }
     updateVirtualItems();
   };
@@ -138,17 +138,8 @@ function useVirtualizer(options: VirtualizerOptions) {
     const virtualIndexes = getVirtualIndexes();
     if (virtualIndexes.length === 0) return;
 
-    let indexDelta = 0;
-    if (
-      virtualIndexes.length > 0 &&
-      !virtualIndexes.includes(startElementIndex)
-    ) {
-      indexDelta = virtualIndexes[0] - startElementIndex;
-    }
-
     if (horizontal) {
       scrollElement.scrollLeft += delta;
-      // scrollElement.scrollLeft - indexDelta * elementWidth + delta;
     } else {
       scrollElement.scrollTop += delta;
     }

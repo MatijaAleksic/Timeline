@@ -1,8 +1,7 @@
-@import '@/styles/colors.module.scss';
+@use "@/styles/colors.module.scss";
 
 .meterWrapper {
   position: absolute;
-  background-color: var(--light-blue);
   width: 100%;
   height: 100%;
 
@@ -44,7 +43,7 @@
   height: 100%;
 }
 
-.virtualizerOffset{
+.virtualizerOffset {
   height: 100%;
   position: absolute;
 }

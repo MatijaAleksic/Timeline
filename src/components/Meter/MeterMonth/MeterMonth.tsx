@@ -30,12 +30,20 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
       {...props}
       style={{ width: `${width}px` }}
     >
+      <div className={styles.backgroundYear}>
+        {format(firstDayOfMonth, "yyyy")}
+      </div>
+
       {days.map((day, index) => {
         return (
           <div key={index} className={styles.daysContainer}>
             <MeterLine
               displayValue={
-                isFirstDayOfMonth(day) ? format(day, "d LLL") : format(day, "d")
+                isFirstDayOfMonth(day)
+                  ? day.getMonth() === 0
+                    ? format(day, "yyyy")
+                    : format(day, "d LLL")
+                  : format(day, "d")
               }
               isLarger={isFirstDayOfMonth(day)}
             />
