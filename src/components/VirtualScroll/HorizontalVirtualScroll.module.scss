@@ -1,6 +1,8 @@
+@import '@/styles/colors.module.scss';
+
 .meterWrapper {
   position: absolute;
-  background-color: lightcyan;
+  background-color: var(--light-blue);
   width: 100%;
   height: 100%;
 
@@ -11,12 +13,13 @@
 }
 
 .meterComponent {
-  height: 20vh;
+  height: 30vh;
   width: 100%;
+  user-select: none;
 
-  background-color: lightgreen;
+  background-color: var(--violet);
 
-  overflow-x: scroll;
+  overflow-x: hidden;
   overflow-y: hidden;
 }
 
@@ -43,4 +46,5 @@
 
 .virtualizerOffset{
   height: 100%;
+  position: absolute;
 }

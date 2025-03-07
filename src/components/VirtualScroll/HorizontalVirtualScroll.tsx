@@ -19,13 +19,13 @@ const CustomVirtualScroll = () => {
   const [screenWidth, setScreenWidth] = useState<number>(0);
   const [elementWidth, setElementWidth] = useState<number>(0);
 
-  const dummyData = DummyData.getMonths(new Date(2025, 0, 1, 10));
+  const dummyData = DummyData.getMonths(new Date(2025, 0, 1, 10), 120);
   const meterComponentRef = useRef<HTMLDivElement>(null);
 
   const calculateOverScan = (): number => {
     if (screenWidth && elementWidth)
-      return Math.ceil(screenWidth / elementWidth) * 2;
-    return 1;
+      return Math.floor(Math.ceil(screenWidth / elementWidth) * 1.5);
+    return 2;
   };
 
   const virtualizer = useVirtualizer({
@@ -33,20 +33,23 @@ const CustomVirtualScroll = () => {
     getScrollElement: () => meterComponentRef.current,
     elementWidth: elementWidth,
     horizontal: true,
-    overscan: 1,
-    onChange: (event) => {
-      // console.log("==============================");
-      // console.log("range", event.calculateRange());
-      // console.log("scrollOffset", event.getScrollOffset());
-      // console.log("options", event.options);
-      // console.log("size", event.getSize());
-      // console.log("elementWidth", elementWidth);
-      // console.log("totalSize", event.getTotalSize());
-      // console.log("virtualIndexes", event.getVirtualIndexes());
-      // console.log("range", event.range);
-      // console.log("scrollOffset", event.scrollOffset);
-    },
+    overscan: calculateOverScan(),
+    /*
+     onChange: (event) => {
+    console.log("==============================");
+    console.log("range", event.calculateRange());
+    console.log("scrollOffset", event.getScrollOffset());
+    console.log("options", event.options);
+    console.log("size", event.getSize());
+    console.log("elementWidth", elementWidth);
+    console.log("totalSize", event.getTotalSize());
+    console.log('overscan', calculateOverScan())
+    console.log("virtualIndexes", event.getVirtualIndexes());
+    console.log("range", event.range);
+    console.log("scrollOffset", event.scrollOffset);
+    },  */
   });
+
 
   useLayoutEffect(() => {
     if (typeof window !== "undefined") {
@@ -88,11 +91,7 @@ const CustomVirtualScroll = () => {
   const handleMouseMove = (event: React.MouseEvent) => {
     if (!isDragging) return;
     const moveX = event.pageX - startX;
-
-    // virtualizer!.scrollToOffset(scrollLeft - moveX, startVirtualElementIndex);
     virtualizer!.scrollToOffset(scrollLeft - moveX, startVirtualElementIndex);
-
-    // remeasureVirtualizer();
   };
 
   const handleMouseUp = (event: React.MouseEvent) => {
@@ -106,16 +105,10 @@ const CustomVirtualScroll = () => {
     const moveX = event.pageX - startX;
     const velocity = deltaTime === 0 ? 0 : -(moveX / deltaTime);
 
-    // const currentElementIndex = Math.floor(
-    //   (startX + scrollLeft) / elementWidth
-    // );
-
     applyInertia(
       velocity * MeterConstants.velocityMultiplier,
       startVirtualElementIndex
     );
-
-    // remeasureVirtualizer();
   };
   const applyInertia = (vel: number, startVirtualIndex: number) => {
     let velocity = vel;
@@ -160,9 +153,8 @@ const CustomVirtualScroll = () => {
 
     virtualizer.scrollToOffset(
       newScrollOffset,
-      virtualizer.getVirtualIndexes()[0]
+      startVirtualElementIndex
     );
-    remeasureVirtualizer();
   };
   const debouncedHandleZoom = useDebouncedWheel(
     handleZoom,
@@ -188,17 +180,14 @@ const CustomVirtualScroll = () => {
           }}
         >
           <div className={styles.meterCenterLine} />
-
           <div
             className={styles.virtualizerOffset}
             style={{
               left: `${virtualizer.getVirtualIndexes()[0] * elementWidth}px`,
-              position: "absolute"
             }}>
             {virtualizer.getVirtualItems().map((virtualItem, index) => (
               <div
                 className={styles.virtualizerContainer}
-
                 key={virtualItem.key}
                 style={{
                   left: index * elementWidth,
@@ -213,9 +202,7 @@ const CustomVirtualScroll = () => {
                 />
               </div>
             ))}
-
           </div>
-
         </div>
       </div>
     </div>

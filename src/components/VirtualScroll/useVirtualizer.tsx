@@ -63,12 +63,6 @@ function useVirtualizer(options: VirtualizerOptions) {
       Math.floor((scrollPosition + containerSize) / elementWidth)
     );
 
-    // console.log("=========");
-    // console.log("indexes", getVirtualIndexes());
-    // console.log("offset", scrollPosition);
-    // console.log("startIndex", startIndex);
-    // console.log("endIndex", endIndex);
-
     const overScanStart = Math.max(0, startIndex - overscan);
     const overScanEnd = Math.min(count - 1, endIndex + overscan);
 
@@ -129,12 +123,8 @@ function useVirtualizer(options: VirtualizerOptions) {
     const scrollElement = getScrollElement();
     if (!scrollElement) return;
 
-    // console.log("===========");
-    // console.log("scrollElement", scrollElement);
-    // console.log("indexes", getVirtualIndexes());
-    // console.log("offset", offset);
     if (horizontal) {
-      scrollElement.scrollLeft = offset; // - indexDelta * elementWidth;
+      scrollElement.scrollLeft = offset - indexDelta * elementWidth;
     } else {
       scrollElement.scrollTop = offset;
     }

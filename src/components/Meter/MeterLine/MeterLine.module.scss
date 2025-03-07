@@ -1,3 +1,5 @@
+@import '@/styles/colors.module.scss';
+
 .meterLineContainer {
   display: flex;
   flex-direction: column;
@@ -8,15 +10,15 @@
 
   .meterLineNormal {
     height: 4rem;
-    width: 1px;
-    background: #000;
+    width: 0.5px;
+    background: var(--black);
     margin-bottom: 1rem;
   }
 
   .meterLineLarge {
     height: 6rem;
     width: 4px;
-    background: red;
+    background: var(--red);
     margin-bottom: 1rem;
   }
 
