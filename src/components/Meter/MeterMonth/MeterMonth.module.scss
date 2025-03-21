@@ -1,6 +1,38 @@
+@use "@/styles/colors.module.scss";
+
 .monthDaysContainer {
+  height: 100%;
   display: flex;
-  justify-content: space-around;
-  flex-shrink: 0;
-  box-sizing: border-box;
+  justify-content: stretch;
+
+  .backgroundYear {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--red);
+    opacity: 0.4;
+  }
+}
+
+.daysContainer {
+  display: flex;
+  width: 100%;
+}
+
+.hoursContainer {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+  justify-content: space-evenly;
+
+  .hour {
+    height: 1.2rem;
+    width: 1px;
+    background: #000;
+  }
 }
