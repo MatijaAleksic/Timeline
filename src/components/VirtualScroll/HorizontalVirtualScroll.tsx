@@ -35,13 +35,13 @@ const CustomVirtualScroll = () => {
     horizontal: true,
     overscan: calculateOverScan(),
   });
-  console.log("==============================");
-  console.log("overscan", calculateOverScan());
-  console.log("elementWidth", elementWidth);
-  console.log("totalSize", elementWidth * dummyData.length);
-  console.log("virtualIndexes", virtualizer.getVirtualIndexes());
-  console.log("range", virtualizer.getRange());
-  console.log("scrollLeft", virtualizer.scrollOffset);
+  // console.log("==============================");
+  // console.log("overscan", calculateOverScan());
+  // console.log("totalSize", elementWidth * dummyData.length);
+  // console.log("range", virtualizer.getRange());
+  // console.log("elementWidth", elementWidth);
+  // console.log("virtualIndexes", virtualizer.getVirtualIndexes());
+  // console.log("scrollLeft", virtualizer.scrollOffset);
 
   useLayoutEffect(() => {
     if (typeof window !== "undefined") {
@@ -79,7 +79,7 @@ const CustomVirtualScroll = () => {
   const handleMouseMove = (event: React.MouseEvent) => {
     if (!isDragging) return;
     const moveX = event.pageX - startX;
-    virtualizer!.scrollToOffset(scrollLeft - moveX, startVirtualElementIndex);
+    virtualizer!.scrollToOffset(scrollLeft - moveX);
   };
   const handleMouseUp = (event: React.MouseEvent) => {
     setIsDragging(false);
@@ -92,18 +92,15 @@ const CustomVirtualScroll = () => {
     const moveX = event.pageX - startX;
     const velocity = deltaTime === 0 ? 0 : -(moveX / deltaTime);
 
-    applyInertia(
-      velocity * MeterConstants.velocityMultiplier,
-      startVirtualElementIndex
-    );
+    applyInertia(velocity * MeterConstants.velocityMultiplier);
   };
-  const applyInertia = (vel: number, startVirtualIndex: number) => {
+  const applyInertia = (vel: number) => {
     let velocity = vel;
     const inertiaScroll = () => {
       if (Math.abs(velocity) < MeterConstants.slidingCutoff) {
         return;
       }
-      virtualizer.scrollBy(velocity, startVirtualIndex);
+      virtualizer.scrollBy(velocity);
       velocity *= MeterConstants.slidingInertiaDumping;
       requestAnimationFrame(inertiaScroll);
     };
@@ -138,7 +135,7 @@ const CustomVirtualScroll = () => {
     const newScrollOffset =
       (virtualizer.scrollOffset! + offsetX) * scaleFactor - offsetX;
 
-    virtualizer.scrollToOffset(newScrollOffset, startVirtualElementIndex);
+    virtualizer.scrollToOffset(newScrollOffset, screenWidth * (newZoom / 100));
   };
   const debouncedHandleZoom = useDebouncedWheel(
     handleZoom,

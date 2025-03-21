@@ -30,6 +30,10 @@ function useVirtualizer(options: VirtualizerOptions) {
 
   const getVirtualItems = (): VirtualItem[] => virtualItems;
 
+  useEffect(() => {
+    updateVirtualItems(); // Recalculate virtual items when element width changes
+  }, [elementWidth]);
+
   const getRange = () => {
     const scrollElement = getScrollElement();
     if (!scrollElement) return;
@@ -44,53 +48,66 @@ function useVirtualizer(options: VirtualizerOptions) {
       count - 1,
       Math.floor((scrollPos + containerSize) / elementWidth)
     );
+
     return { start: startIndex, end: endIndex };
   };
 
-  const updateVirtualItems = () => {
+  const updateVirtualItems = (newElementWidth?: number) => {
     const scrollElement = getScrollElement();
     if (!scrollElement) return;
+
     const scrollPosition = horizontal
       ? scrollElement.scrollLeft
       : scrollElement.scrollTop;
     const containerSize = horizontal
       ? scrollElement.clientWidth
       : scrollElement.clientHeight;
-
-    const startIndex = Math.floor(scrollPosition / elementWidth);
-    const endIndex = Math.min(
-      count - 1,
-      Math.floor((scrollPosition + containerSize) / elementWidth)
+    const numVisibleItems = Math.ceil(
+      containerSize / (newElementWidth ? newElementWidth : elementWidth)
     );
 
-    const overScanStart = Math.max(0, startIndex - overscan);
-    const overScanEnd = Math.min(count - 1, endIndex + overscan);
+    let startIndex = Math.max(
+      0,
+      Math.floor(
+        scrollPosition / (newElementWidth ? newElementWidth : elementWidth)
+      )
+    );
+    let endIndex = Math.min(count - 1, startIndex + numVisibleItems - 1);
+
+    let overScanStart = Math.max(0, startIndex - overscan);
+    let overScanEnd = Math.min(count - 1, endIndex + overscan);
+
+    if (overScanStart > 0 && startIndex < overscan) {
+      overScanStart = 0;
+    }
 
     const items: VirtualItem[] = [];
     for (let i = overScanStart; i <= overScanEnd; i++) {
-      const start = i * elementWidth;
-      const end = start + elementWidth;
       items.push({
         index: i,
-        start,
-        end,
+        start: i * (newElementWidth ? newElementWidth : elementWidth),
+        end: (i + 1) * (newElementWidth ? newElementWidth : elementWidth),
         key: `virtual-item-${i}`,
-        size: elementWidth,
+        size: newElementWidth ? newElementWidth : elementWidth,
       });
     }
+
     setVirtualItems(items);
     setScrollOffset(scrollPosition);
 
     if (onChange) {
       const event: VirtualizerEvent = {
-        range: { startIndex, endIndex },
+        range: { startIndex: overScanStart, endIndex: overScanEnd }, // Updated to use overscan
         getVirtualItems,
         getVirtualIndexes,
         options,
         scrollOffset: scrollPosition,
         getTotalSize: () => totalSize,
         getSize: () => elementWidth,
-        calculateRange: () => ({ startIndex, endIndex }),
+        calculateRange: () => ({
+          startIndex: overScanStart,
+          endIndex: overScanEnd,
+        }),
         getScrollOffset: () => scrollPosition,
       };
       onChange(event);
@@ -106,32 +123,21 @@ function useVirtualizer(options: VirtualizerOptions) {
     } else {
       scrollElement.scrollTop = newOffset;
     }
-    // updateVirtualItems();
   };
 
-  const scrollToOffset = (offset: number, startElementIndex: number) => {
-    const virtualIndexes = getVirtualIndexes();
-    let indexDelta = 0;
-
-    if (
-      virtualIndexes.length > 0 &&
-      !virtualIndexes.includes(startElementIndex)
-    ) {
-      indexDelta = virtualIndexes[0] - startElementIndex;
-    }
-
+  const scrollToOffset = (offset: number, elementWidth?: number) => {
     const scrollElement = getScrollElement();
     if (!scrollElement) return;
 
     if (horizontal) {
-      scrollElement.scrollLeft = offset - indexDelta * elementWidth;
+      scrollElement.scrollLeft = offset;
     } else {
-      scrollElement.scrollTop = offset - indexDelta * elementWidth;
+      scrollElement.scrollTop = offset;
     }
-    updateVirtualItems();
+    updateVirtualItems(elementWidth);
   };
 
-  const scrollBy = (delta: number, startElementIndex: number) => {
+  const scrollBy = (delta: number) => {
     const scrollElement = getScrollElement();
     if (!scrollElement) return;
 
