@@ -12,8 +12,6 @@ const CustomVirtualScroll = () => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [lastDragTime, setLastDragTime] = useState<number>(0);
   const [startX, setStartX] = useState<number>(0);
-  const [startVirtualElementIndex, setStartVirtualElementIndex] =
-    useState<number>(0);
   const [scrollLeft, setScrollLeft] = useState<number>(0);
   const [scrollValue, setScrollValue] = useState<number>(100);
   const [screenWidth, setScreenWidth] = useState<number>(0);
@@ -24,8 +22,8 @@ const CustomVirtualScroll = () => {
 
   const calculateOverScan = (): number => {
     if (screenWidth && elementWidth)
-      return Math.ceil(Math.ceil(screenWidth / elementWidth) * 2);
-    return 2;
+      return Math.ceil(Math.ceil(screenWidth / elementWidth));
+    return 3;
   };
 
   const virtualizer = useVirtualizer({
@@ -69,10 +67,6 @@ const CustomVirtualScroll = () => {
   const handleMouseDown = (event: React.MouseEvent) => {
     setIsDragging(true);
     setStartX(event.pageX - (meterComponentRef.current?.offsetLeft || 0));
-    const virtualIndexes = virtualizer.getVirtualIndexes();
-    if (virtualIndexes.length > 0) {
-      setStartVirtualElementIndex(virtualIndexes[0]);
-    }
     setScrollLeft(meterComponentRef.current?.scrollLeft || 0);
     setLastDragTime(Date.now());
   };

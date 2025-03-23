@@ -1,5 +1,5 @@
-import { VirtualItem } from "@tanstack/react-virtual";
 import { VirtualizerOptions } from "../useVirtualizer";
+import { VirtualItem } from "./VirtualItem";
 
 export interface VirtualizerEvent {
   range: { startIndex: number; endIndex: number };

@@ -66,16 +66,16 @@ function useVirtualizer(options: VirtualizerOptions) {
       containerSize / (newElementWidth ? newElementWidth : elementWidth)
     );
 
-    let startIndex = Math.max(
+    const startIndex = Math.max(
       0,
       Math.floor(
         scrollPosition / (newElementWidth ? newElementWidth : elementWidth)
       )
     );
-    let endIndex = Math.min(count - 1, startIndex + numVisibleItems - 1);
+    const endIndex = Math.min(count - 1, startIndex + numVisibleItems - 1);
 
     let overScanStart = Math.max(0, startIndex - overscan);
-    let overScanEnd = Math.min(count - 1, endIndex + overscan);
+    const overScanEnd = Math.min(count - 1, endIndex + overscan);
 
     if (overScanStart > 0 && startIndex < overscan) {
       overScanStart = 0;
