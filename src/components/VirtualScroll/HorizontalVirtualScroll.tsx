@@ -8,6 +8,7 @@ import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
 import DummyData from "@/util/data/DummyData";
 import MeterMonth from "../Meter/MeterMonth";
 import { VirtualItem } from "./VirtualScrollDTO/VirtualItem";
+import { Range } from "./VirtualScrollDTO/Range";
 
 const CustomVirtualScroll = () => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -18,6 +19,7 @@ const CustomVirtualScroll = () => {
   const [screenWidth, setScreenWidth] = useState<number>(0);
   const [elementWidth, setElementWidth] = useState<number>(0);
   const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
+  const [range, setRange] = useState<Range>();
 
   const virtualIndexes = virtualItems.map((item) => item.index);
 
@@ -26,89 +28,75 @@ const CustomVirtualScroll = () => {
     []
   );
   const meterComponentRef = useRef<HTMLDivElement>(null);
+  const overScan: number = Math.ceil(Math.ceil(screenWidth / elementWidth) * 4);
 
   const getRange = () => {
     if (!meterComponentRef.current) return;
-    const containerSize = meterComponentRef.current.clientHeight;
-
+    const containerSize = meterComponentRef.current.clientWidth;
     const startIndex = Math.floor(scrollLeft / elementWidth);
     const endIndex = Math.min(
       dummyData.length - 1,
       Math.floor((scrollLeft + containerSize) / elementWidth)
     );
-
     return { start: startIndex, end: endIndex };
   };
 
-  const overScan: number = Math.ceil(Math.ceil(screenWidth / elementWidth) * 3);
-
-  const updateVirtualItems = () => {
+  const updateVirtualItems = (forceUpdate: boolean = false) => {
     if (!meterComponentRef.current) return;
-    const containerSize = meterComponentRef.current.clientHeight;
-    const numVisibleItems = Math.ceil(containerSize / elementWidth);
 
-    const startIndex = Math.max(0, Math.floor(scrollLeft / elementWidth));
-    const endIndex = Math.min(
-      dummyData.length - 1,
-      startIndex + numVisibleItems - 1
+    const centralIndex = Math.floor(
+      (meterComponentRef.current.scrollLeft +
+        meterComponentRef.current.clientWidth / 2) /
+        elementWidth
     );
 
-    let overScanStart = Math.max(0, startIndex - overScan);
-    const overScanEnd = Math.min(dummyData.length - 1, endIndex + overScan);
+    if (range) {
+      if (
+        !forceUpdate &&
+        centralIndex >= range.start &&
+        centralIndex <= range.end
+      )
+        return;
 
-    if (overScanStart > 0 && startIndex < overScan) {
-      overScanStart = 0;
-    }
+      let overScanStart = Math.max(0, range.start - overScan);
+      const overScanEnd = Math.min(dummyData.length - 1, range.end + overScan);
 
-    const items: VirtualItem[] = [];
-    for (let i = overScanStart; i <= overScanEnd; i++) {
-      items.push({
-        index: i,
-        start: i * elementWidth,
-        end: (i + 1) * elementWidth,
-        key: `virtual-item-${i}`,
-        size: elementWidth,
-      });
+      const items: VirtualItem[] = [];
+      for (let i = overScanStart; i <= overScanEnd; i++) {
+        items.push({
+          index: i,
+          start: i * elementWidth,
+          end: (i + 1) * elementWidth,
+          key: `virtual-item-${i}`,
+          size: elementWidth,
+        });
+      }
+
+      const newRange = getRange();
+      if (newRange)
+        setRange({ start: newRange.start, end: newRange.end } as Range);
+      setVirtualItems(items);
     }
-    setVirtualItems(items);
   };
-
-  // const virtualizer = useVirtualizer({
-  //   count: dummyData.length,
-  //   getScrollElement: () => meterComponentRef.current,
-  //   elementWidth: elementWidth,
-  //   horizontal: true,
-  //   overscan: calculateOverScan(),
-  // });
-  console.log("==============================");
-  console.log("overscan", overScan);
-  console.log("totalSize", elementWidth * dummyData.length);
-  console.log("range", getRange());
-  console.log("elementWidth", elementWidth);
-  console.log(
-    "virtualIndexes",
-    virtualItems.map((item) => item.index)
-  );
-  console.log("scrollLeft", meterComponentRef.current?.scrollLeft);
 
   useLayoutEffect(() => {
     if (typeof window !== "undefined") {
       const updateWidth = () => {
         const newWidth = window.innerWidth;
-        setScreenWidth((prev) => (prev !== newWidth ? newWidth : prev));
-        setElementWidth((prev) => (prev !== newWidth ? newWidth : prev));
+        setScreenWidth(newWidth);
+        setElementWidth(newWidth);
       };
       updateWidth();
       window.addEventListener("resize", updateWidth);
       return () => window.removeEventListener("resize", updateWidth);
     }
+    updateVirtualItems(true);
   }, []);
 
   useEffect(() => {
-    updateVirtualItems();
+    updateVirtualItems(true);
   }, [screenWidth]);
 
-  console.log("rerender");
   // Handles dragging the meter so you dont have to use scroll wheel
   // ===============================================================
   const handleMouseDown = (event: React.MouseEvent) => {
@@ -130,7 +118,9 @@ const CustomVirtualScroll = () => {
     const deltaTime = endTime - lastDragTime;
 
     //If dragging lasts more than 0.5 seconds dont apply slide effect
-    if (deltaTime > MeterConstants.minTimeElapsedForSlidingEffect) return;
+    if (deltaTime > MeterConstants.minTimeElapsedForSlidingEffect) {
+      return;
+    }
 
     const moveX = event.pageX - startX;
     const velocity = deltaTime === 0 ? 0 : -(moveX / deltaTime);
@@ -151,6 +141,7 @@ const CustomVirtualScroll = () => {
       // virtualizer.scrollBy(velocity);
       velocity *= MeterConstants.slidingInertiaDumping;
       requestAnimationFrame(inertiaScroll);
+      updateVirtualItems();
     };
     inertiaScroll();
   };
@@ -186,7 +177,7 @@ const CustomVirtualScroll = () => {
 
     setScrollValue(newZoom);
     setElementWidth(screenWidth * (newZoom / 100));
-
+    // updateVirtualItems();
     // virtualizer.scrollToOffset(newScrollOffset, screenWidth * (newZoom / 100));
   };
   const debouncedHandleZoom = useDebouncedWheel(
