@@ -23,16 +23,11 @@ function useVirtualizer(options: VirtualizerOptions) {
     onChange,
   } = options;
   const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
-  const [scrollOffset, setScrollOffset] = useState<number>(0);
   const totalSize = count * elementWidth;
 
   const getVirtualIndexes = () => virtualItems.map((item) => item.index);
 
   const getVirtualItems = (): VirtualItem[] => virtualItems;
-
-  useEffect(() => {
-    updateVirtualItems(); // Recalculate virtual items when element width changes
-  }, [elementWidth]);
 
   const getRange = () => {
     const scrollElement = getScrollElement();
@@ -91,10 +86,7 @@ function useVirtualizer(options: VirtualizerOptions) {
         size: newElementWidth ? newElementWidth : elementWidth,
       });
     }
-
     setVirtualItems(items);
-    setScrollOffset(scrollPosition);
-
     if (onChange) {
       const event: VirtualizerEvent = {
         range: { startIndex: overScanStart, endIndex: overScanEnd }, // Updated to use overscan
@@ -125,43 +117,42 @@ function useVirtualizer(options: VirtualizerOptions) {
     }
   };
 
-  const scrollToOffset = (offset: number, elementWidth?: number) => {
-    const scrollElement = getScrollElement();
-    if (!scrollElement) return;
+  // const scrollToOffset = (offset: number, elementWidth?: number) => {
+  //   const scrollElement = getScrollElement();
+  //   if (!scrollElement) return;
 
-    if (horizontal) {
-      scrollElement.scrollLeft = offset;
-    } else {
-      scrollElement.scrollTop = offset;
-    }
-    updateVirtualItems(elementWidth);
-  };
+  //   if (horizontal) {
+  //     scrollElement.scrollLeft = offset;
+  //   } else {
+  //     scrollElement.scrollTop = offset;
+  //   }
+  //   updateVirtualItems(elementWidth);
+  // };
 
-  const scrollBy = (delta: number) => {
-    const scrollElement = getScrollElement();
-    if (!scrollElement) return;
+  // const scrollBy = (delta: number) => {
+  //   const scrollElement = getScrollElement();
+  //   if (!scrollElement) return;
 
-    const virtualIndexes = getVirtualIndexes();
-    if (virtualIndexes.length === 0) return;
+  //   const virtualIndexes = getVirtualIndexes();
+  //   if (virtualIndexes.length === 0) return;
 
-    if (horizontal) {
-      scrollElement.scrollLeft += delta;
-    } else {
-      scrollElement.scrollTop += delta;
-    }
-    updateVirtualItems();
-  };
+  //   if (horizontal) {
+  //     scrollElement.scrollLeft += delta;
+  //   } else {
+  //     scrollElement.scrollTop += delta;
+  //   }
+  //   updateVirtualItems();
+  // };
 
   return {
     virtualItems,
     totalSize,
-    scrollOffset,
+    // scrollOffset,
     getRange,
     updateVirtualItems,
     scrollToIndex,
-    scrollToOffset,
-    scrollBy,
-    measure: updateVirtualItems,
+    // scrollToOffset,
+    // scrollBy,
     getVirtualItems: () => virtualItems,
     getVirtualIndexes,
   };

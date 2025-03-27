@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import useVirtualizer from "./useVirtualizer"; // adjust the import path as needed
 import styles from "./HorizontalVirtualScroll.module.scss";
 import MeterConstants from "@/util/constants/MeterConstants";
 import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
 import DummyData from "@/util/data/DummyData";
 import MeterMonth from "../Meter/MeterMonth";
+import { VirtualItem } from "./VirtualScrollDTO/VirtualItem";
 
 const CustomVirtualScroll = () => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -16,37 +17,86 @@ const CustomVirtualScroll = () => {
   const [scrollValue, setScrollValue] = useState<number>(100);
   const [screenWidth, setScreenWidth] = useState<number>(0);
   const [elementWidth, setElementWidth] = useState<number>(0);
+  const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
 
-  const dummyData = DummyData.getMonths(new Date(2025, 0, 1, 10), 120);
+  const virtualIndexes = virtualItems.map((item) => item.index);
+
+  const dummyData = useMemo(
+    () => DummyData.getMonths(new Date(2025, 0, 1, 10), 120),
+    []
+  );
   const meterComponentRef = useRef<HTMLDivElement>(null);
 
-  const calculateOverScan = (): number => {
-    if (screenWidth && elementWidth)
-      return Math.ceil(Math.ceil(screenWidth / elementWidth));
-    return 3;
+  const getRange = () => {
+    if (!meterComponentRef.current) return;
+    const containerSize = meterComponentRef.current.clientHeight;
+
+    const startIndex = Math.floor(scrollLeft / elementWidth);
+    const endIndex = Math.min(
+      dummyData.length - 1,
+      Math.floor((scrollLeft + containerSize) / elementWidth)
+    );
+
+    return { start: startIndex, end: endIndex };
   };
 
-  const virtualizer = useVirtualizer({
-    count: dummyData.length,
-    getScrollElement: () => meterComponentRef.current,
-    elementWidth: elementWidth,
-    horizontal: true,
-    overscan: calculateOverScan(),
-  });
-  // console.log("==============================");
-  // console.log("overscan", calculateOverScan());
-  // console.log("totalSize", elementWidth * dummyData.length);
-  // console.log("range", virtualizer.getRange());
-  // console.log("elementWidth", elementWidth);
-  // console.log("virtualIndexes", virtualizer.getVirtualIndexes());
-  // console.log("scrollLeft", virtualizer.scrollOffset);
+  const overScan: number = Math.ceil(Math.ceil(screenWidth / elementWidth) * 3);
+
+  const updateVirtualItems = () => {
+    if (!meterComponentRef.current) return;
+    const containerSize = meterComponentRef.current.clientHeight;
+    const numVisibleItems = Math.ceil(containerSize / elementWidth);
+
+    const startIndex = Math.max(0, Math.floor(scrollLeft / elementWidth));
+    const endIndex = Math.min(
+      dummyData.length - 1,
+      startIndex + numVisibleItems - 1
+    );
+
+    let overScanStart = Math.max(0, startIndex - overScan);
+    const overScanEnd = Math.min(dummyData.length - 1, endIndex + overScan);
+
+    if (overScanStart > 0 && startIndex < overScan) {
+      overScanStart = 0;
+    }
+
+    const items: VirtualItem[] = [];
+    for (let i = overScanStart; i <= overScanEnd; i++) {
+      items.push({
+        index: i,
+        start: i * elementWidth,
+        end: (i + 1) * elementWidth,
+        key: `virtual-item-${i}`,
+        size: elementWidth,
+      });
+    }
+    setVirtualItems(items);
+  };
+
+  // const virtualizer = useVirtualizer({
+  //   count: dummyData.length,
+  //   getScrollElement: () => meterComponentRef.current,
+  //   elementWidth: elementWidth,
+  //   horizontal: true,
+  //   overscan: calculateOverScan(),
+  // });
+  console.log("==============================");
+  console.log("overscan", overScan);
+  console.log("totalSize", elementWidth * dummyData.length);
+  console.log("range", getRange());
+  console.log("elementWidth", elementWidth);
+  console.log(
+    "virtualIndexes",
+    virtualItems.map((item) => item.index)
+  );
+  console.log("scrollLeft", meterComponentRef.current?.scrollLeft);
 
   useLayoutEffect(() => {
     if (typeof window !== "undefined") {
       const updateWidth = () => {
         const newWidth = window.innerWidth;
-        setScreenWidth(newWidth);
-        setElementWidth(newWidth);
+        setScreenWidth((prev) => (prev !== newWidth ? newWidth : prev));
+        setElementWidth((prev) => (prev !== newWidth ? newWidth : prev));
       };
       updateWidth();
       window.addEventListener("resize", updateWidth);
@@ -55,13 +105,10 @@ const CustomVirtualScroll = () => {
   }, []);
 
   useEffect(() => {
-    if (screenWidth > 0) {
-      requestAnimationFrame(() => {
-        virtualizer.measure();
-      });
-    }
+    updateVirtualItems();
   }, [screenWidth]);
 
+  console.log("rerender");
   // Handles dragging the meter so you dont have to use scroll wheel
   // ===============================================================
   const handleMouseDown = (event: React.MouseEvent) => {
@@ -73,7 +120,9 @@ const CustomVirtualScroll = () => {
   const handleMouseMove = (event: React.MouseEvent) => {
     if (!isDragging) return;
     const moveX = event.pageX - startX;
-    virtualizer!.scrollToOffset(scrollLeft - moveX);
+    if (meterComponentRef.current) {
+      meterComponentRef.current.scrollLeft = scrollLeft - moveX;
+    }
   };
   const handleMouseUp = (event: React.MouseEvent) => {
     setIsDragging(false);
@@ -88,17 +137,26 @@ const CustomVirtualScroll = () => {
 
     applyInertia(velocity * MeterConstants.velocityMultiplier);
   };
+
   const applyInertia = (vel: number) => {
     let velocity = vel;
     const inertiaScroll = () => {
       if (Math.abs(velocity) < MeterConstants.slidingCutoff) {
+        updateVirtualItems();
         return;
       }
-      virtualizer.scrollBy(velocity);
+      if (meterComponentRef.current) {
+        meterComponentRef.current.scrollLeft += velocity;
+      }
+      // virtualizer.scrollBy(velocity);
       velocity *= MeterConstants.slidingInertiaDumping;
       requestAnimationFrame(inertiaScroll);
     };
     inertiaScroll();
+  };
+
+  const handleMouseLeave = () => {
+    if (isDragging) setIsDragging(false);
   };
   // ===============================================================
 
@@ -106,7 +164,7 @@ const CustomVirtualScroll = () => {
   // ===============================================================
   const handleZoom = (event: any) => {
     const element = meterComponentRef.current;
-    if (!element) return;
+    if (!element || !meterComponentRef.current) return;
 
     const boundingRect = element.getBoundingClientRect();
     const offsetX = event.clientX - boundingRect.left;
@@ -122,21 +180,20 @@ const CustomVirtualScroll = () => {
     );
 
     const scaleFactor = newZoom / scrollValue;
+    const newScrollOffset =
+      (meterComponentRef.current.scrollLeft! + offsetX) * scaleFactor - offsetX;
+    meterComponentRef.current.scrollLeft = newScrollOffset;
 
     setScrollValue(newZoom);
     setElementWidth(screenWidth * (newZoom / 100));
 
-    const newScrollOffset =
-      (virtualizer.scrollOffset! + offsetX) * scaleFactor - offsetX;
-
-    virtualizer.scrollToOffset(newScrollOffset, screenWidth * (newZoom / 100));
+    // virtualizer.scrollToOffset(newScrollOffset, screenWidth * (newZoom / 100));
   };
   const debouncedHandleZoom = useDebouncedWheel(
     handleZoom,
     MeterConstants.debounceWheelMilliseconds
   );
   // ===============================================================
-
   return (
     <div className={styles.meterWrapper}>
       <div
@@ -146,7 +203,7 @@ const CustomVirtualScroll = () => {
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
-        onMouseLeave={() => setIsDragging(false)}
+        onMouseLeave={() => handleMouseLeave()}
       >
         <div
           className={styles.virtualizerWrapper}
@@ -158,10 +215,10 @@ const CustomVirtualScroll = () => {
           <div
             className={styles.virtualizerOffset}
             style={{
-              left: `${virtualizer.getVirtualIndexes()[0] * elementWidth}px`,
+              left: `${virtualIndexes[0] * elementWidth}px`,
             }}
           >
-            {virtualizer.getVirtualItems().map((virtualItem, index) => (
+            {virtualItems.map((virtualItem, index) => (
               <div
                 className={styles.virtualizerContainer}
                 key={virtualItem.key}
