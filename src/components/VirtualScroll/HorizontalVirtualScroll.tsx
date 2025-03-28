@@ -9,6 +9,7 @@ import DummyData from "@/util/data/DummyData";
 import MeterMonth from "../Meter/MeterMonth";
 import { VirtualItem } from "./VirtualScrollDTO/VirtualItem";
 import { Range } from "./VirtualScrollDTO/Range";
+import MeterContent from "../Meter/MeterContent";
 
 const CustomVirtualScroll = () => {
   // States
@@ -16,11 +17,12 @@ const CustomVirtualScroll = () => {
   const [lastDragTime, setLastDragTime] = useState<number>(0);
   const [startX, setStartX] = useState<number>(0);
   const [scrollLeft, setScrollLeft] = useState<number>(0);
-  const [scrollValue, setScrollValue] = useState<number>(100);
+  const [zoomValue, setZoomValue] = useState<number>(100);
   const [screenWidth, setScreenWidth] = useState<number>(0);
   const [elementWidth, setElementWidth] = useState<number>(0);
   const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
   const [range, setRange] = useState<Range>();
+  const [level, setLevel] = useState<number>(2);
 
   // References
   const meterComponentRef = useRef<HTMLDivElement>(null);
@@ -187,6 +189,18 @@ const CustomVirtualScroll = () => {
   };
   // ===============================================================
 
+  const defineLevel = (newZoomValue: number) => {
+    console.log("newZoomValue", newZoomValue);
+    console.log("zoomValue", zoomValue);
+
+    if (newZoomValue === zoomValue) {
+      if (newZoomValue === MeterConstants.maxZoomValue) {
+        setLevel(level + 1);
+      }
+      setLevel(level - 1);
+    }
+  };
+
   // Handles ZOOM
   // ===============================================================
   const handleZoom = (event: any) => {
@@ -203,24 +217,25 @@ const CustomVirtualScroll = () => {
 
     const zoomDirection = event.deltaY > 0 ? -1 : 1;
 
-    const newZoom = Math.max(
-      MeterConstants.minZoomPercentageValue,
+    const newZoomValue = Math.max(
+      MeterConstants.minZoomValue,
       Math.min(
-        MeterConstants.maxZoomPercentageValue,
-        scrollValue + zoomDirection * MeterConstants.zoomStep
+        MeterConstants.maxZoomValue,
+        zoomValue + zoomDirection * MeterConstants.zoomStep
       )
     );
 
-    const scaleFactor = newZoom / scrollValue;
+    const scaleFactor = newZoomValue / zoomValue;
     const newScrollOffset =
       (meterComponentRef.current.scrollLeft + offsetX) * scaleFactor - offsetX;
     meterComponentRef.current.scrollLeft = newScrollOffset;
-
-    setScrollValue(newZoom);
-    setElementWidth(screenWidth * (newZoom / 100));
+    setZoomValue(newZoomValue);
+    setElementWidth(screenWidth * (newZoomValue / 100));
     setScrollLeft(newScrollOffset);
     meterComponentRef.current.scrollLeft = newScrollOffset;
     updateVirtualItems();
+
+    defineLevel(newZoomValue);
   };
   const debouncedHandleZoom = useDebouncedWheel(
     handleZoom,
@@ -268,12 +283,19 @@ const CustomVirtualScroll = () => {
                   width: `${elementWidth}px`,
                 }}
               >
-                <MeterMonth
+                <MeterContent
+                  key={virtualItem.key}
+                  element={dummyData[virtualItem.index]}
+                  elementWidth={elementWidth}
+                  zoomValue={zoomValue}
+                  level={level}
+                />
+                {/* <MeterMonth
                   key={virtualItem.key}
                   date={dummyData[virtualItem.index]}
                   width={elementWidth}
                   zoomValue={scrollValue}
-                />
+                /> */}
               </div>
             ))}
           </div>

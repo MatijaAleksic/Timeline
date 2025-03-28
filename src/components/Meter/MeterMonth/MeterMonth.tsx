@@ -49,7 +49,7 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
             />
             {zoomValue > 500 && (
               <div className={styles.hoursContainer}>
-                {hours.map((hour, index) => (
+                {hours.map((_, index) => (
                   <div key={index} className={styles.hour} />
                 ))}
               </div>
