@@ -20,18 +20,15 @@ const CustomVirtualScroll = () => {
   const [elementWidth, setElementWidth] = useState<number>(0);
   const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
   const [range, setRange] = useState<Range>();
-
-  const virtualIndexes = virtualItems.map((item) => item.index);
-
+  const meterComponentRef = useRef<HTMLDivElement>(null);
+  const lastRangeRef = useRef<Range | null>(null);
+  const updateVirtualItemsDebounced = useRef<NodeJS.Timeout | null>(null);
   const dummyData = useMemo(
     () => DummyData.getMonths(new Date(2025, 0, 1, 10), 120),
     []
   );
-  const meterComponentRef = useRef<HTMLDivElement>(null);
-  const lastRangeRef = useRef<Range | null>(null);
-  const updateVirtualItemsDebounced = useRef<NodeJS.Timeout | null>(null);
-
   const overScan: number = Math.ceil(Math.ceil(screenWidth / elementWidth) * 4);
+  const virtualIndexes = virtualItems.map((item) => item.index);
 
   const getRange = () => {
     if (!meterComponentRef.current) {
@@ -157,7 +154,6 @@ const CustomVirtualScroll = () => {
 
     applyInertia(velocity * MeterConstants.velocityMultiplier);
   };
-
   const applyInertia = (vel: number) => {
     let velocity = vel;
     const inertiaScroll = () => {
@@ -173,7 +169,6 @@ const CustomVirtualScroll = () => {
     };
     inertiaScroll();
   };
-
   const handleMouseLeave = () => {
     if (isDragging) {
       setIsDragging(false);
