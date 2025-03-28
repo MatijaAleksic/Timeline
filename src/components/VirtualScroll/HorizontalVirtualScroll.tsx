@@ -28,10 +28,15 @@ const CustomVirtualScroll = () => {
     []
   );
   const meterComponentRef = useRef<HTMLDivElement>(null);
+  const lastRangeRef = useRef<Range | null>(null);
+  const updateVirtualItemsDebounced = useRef<NodeJS.Timeout | null>(null);
+
   const overScan: number = Math.ceil(Math.ceil(screenWidth / elementWidth) * 4);
 
   const getRange = () => {
-    if (!meterComponentRef.current) return;
+    if (!meterComponentRef.current) {
+      return;
+    }
     const containerSize = meterComponentRef.current.clientWidth;
     const startIndex = Math.floor(scrollLeft / elementWidth);
     const endIndex = Math.min(
@@ -50,16 +55,35 @@ const CustomVirtualScroll = () => {
         elementWidth
     );
 
-    if (range) {
-      if (
-        !forceUpdate &&
-        centralIndex >= range.start &&
-        centralIndex <= range.end
-      )
-        return;
+    // Skips updating virtual indexes when the element on center on the screen falls between the range
+    if (
+      !forceUpdate &&
+      range &&
+      centralIndex >= range.start &&
+      centralIndex <= range.end
+    )
+      return;
 
-      let overScanStart = Math.max(0, range.start - overScan);
-      const overScanEnd = Math.min(dummyData.length - 1, range.end + overScan);
+    const newRange = getRange();
+
+    // skip when gliding animation is called and the states are frozen then it tracks if the last range ref changes
+    if (
+      newRange &&
+      lastRangeRef.current &&
+      newRange.start === lastRangeRef.current.start &&
+      newRange.end === lastRangeRef.current.end
+    )
+      return;
+
+    if (newRange) {
+      //update last calculated value into ref
+      lastRangeRef.current = newRange;
+
+      let overScanStart = Math.max(0, newRange.start - overScan);
+      const overScanEnd = Math.min(
+        dummyData.length - 1,
+        newRange.end + overScan
+      );
 
       const items: VirtualItem[] = [];
       for (let i = overScanStart; i <= overScanEnd; i++) {
@@ -71,12 +95,18 @@ const CustomVirtualScroll = () => {
           size: elementWidth,
         });
       }
-
-      const newRange = getRange();
-      if (newRange)
-        setRange({ start: newRange.start, end: newRange.end } as Range);
+      setRange({ start: newRange.start, end: newRange.end } as Range);
       setVirtualItems(items);
     }
+  };
+
+  const safeUpdateVirtualItems = (forceUpdate = false) => {
+    if (updateVirtualItemsDebounced.current) {
+      clearTimeout(updateVirtualItemsDebounced.current);
+    }
+    updateVirtualItemsDebounced.current = setTimeout(() => {
+      updateVirtualItems(forceUpdate);
+    }, 16); // ~1 animation frame
   };
 
   useLayoutEffect(() => {
@@ -90,11 +120,11 @@ const CustomVirtualScroll = () => {
       window.addEventListener("resize", updateWidth);
       return () => window.removeEventListener("resize", updateWidth);
     }
-    updateVirtualItems(true);
   }, []);
 
   useEffect(() => {
-    updateVirtualItems(true);
+    setRange(getRange());
+    safeUpdateVirtualItems(true);
   }, [screenWidth]);
 
   // Handles dragging the meter so you dont have to use scroll wheel
@@ -132,22 +162,23 @@ const CustomVirtualScroll = () => {
     let velocity = vel;
     const inertiaScroll = () => {
       if (Math.abs(velocity) < MeterConstants.slidingCutoff) {
-        updateVirtualItems();
         return;
       }
       if (meterComponentRef.current) {
         meterComponentRef.current.scrollLeft += velocity;
       }
-      // virtualizer.scrollBy(velocity);
       velocity *= MeterConstants.slidingInertiaDumping;
       requestAnimationFrame(inertiaScroll);
-      updateVirtualItems();
+      safeUpdateVirtualItems();
     };
     inertiaScroll();
   };
 
   const handleMouseLeave = () => {
-    if (isDragging) setIsDragging(false);
+    if (isDragging) {
+      setIsDragging(false);
+      safeUpdateVirtualItems();
+    }
   };
   // ===============================================================
 
@@ -177,14 +208,18 @@ const CustomVirtualScroll = () => {
 
     setScrollValue(newZoom);
     setElementWidth(screenWidth * (newZoom / 100));
-    // updateVirtualItems();
-    // virtualizer.scrollToOffset(newScrollOffset, screenWidth * (newZoom / 100));
   };
   const debouncedHandleZoom = useDebouncedWheel(
     handleZoom,
     MeterConstants.debounceWheelMilliseconds
   );
   // ===============================================================
+  // console.log("================");
+  // console.log("range", range);
+  // console.log("elementWidth", elementWidth);
+  // console.log("scrollOffset", scrollLeft);
+  // console.log("virtualIndexes", virtualIndexes);
+
   return (
     <div className={styles.meterWrapper}>
       <div
