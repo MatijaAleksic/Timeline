@@ -1,7 +1,8 @@
-export default class MeterContants {
+export default class MeterConstants {
   // Zoom options
   public static minZoomValue: number = 25;
   public static maxZoomValue: number = 750;
+  public static smallerLinesValue: number = 500;
   public static zoomStep: number = 25;
 
   // Slide effect options

@@ -1,7 +1,6 @@
 import { eachDayOfInterval, format, isFirstDayOfMonth } from "date-fns";
 import MeterLine from "../MeterLine/MeterLine";
-import styles from "./MeterMonth.module.scss";
-import MeterConstants from "@/util/constants/MeterConstants";
+import styles from "./MeterDay.module.scss";
 
 interface IProps {
   date: Date;
@@ -9,7 +8,7 @@ interface IProps {
   zoomValue: number;
 }
 
-const MeterMonth: React.FunctionComponent<IProps> = ({
+const MeterDay: React.FunctionComponent<IProps> = ({
   date,
   width,
   zoomValue,
@@ -48,13 +47,13 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
               }
               isLarger={isFirstDayOfMonth(day)}
             />
-            {zoomValue > MeterConstants.smallerLinesValue && (
+            {/* {zoomValue > 500 && (
               <div className={styles.hoursContainer}>
                 {hours.map((_, index) => (
                   <div key={index} className={styles.hour} />
                 ))}
               </div>
-            )}
+            )} */}
           </div>
         );
       })}
@@ -62,4 +61,4 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
   );
 };
 
-export default MeterMonth;
+export default MeterDay;

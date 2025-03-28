@@ -1,3 +1,4 @@
+import MeterDay from "../MeterDay";
 import MeterMonth from "../MeterMonth";
 
 interface IProps {
@@ -15,6 +16,13 @@ const MeterContent: React.FunctionComponent<IProps> = ({
 }: IProps) => {
   return (
     <>
+      {level === 1 && (
+        <MeterDay
+          date={element as Date}
+          width={elementWidth}
+          zoomValue={zoomValue}
+        />
+      )}
       {level === 2 && (
         <MeterMonth
           date={element as Date}

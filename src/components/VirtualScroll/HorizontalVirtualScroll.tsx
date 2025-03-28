@@ -32,7 +32,7 @@ const CustomVirtualScroll = () => {
 
   // Data
   const dummyData = useMemo(
-    () => DummyData.getMonths(new Date(2025, 0, 1, 10), 120),
+    () => DummyData.getMonths(new Date(2025, 0, 1, 10), 50000),
     []
   );
   const overScan: number = Math.ceil(Math.ceil(screenWidth / elementWidth) * 4);
@@ -193,11 +193,12 @@ const CustomVirtualScroll = () => {
     console.log("newZoomValue", newZoomValue);
     console.log("zoomValue", zoomValue);
 
-    if (newZoomValue === zoomValue) {
+    if (newZoomValue === zoomValue && level !== 1) {
       if (newZoomValue === MeterConstants.maxZoomValue) {
-        setLevel(level + 1);
+        setLevel(level - 1);
+        setZoomValue(MeterConstants.minZoomValue);
       }
-      setLevel(level - 1);
+      // setLevel(level + 1);
     }
   };
 
