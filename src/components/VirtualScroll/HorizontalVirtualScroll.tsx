@@ -11,6 +11,7 @@ import { VirtualItem } from "./VirtualScrollDTO/VirtualItem";
 import { Range } from "./VirtualScrollDTO/Range";
 
 const CustomVirtualScroll = () => {
+  // States
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [lastDragTime, setLastDragTime] = useState<number>(0);
   const [startX, setStartX] = useState<number>(0);
@@ -20,15 +21,37 @@ const CustomVirtualScroll = () => {
   const [elementWidth, setElementWidth] = useState<number>(0);
   const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
   const [range, setRange] = useState<Range>();
+
+  // References
   const meterComponentRef = useRef<HTMLDivElement>(null);
   const lastRangeRef = useRef<Range | null>(null);
+  const inertiaFrameRef = useRef<number | null>(null);
   const updateVirtualItemsDebounced = useRef<NodeJS.Timeout | null>(null);
+
+  // Data
   const dummyData = useMemo(
     () => DummyData.getMonths(new Date(2025, 0, 1, 10), 120),
     []
   );
   const overScan: number = Math.ceil(Math.ceil(screenWidth / elementWidth) * 4);
   const virtualIndexes = virtualItems.map((item) => item.index);
+
+  useLayoutEffect(() => {
+    if (typeof window !== "undefined") {
+      const updateWidth = () => {
+        const newWidth = window.innerWidth;
+        setScreenWidth(newWidth);
+        setElementWidth(newWidth);
+      };
+      updateWidth();
+      window.addEventListener("resize", updateWidth);
+      return () => window.removeEventListener("resize", updateWidth);
+    }
+  }, []);
+  useEffect(() => {
+    setRange(getRange());
+    safeUpdateVirtualItems(true);
+  }, [screenWidth]);
 
   const getRange = () => {
     if (!meterComponentRef.current) {
@@ -42,7 +65,6 @@ const CustomVirtualScroll = () => {
     );
     return { start: startIndex, end: endIndex };
   };
-
   const updateVirtualItems = (forceUpdate: boolean = false) => {
     if (!meterComponentRef.current) return;
 
@@ -96,7 +118,6 @@ const CustomVirtualScroll = () => {
       setVirtualItems(items);
     }
   };
-
   const safeUpdateVirtualItems = (forceUpdate = false) => {
     if (updateVirtualItemsDebounced.current) {
       clearTimeout(updateVirtualItemsDebounced.current);
@@ -105,24 +126,6 @@ const CustomVirtualScroll = () => {
       updateVirtualItems(forceUpdate);
     }, 16); // ~1 animation frame
   };
-
-  useLayoutEffect(() => {
-    if (typeof window !== "undefined") {
-      const updateWidth = () => {
-        const newWidth = window.innerWidth;
-        setScreenWidth(newWidth);
-        setElementWidth(newWidth);
-      };
-      updateWidth();
-      window.addEventListener("resize", updateWidth);
-      return () => window.removeEventListener("resize", updateWidth);
-    }
-  }, []);
-
-  useEffect(() => {
-    setRange(getRange());
-    safeUpdateVirtualItems(true);
-  }, [screenWidth]);
 
   // Handles dragging the meter so you dont have to use scroll wheel
   // ===============================================================
@@ -156,17 +159,24 @@ const CustomVirtualScroll = () => {
   };
   const applyInertia = (vel: number) => {
     let velocity = vel;
+
     const inertiaScroll = () => {
       if (Math.abs(velocity) < MeterConstants.slidingCutoff) {
+        inertiaFrameRef.current = null;
         return;
       }
       if (meterComponentRef.current) {
         meterComponentRef.current.scrollLeft += velocity;
       }
       velocity *= MeterConstants.slidingInertiaDumping;
-      requestAnimationFrame(inertiaScroll);
+      inertiaFrameRef.current = requestAnimationFrame(inertiaScroll);
       safeUpdateVirtualItems();
     };
+
+    if (inertiaFrameRef.current) {
+      cancelAnimationFrame(inertiaFrameRef.current);
+    }
+
     inertiaScroll();
   };
   const handleMouseLeave = () => {
@@ -180,10 +190,15 @@ const CustomVirtualScroll = () => {
   // Handles ZOOM
   // ===============================================================
   const handleZoom = (event: any) => {
-    const element = meterComponentRef.current;
-    if (!element || !meterComponentRef.current) return;
+    if (!meterComponentRef.current || isDragging) return;
 
-    const boundingRect = element.getBoundingClientRect();
+    // Cancels gliding effect
+    if (inertiaFrameRef.current) {
+      cancelAnimationFrame(inertiaFrameRef.current);
+      inertiaFrameRef.current = null;
+    }
+
+    const boundingRect = meterComponentRef.current.getBoundingClientRect();
     const offsetX = event.clientX - boundingRect.left;
 
     const zoomDirection = event.deltaY > 0 ? -1 : 1;
@@ -198,22 +213,27 @@ const CustomVirtualScroll = () => {
 
     const scaleFactor = newZoom / scrollValue;
     const newScrollOffset =
-      (meterComponentRef.current.scrollLeft! + offsetX) * scaleFactor - offsetX;
+      (meterComponentRef.current.scrollLeft + offsetX) * scaleFactor - offsetX;
     meterComponentRef.current.scrollLeft = newScrollOffset;
 
     setScrollValue(newZoom);
     setElementWidth(screenWidth * (newZoom / 100));
+    setScrollLeft(newScrollOffset);
+    meterComponentRef.current.scrollLeft = newScrollOffset;
+    updateVirtualItems();
   };
   const debouncedHandleZoom = useDebouncedWheel(
     handleZoom,
     MeterConstants.debounceWheelMilliseconds
   );
   // ===============================================================
+
   // console.log("================");
   // console.log("range", range);
   // console.log("elementWidth", elementWidth);
   // console.log("scrollOffset", scrollLeft);
   // console.log("virtualIndexes", virtualIndexes);
+  // console.log("centralElement", (scrollLeft + screenWidth / 2) / elementWidth);
 
   return (
     <div className={styles.meterWrapper}>
