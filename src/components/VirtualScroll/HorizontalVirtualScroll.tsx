@@ -138,13 +138,10 @@ const CustomVirtualScroll = () => {
     }, 16); // ~1 animation frame
   };
   const defineLevel = (newZoomValue: number) => {
-    console.log("newZoomValue", newZoomValue);
-
     if (
       newZoomValue === MeterConstants.maxZoomValue &&
       level !== MeterConstants.minLevel
     ) {
-      console.log(1);
       setLevel(level - 1);
       setZoomValue(MeterConstants.minZoomValue);
       setElementWidth(screenWidth * (MeterConstants.minZoomValue / 100));
@@ -154,8 +151,6 @@ const CustomVirtualScroll = () => {
       newZoomValue === MeterConstants.minZoomValue &&
       level !== MeterConstants.maxLevel
     ) {
-      console.log(2);
-
       setLevel(level + 1);
       setZoomValue(MeterConstants.maxZoomValue);
       setElementWidth(screenWidth * (MeterConstants.maxZoomValue / 100));
@@ -246,8 +241,6 @@ const CustomVirtualScroll = () => {
         zoomValue + zoomDirection * MeterConstants.zoomStep
       )
     );
-
-    console.log("zoomValue", newZoomValue);
     if (
       newZoomValue === MeterConstants.maxZoomValue ||
       newZoomValue === MeterConstants.minZoomValue
@@ -265,8 +258,6 @@ const CustomVirtualScroll = () => {
     setScrollOffset(newScrollOffset);
     meterComponentRef.current.scrollLeft = newScrollOffset;
     updateVirtualItems();
-
-    // defineLevel(newZoomValue);
   };
   const debouncedHandleZoom = useDebouncedWheel(
     handleZoom,
@@ -278,13 +269,10 @@ const CustomVirtualScroll = () => {
   // console.log("range", range);
   // console.log("elementWidth", elementWidth);
   // console.log("scrollOffset", scrollOffset);
-  console.log("virtualIndexes", virtualIndexes);
+  // console.log("virtualIndexes", virtualIndexes);
   // console.log("centralElement", (scrollLeft + screenWidth / 2) / elementWidth);
   // console.log("level", level);
   // console.log("zoomValue", zoomValue);
-
-  // TODO: The error lies when you go from 725 zoomValue to 750 and the virtual indexes are not
-  // caluclated correctly, the error should lie on line 154 and 165
 
   return (
     <div className={styles.meterWrapper}>
