@@ -9,6 +9,7 @@ import { VirtualItem } from "./VirtualScrollDTO/VirtualItem";
 import { Range } from "./VirtualScrollDTO/Range";
 import MeterContent from "../Meter/MeterContent";
 import { addYears } from "date-fns";
+import MeterService from "@/util/service/MeterService";
 
 const CustomVirtualScroll = () => {
   // States
@@ -118,18 +119,14 @@ const CustomVirtualScroll = () => {
         newRange.end + overScan
       );
 
-      const items: VirtualItem[] = [];
-      for (let i = overScanStart; i <= overScanEnd; i++) {
-        items.push({
-          index: i,
-          start: i * elementWidth,
-          end: (i + 1) * elementWidth,
-          key: `virtual-item-${i}`,
-          size: elementWidth,
-        });
-      }
       setRange({ start: newRange.start, end: newRange.end } as Range);
-      setVirtualItems(items);
+      setVirtualItems(
+        MeterService.generateVirtualIndexes(
+          overScanStart,
+          overScanEnd,
+          elementWidth
+        )
+      );
     }
   };
   const safeUpdateVirtualItems = (forceUpdate = false) => {

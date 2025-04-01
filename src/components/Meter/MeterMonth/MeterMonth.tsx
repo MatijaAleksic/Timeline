@@ -15,6 +15,8 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
   zoomValue,
   ...props
 }) => {
+  if (!date) return;
+
   const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
   const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
