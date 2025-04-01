@@ -286,6 +286,9 @@ const CustomVirtualScroll = () => {
   // console.log("level", level);
   // console.log("zoomValue", zoomValue);
 
+  // TODO: The error lies when you go from 725 zoomValue to 750 and the virtual indexes are not
+  // caluclated correctly, the error should lie on line 154 and 165
+
   return (
     <div className={styles.meterWrapper}>
       <div
