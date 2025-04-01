@@ -1,5 +1,9 @@
 export default class MeterConstants {
   // Levels
+
+  public static minLevel = 1;
+  public static maxLevel = 2;
+
   public static earliestYearLevel2 = 10000;
 
   // Zoom options

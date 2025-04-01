@@ -15,8 +15,8 @@ const CustomVirtualScroll = () => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [lastDragTime, setLastDragTime] = useState<number>(0);
   const [startX, setStartX] = useState<number>(0);
-  const [scrollLeft, setScrollLeft] = useState<number>(0);
-  const [zoomValue, setZoomValue] = useState<number>(100);
+  const [scrollOffset, setScrollOffset] = useState<number>(0);
+  const [zoomValue, setZoomValue] = useState<number>(100); //default 100
   const [screenWidth, setScreenWidth] = useState<number>(0);
   const [elementWidth, setElementWidth] = useState<number>(0);
   const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
@@ -30,20 +30,25 @@ const CustomVirtualScroll = () => {
   const updateVirtualItemsDebounced = useRef<NodeJS.Timeout | null>(null);
 
   // Data
-  const currentDate = new Date();
-  const dummyData = useMemo(
-    () =>
-      DummyData.getMonths(
-        new Date(2025, 0, 1, 10),
-        addYears(currentDate, 10000)
-      ),
-    [level]
+  const overScan: number = useMemo(
+    () => Math.ceil(Math.ceil(screenWidth / elementWidth) * 4),
+    [screenWidth, elementWidth]
   );
+  const virtualIndexes = useMemo(
+    () => virtualItems.map((item) => item.index),
+    [virtualItems]
+  );
+
+  const dummyData = useMemo(() => {
+    return DummyData.getDummyData(
+      level,
+      new Date(2025, 0, 1),
+      addYears(new Date(2025, 0, 1), 1)
+    );
+  }, [level]);
   // const dummyData = useMemo(() => DummyData.getData(level), [level]);
 
-  const overScan: number = Math.ceil(Math.ceil(screenWidth / elementWidth) * 4);
-  const virtualIndexes = virtualItems.map((item) => item.index);
-
+  // Effects
   useLayoutEffect(() => {
     if (typeof window !== "undefined") {
       const updateWidth = () => {
@@ -60,30 +65,18 @@ const CustomVirtualScroll = () => {
   useEffect(() => {
     setRange(getRange());
     safeUpdateVirtualItems(true);
-
-    // if (meterComponentRef.current) {
-    //   // Calculate the index of the current month (or current year if needed)
-    //   const currentDate = new Date();  // Current date (today)
-    //   const currentIndex = differenceInMonths(currentDate, dummyData[0]);
-
-    //   // Calculate the scroll position for the current year
-    //   // Assuming each "element" represents one month, you multiply by the width of an element
-    //   const newScrollLeft = currentIndex * elementWidth;
-
-    //   // Set the scroll position (this will scroll to the current year)
-    //   meterComponentRef.current.scrollLeft = newScrollLeft;
-    // }
   }, [screenWidth]);
 
+  //Methods
   const getRange = () => {
     if (!meterComponentRef.current) {
       return;
     }
     const containerSize = meterComponentRef.current.clientWidth;
-    const startIndex = Math.floor(scrollLeft / elementWidth);
+    const startIndex = Math.floor(scrollOffset / elementWidth);
     const endIndex = Math.min(
       dummyData.length - 1,
-      Math.floor((scrollLeft + containerSize) / elementWidth)
+      Math.floor((scrollOffset + containerSize) / elementWidth)
     );
     return { start: startIndex, end: endIndex };
   };
@@ -117,7 +110,6 @@ const CustomVirtualScroll = () => {
       return;
 
     if (newRange) {
-      //update last calculated value into ref
       lastRangeRef.current = newRange;
 
       let overScanStart = Math.max(0, newRange.start - overScan);
@@ -148,20 +140,45 @@ const CustomVirtualScroll = () => {
       updateVirtualItems(forceUpdate);
     }, 16); // ~1 animation frame
   };
+  const defineLevel = (newZoomValue: number) => {
+    console.log("newZoomValue", newZoomValue);
+
+    if (
+      newZoomValue === MeterConstants.maxZoomValue &&
+      level !== MeterConstants.minLevel
+    ) {
+      console.log(1);
+      setLevel(level - 1);
+      setZoomValue(MeterConstants.minZoomValue);
+      setElementWidth(screenWidth * (MeterConstants.minZoomValue / 100));
+      updateVirtualItems();
+    }
+    if (
+      newZoomValue === MeterConstants.minZoomValue &&
+      level !== MeterConstants.maxLevel
+    ) {
+      console.log(2);
+
+      setLevel(level + 1);
+      setZoomValue(MeterConstants.maxZoomValue);
+      setElementWidth(screenWidth * (MeterConstants.maxZoomValue / 100));
+      updateVirtualItems();
+    }
+  };
 
   // Handles dragging the meter so you dont have to use scroll wheel
   // ===============================================================
   const handleMouseDown = (event: React.MouseEvent) => {
     setIsDragging(true);
     setStartX(event.pageX - (meterComponentRef.current?.offsetLeft || 0));
-    setScrollLeft(meterComponentRef.current?.scrollLeft || 0);
+    setScrollOffset(meterComponentRef.current?.scrollLeft || 0);
     setLastDragTime(Date.now());
   };
   const handleMouseMove = (event: React.MouseEvent) => {
     if (!isDragging) return;
     const moveX = event.pageX - startX;
     if (meterComponentRef.current) {
-      meterComponentRef.current.scrollLeft = scrollLeft - moveX;
+      meterComponentRef.current.scrollLeft = scrollOffset - moveX;
     }
   };
   const handleMouseUp = (event: React.MouseEvent) => {
@@ -209,19 +226,6 @@ const CustomVirtualScroll = () => {
   };
   // ===============================================================
 
-  const defineLevel = (newZoomValue: number) => {
-    console.log("newZoomValue", newZoomValue);
-    console.log("zoomValue", zoomValue);
-
-    if (newZoomValue === zoomValue && level !== 1) {
-      if (newZoomValue === MeterConstants.maxZoomValue) {
-        // setLevel(level - 1);
-        // setZoomValue(MeterConstants.minZoomValue);
-      }
-      // setLevel(level + 1);
-    }
-  };
-
   // Handles ZOOM
   // ===============================================================
   const handleZoom = (event: any) => {
@@ -246,17 +250,26 @@ const CustomVirtualScroll = () => {
       )
     );
 
+    console.log("zoomValue", newZoomValue);
+    if (
+      newZoomValue === MeterConstants.maxZoomValue ||
+      newZoomValue === MeterConstants.minZoomValue
+    ) {
+      defineLevel(newZoomValue);
+      return;
+    }
+
     const scaleFactor = newZoomValue / zoomValue;
     const newScrollOffset =
       (meterComponentRef.current.scrollLeft + offsetX) * scaleFactor - offsetX;
     meterComponentRef.current.scrollLeft = newScrollOffset;
     setZoomValue(newZoomValue);
     setElementWidth(screenWidth * (newZoomValue / 100));
-    setScrollLeft(newScrollOffset);
+    setScrollOffset(newScrollOffset);
     meterComponentRef.current.scrollLeft = newScrollOffset;
     updateVirtualItems();
 
-    defineLevel(newZoomValue);
+    // defineLevel(newZoomValue);
   };
   const debouncedHandleZoom = useDebouncedWheel(
     handleZoom,
@@ -267,9 +280,11 @@ const CustomVirtualScroll = () => {
   // console.log("================");
   // console.log("range", range);
   // console.log("elementWidth", elementWidth);
-  // console.log("scrollOffset", scrollLeft);
-  // console.log("virtualIndexes", virtualIndexes);
+  // console.log("scrollOffset", scrollOffset);
+  console.log("virtualIndexes", virtualIndexes);
   // console.log("centralElement", (scrollLeft + screenWidth / 2) / elementWidth);
+  // console.log("level", level);
+  // console.log("zoomValue", zoomValue);
 
   return (
     <div className={styles.meterWrapper}>
@@ -311,12 +326,6 @@ const CustomVirtualScroll = () => {
                   zoomValue={zoomValue}
                   level={level}
                 />
-                {/* <MeterMonth
-                  key={virtualItem.key}
-                  date={dummyData[virtualItem.index]}
-                  width={elementWidth}
-                  zoomValue={scrollValue}
-                /> */}
               </div>
             ))}
           </div>

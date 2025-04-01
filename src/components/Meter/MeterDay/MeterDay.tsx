@@ -1,6 +1,7 @@
-import { eachDayOfInterval, format, isFirstDayOfMonth } from "date-fns";
+import { format, isFirstDayOfMonth, setHours } from "date-fns";
 import MeterLine from "../MeterLine/MeterLine";
 import styles from "./MeterDay.module.scss";
+import MeterConstants from "@/util/constants/MeterConstants";
 
 interface IProps {
   date: Date;
@@ -14,46 +15,33 @@ const MeterDay: React.FunctionComponent<IProps> = ({
   zoomValue,
   ...props
 }) => {
-  const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-  const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-
-  const days = eachDayOfInterval({
-    start: firstDayOfMonth,
-    end: lastDayOfMonth,
+  // Create an array of hours (0 to 23)
+  const hours = Array.from({ length: 24 }, (_, i) => {
+    return setHours(date, i);
   });
-
-  const hours = Array.from({ length: 24 }, (_, i) => i + 1);
 
   return (
     <div
-      className={styles.monthDaysContainer}
+      className={styles.dayContainer}
       {...props}
       style={{ width: `${width}px` }}
     >
       <div className={styles.backgroundYear}>
-        {format(firstDayOfMonth, "yyyy")}
+        {date.getFullYear() < 0
+          ? `${format(date, "-yyyy")} BC`
+          : format(date, "yyyy")}
       </div>
-
-      {days.map((day, index) => {
+      {hours.map((hour, index) => {
         return (
-          <div key={index} className={styles.daysContainer}>
+          <div key={index} className={styles.hoursContainer}>
             <MeterLine
               displayValue={
-                isFirstDayOfMonth(day)
-                  ? day.getMonth() === 0
-                    ? format(day, "yyyy")
-                    : format(day, "d LLL")
-                  : format(day, "d")
+                hour.getHours() === 0
+                  ? format(hour, "d LLL")
+                  : format(hour, "h a")
               }
-              isLarger={isFirstDayOfMonth(day)}
+              isLarger={hour.getHours() === 0}
             />
-            {/* {zoomValue > 500 && (
-              <div className={styles.hoursContainer}>
-                {hours.map((_, index) => (
-                  <div key={index} className={styles.hour} />
-                ))}
-              </div>
-            )} */}
           </div>
         );
       })}
