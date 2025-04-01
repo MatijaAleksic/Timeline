@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import useVirtualizer from "./useVirtualizer"; // adjust the import path as needed
 import styles from "./HorizontalVirtualScroll.module.scss";
 import MeterConstants from "@/util/constants/MeterConstants";
 import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
 import DummyData from "@/util/data/DummyData";
-import MeterMonth from "../Meter/MeterMonth";
 import { VirtualItem } from "./VirtualScrollDTO/VirtualItem";
 import { Range } from "./VirtualScrollDTO/Range";
 import MeterContent from "../Meter/MeterContent";
+import { addYears } from "date-fns";
 
 const CustomVirtualScroll = () => {
   // States
@@ -31,10 +30,17 @@ const CustomVirtualScroll = () => {
   const updateVirtualItemsDebounced = useRef<NodeJS.Timeout | null>(null);
 
   // Data
+  const currentDate = new Date();
   const dummyData = useMemo(
-    () => DummyData.getMonths(new Date(2025, 0, 1, 10), 50000),
-    []
+    () =>
+      DummyData.getMonths(
+        new Date(2025, 0, 1, 10),
+        addYears(currentDate, 10000)
+      ),
+    [level]
   );
+  // const dummyData = useMemo(() => DummyData.getData(level), [level]);
+
   const overScan: number = Math.ceil(Math.ceil(screenWidth / elementWidth) * 4);
   const virtualIndexes = virtualItems.map((item) => item.index);
 
@@ -50,9 +56,23 @@ const CustomVirtualScroll = () => {
       return () => window.removeEventListener("resize", updateWidth);
     }
   }, []);
+
   useEffect(() => {
     setRange(getRange());
     safeUpdateVirtualItems(true);
+
+    // if (meterComponentRef.current) {
+    //   // Calculate the index of the current month (or current year if needed)
+    //   const currentDate = new Date();  // Current date (today)
+    //   const currentIndex = differenceInMonths(currentDate, dummyData[0]);
+
+    //   // Calculate the scroll position for the current year
+    //   // Assuming each "element" represents one month, you multiply by the width of an element
+    //   const newScrollLeft = currentIndex * elementWidth;
+
+    //   // Set the scroll position (this will scroll to the current year)
+    //   meterComponentRef.current.scrollLeft = newScrollLeft;
+    // }
   }, [screenWidth]);
 
   const getRange = () => {
@@ -195,8 +215,8 @@ const CustomVirtualScroll = () => {
 
     if (newZoomValue === zoomValue && level !== 1) {
       if (newZoomValue === MeterConstants.maxZoomValue) {
-        setLevel(level - 1);
-        setZoomValue(MeterConstants.minZoomValue);
+        // setLevel(level - 1);
+        // setZoomValue(MeterConstants.minZoomValue);
       }
       // setLevel(level + 1);
     }

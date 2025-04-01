@@ -32,7 +32,9 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
       style={{ width: `${width}px` }}
     >
       <div className={styles.backgroundYear}>
-        {format(firstDayOfMonth, "yyyy")}
+        {date.getFullYear() < 0
+          ? `${format(firstDayOfMonth, "-yyyy")} BC`
+          : format(firstDayOfMonth, "yyyy")}
       </div>
 
       {days.map((day, index) => {
@@ -42,7 +44,9 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
               displayValue={
                 isFirstDayOfMonth(day)
                   ? day.getMonth() === 0
-                    ? format(day, "yyyy")
+                    ? date.getFullYear() < 0
+                      ? `${format(day, "-yyyy")} BC`
+                      : format(day, "yyyy")
                     : format(day, "d LLL")
                   : format(day, "d")
               }
