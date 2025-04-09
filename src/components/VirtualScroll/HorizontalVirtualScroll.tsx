@@ -23,7 +23,7 @@ const CustomVirtualScroll = () => {
   const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
   const [range, setRange] = useState<Range>();
   const [level, setLevel] = useState<number>(2);
-
+  console.log(1);
   // References
   const meterComponentRef = useRef<HTMLDivElement>(null);
   const lastRangeRef = useRef<Range | null>(null);
@@ -44,7 +44,7 @@ const CustomVirtualScroll = () => {
     return DummyData.getDummyData(
       level,
       new Date(2025, 0, 1),
-      addYears(new Date(2025, 0, 1), 1)
+      addYears(new Date(2025, 0, 1), 100)
     );
   }, [level]);
   // const dummyData = useMemo(() => DummyData.getData(level), [level]);
@@ -223,7 +223,6 @@ const CustomVirtualScroll = () => {
   const handleZoom = (event: any) => {
     if (!meterComponentRef.current || isDragging) return;
 
-    // Cancels gliding effect
     if (inertiaFrameRef.current) {
       cancelAnimationFrame(inertiaFrameRef.current);
       inertiaFrameRef.current = null;
@@ -231,7 +230,6 @@ const CustomVirtualScroll = () => {
 
     const boundingRect = meterComponentRef.current.getBoundingClientRect();
     const offsetX = event.clientX - boundingRect.left;
-
     const zoomDirection = event.deltaY > 0 ? -1 : 1;
 
     const newZoomValue = Math.max(
@@ -241,23 +239,28 @@ const CustomVirtualScroll = () => {
         zoomValue + zoomDirection * MeterConstants.zoomStep
       )
     );
+
     if (
       newZoomValue === MeterConstants.maxZoomValue ||
       newZoomValue === MeterConstants.minZoomValue
     ) {
-      defineLevel(newZoomValue);
       return;
     }
 
     const scaleFactor = newZoomValue / zoomValue;
+    const currentScrollLeft = meterComponentRef.current.scrollLeft;
+    const newElementWidth = screenWidth * (newZoomValue / 100);
     const newScrollOffset =
-      (meterComponentRef.current.scrollLeft + offsetX) * scaleFactor - offsetX;
-    meterComponentRef.current.scrollLeft = newScrollOffset;
+      (currentScrollLeft + offsetX) * scaleFactor - offsetX;
     setZoomValue(newZoomValue);
-    setElementWidth(screenWidth * (newZoomValue / 100));
+    setElementWidth(newElementWidth);
     setScrollOffset(newScrollOffset);
-    meterComponentRef.current.scrollLeft = newScrollOffset;
-    updateVirtualItems();
+    requestAnimationFrame(() => {
+      if (meterComponentRef.current) {
+        meterComponentRef.current.scrollLeft = newScrollOffset;
+        updateVirtualItems(true);
+      }
+    });
   };
   const debouncedHandleZoom = useDebouncedWheel(
     handleZoom,
@@ -270,9 +273,11 @@ const CustomVirtualScroll = () => {
   // console.log("elementWidth", elementWidth);
   // console.log("scrollOffset", scrollOffset);
   // console.log("virtualIndexes", virtualIndexes);
-  // console.log("centralElement", (scrollLeft + screenWidth / 2) / elementWidth);
+  // console.log("leftEdgeElementIndex", scrollOffset / elementWidth);
   // console.log("level", level);
   // console.log("zoomValue", zoomValue);
+  // console.log("virtualIndexes[0]", virtualIndexes[0]);
+  // console.log("LEFT VIRTUAL ELEMENT SCROLL", virtualIndexes[0] * elementWidth);
 
   return (
     <div className={styles.meterWrapper}>
