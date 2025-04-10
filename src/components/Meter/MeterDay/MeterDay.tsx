@@ -15,6 +15,8 @@ const MeterDay: React.FunctionComponent<IProps> = ({
   zoomValue,
   ...props
 }) => {
+  if (!date) return;
+
   // Create an array of hours (0 to 23)
   const hours = Array.from({ length: 24 }, (_, i) => {
     return setHours(date, i);

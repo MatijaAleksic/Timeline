@@ -23,7 +23,7 @@ const CustomVirtualScroll = () => {
   const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
   const [range, setRange] = useState<Range>();
   const [level, setLevel] = useState<number>(2);
-  console.log(1);
+
   // References
   const meterComponentRef = useRef<HTMLDivElement>(null);
   const lastRangeRef = useRef<Range | null>(null);
@@ -244,6 +244,7 @@ const CustomVirtualScroll = () => {
       newZoomValue === MeterConstants.maxZoomValue ||
       newZoomValue === MeterConstants.minZoomValue
     ) {
+      defineLevel(newZoomValue);
       return;
     }
 
