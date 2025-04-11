@@ -10,13 +10,24 @@ export default class DummyData {
   public static getData = (level: number) => {
     // const earliestDatePossible = new Date(-100_000_000 * 24 * 60 * 60 * 1000); // ~271,821 BCE
     switch (level) {
-      case 2: {
-        const startDate = new Date();
+      case 1: {
+        const startDate = new Date(new Date().getFullYear(), 0, 1);
         const endDate = new Date();
         startDate.setFullYear(
           startDate.getFullYear() -
             endDate.getFullYear() -
-            MeterConstants.earliestYearLevel2 +
+            MeterConstants.earliestYearLevel12 +
+            1
+        );
+        return this.getDays(startDate, endDate);
+      }
+      case 2: {
+        const startDate = new Date(new Date().getFullYear(), 0, 1);
+        const endDate = new Date();
+        startDate.setFullYear(
+          startDate.getFullYear() -
+            endDate.getFullYear() -
+            MeterConstants.earliestYearLevel12 +
             1
         );
         return this.getMonths(startDate, endDate);

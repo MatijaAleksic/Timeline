@@ -8,7 +8,7 @@ import DummyData from "@/util/data/DummyData";
 import { VirtualItem } from "./VirtualScrollDTO/VirtualItem";
 import { Range } from "./VirtualScrollDTO/Range";
 import MeterContent from "../Meter/MeterContent";
-import { addYears } from "date-fns";
+import { addYears, differenceInDays } from "date-fns";
 import MeterService from "@/util/service/MeterService";
 
 const CustomVirtualScroll = () => {
@@ -40,14 +40,14 @@ const CustomVirtualScroll = () => {
     [virtualItems]
   );
 
-  const dummyData = useMemo(() => {
-    return DummyData.getDummyData(
-      level,
-      new Date(2025, 0, 1),
-      addYears(new Date(2025, 0, 1), 100)
-    );
-  }, [level]);
-  // const dummyData = useMemo(() => DummyData.getData(level), [level]);
+  // const dummyData = useMemo(() => {
+  //   return DummyData.getDummyData(
+  //     level,
+  //     new Date(2025, 0, 1),
+  //     addYears(new Date(2025, 0, 1), 100)
+  //   );
+  // }, [level]);
+  const dummyData = useMemo(() => DummyData.getData(level), [level]);
 
   // Effects
   useLayoutEffect(() => {
@@ -67,6 +67,10 @@ const CustomVirtualScroll = () => {
     setRange(getRange());
     safeUpdateVirtualItems(true);
   }, [screenWidth]);
+
+  useEffect(() => {
+    safeUpdateVirtualItems(true);
+  }, [level]);
 
   //Methods
   const getRange = () => {
@@ -137,24 +141,90 @@ const CustomVirtualScroll = () => {
       updateVirtualItems(forceUpdate);
     }, 16); // ~1 animation frame
   };
+
+  const calculateCenterOffsetOnLevelTransition = (
+    centralOffset: number,
+    newWidth: number,
+    currentLevel: number,
+    nextLevel: number
+  ) => {
+    // if (currentLevel === 2 && nextLevel === 1) {
+    const centralIndex = Math.floor(centralOffset / elementWidth);
+    const centraIndexModus = centralOffset % elementWidth;
+
+    const totalDays = differenceInDays(dummyData[centralIndex], dummyData[0]);
+    return totalDays * newWidth;
+    // }
+  };
+
   const defineLevel = (newZoomValue: number) => {
+    if (!meterComponentRef.current) return;
+
+    const centerOffset = meterComponentRef.current.scrollLeft + screenWidth / 2;
+
     if (
       newZoomValue === MeterConstants.maxZoomValue &&
       level !== MeterConstants.minLevel
     ) {
-      setLevel(level - 1);
+      const newLevel = level - 1;
+      const newWidth = screenWidth * (MeterConstants.minZoomValue / 100);
+      const scaleFactor = newWidth / elementWidth;
+
+      console.log(
+        "hello",
+        calculateCenterOffsetOnLevelTransition(
+          centerOffset,
+          newWidth,
+          level,
+          newLevel
+        ) *
+          scaleFactor -
+          screenWidth / 2
+      );
+      setLevel(newLevel);
       setZoomValue(MeterConstants.minZoomValue);
-      setElementWidth(screenWidth * (MeterConstants.minZoomValue / 100));
-      updateVirtualItems();
+      setElementWidth(newWidth);
+      setScrollOffset(
+        calculateCenterOffsetOnLevelTransition(
+          centerOffset,
+          newWidth,
+          level,
+          newLevel
+        ) *
+          scaleFactor -
+          screenWidth / 2
+      );
+      requestAnimationFrame(() => {
+        meterComponentRef.current!.scrollLeft =
+          calculateCenterOffsetOnLevelTransition(
+            centerOffset,
+            newWidth,
+            level,
+            newLevel
+          ) *
+            scaleFactor -
+          screenWidth / 2;
+        updateVirtualItems(true);
+      });
     }
+
     if (
       newZoomValue === MeterConstants.minZoomValue &&
       level !== MeterConstants.maxLevel
     ) {
-      setLevel(level + 1);
+      const newLevel = level + 1;
+      const newWidth = screenWidth * (MeterConstants.maxZoomValue / 100);
+      const scaleFactor = newWidth / elementWidth;
+
+      setLevel(newLevel);
       setZoomValue(MeterConstants.maxZoomValue);
-      setElementWidth(screenWidth * (MeterConstants.maxZoomValue / 100));
-      updateVirtualItems();
+      setElementWidth(newWidth);
+      setScrollOffset(centerOffset * scaleFactor - screenWidth / 2);
+      requestAnimationFrame(() => {
+        meterComponentRef.current!.scrollLeft =
+          centerOffset * scaleFactor - screenWidth / 2;
+        updateVirtualItems(true);
+      });
     }
   };
 
@@ -253,14 +323,16 @@ const CustomVirtualScroll = () => {
     const newElementWidth = screenWidth * (newZoomValue / 100);
     const newScrollOffset =
       (currentScrollLeft + offsetX) * scaleFactor - offsetX;
+
     setZoomValue(newZoomValue);
     setElementWidth(newElementWidth);
     setScrollOffset(newScrollOffset);
+
+    if (meterComponentRef.current) {
+      meterComponentRef.current.scrollLeft = newScrollOffset;
+    }
     requestAnimationFrame(() => {
-      if (meterComponentRef.current) {
-        meterComponentRef.current.scrollLeft = newScrollOffset;
-        updateVirtualItems(true);
-      }
+      updateVirtualItems(true);
     });
   };
   const debouncedHandleZoom = useDebouncedWheel(
@@ -274,14 +346,22 @@ const CustomVirtualScroll = () => {
   // console.log("elementWidth", elementWidth);
   // console.log("scrollOffset", scrollOffset);
   // console.log("virtualIndexes", virtualIndexes);
-  // console.log("leftEdgeElementIndex", scrollOffset / elementWidth);
-  // console.log("level", level);
+  // console.log(
+  //   "centerOfScreenIndex",
+  //   (scrollOffset + screenWidth / 2) / elementWidth
+  // );
   // console.log("zoomValue", zoomValue);
-  // console.log("virtualIndexes[0]", virtualIndexes[0]);
-  // console.log("LEFT VIRTUAL ELEMENT SCROLL", virtualIndexes[0] * elementWidth);
 
   return (
     <div className={styles.meterWrapper}>
+      <div
+        style={{
+          border: "1px solid lightgreen",
+          width: "0px",
+          height: "100%",
+          position: "fixed",
+        }}
+      ></div>
       <div
         className={styles.meterComponent}
         onWheel={debouncedHandleZoom}
