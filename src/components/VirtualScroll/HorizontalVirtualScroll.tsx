@@ -48,7 +48,6 @@ const CustomVirtualScroll = () => {
   //   );
   // }, [level]);
   const dummyData = useMemo(() => DummyData.getData(level), [level]);
-
   // Effects
   useLayoutEffect(() => {
     if (typeof window !== "undefined") {
@@ -170,17 +169,17 @@ const CustomVirtualScroll = () => {
       const newWidth = screenWidth * (MeterConstants.minZoomValue / 100);
       const scaleFactor = newWidth / elementWidth;
 
-      console.log(
-        "hello",
-        calculateCenterOffsetOnLevelTransition(
-          centerOffset,
-          newWidth,
-          level,
-          newLevel
-        ) *
-          scaleFactor -
-          screenWidth / 2
-      );
+      // console.log(
+      //   "hello",
+      //   calculateCenterOffsetOnLevelTransition(
+      //     centerOffset,
+      //     newWidth,
+      //     level,
+      //     newLevel
+      //   ) *
+      //     scaleFactor -
+      //     screenWidth / 2
+      // );
       setLevel(newLevel);
       setZoomValue(MeterConstants.minZoomValue);
       setElementWidth(newWidth);
@@ -341,7 +340,7 @@ const CustomVirtualScroll = () => {
   );
   // ===============================================================
 
-  // console.log("================");
+  console.log("================");
   // console.log("range", range);
   // console.log("elementWidth", elementWidth);
   // console.log("scrollOffset", scrollOffset);
@@ -350,7 +349,9 @@ const CustomVirtualScroll = () => {
   //   "centerOfScreenIndex",
   //   (scrollOffset + screenWidth / 2) / elementWidth
   // );
-  // console.log("zoomValue", zoomValue);
+  console.log("zoomValue", zoomValue);
+  console.log("level", level);
+  console.log("elementWidth", elementWidth);
 
   return (
     <div className={styles.meterWrapper}>

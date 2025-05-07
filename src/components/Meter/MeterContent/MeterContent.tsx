@@ -1,5 +1,6 @@
 import MeterDay from "../MeterDay";
 import MeterMonth from "../MeterMonth";
+import MeterYear from "../MeterYear";
 
 interface IProps {
   level: number;
@@ -16,16 +17,25 @@ const MeterContent: React.FunctionComponent<IProps> = ({
 }: IProps) => {
   return (
     <>
-      {level === 1 && (
+      {/* TODO: Might not be computationally possible because there are alot of values here, try but the chances are low */}
+      {/* {level === 1 && (
         <MeterDay
           date={element as Date}
           width={elementWidth}
           zoomValue={zoomValue}
         />
-      )}
+      )} */}
       {level === 2 && (
         <MeterMonth
           date={element as Date}
+          width={elementWidth}
+          zoomValue={zoomValue}
+        />
+      )}
+      {level > 2 && (
+        <MeterYear
+          year={element as number}
+          level={level - 2}
           width={elementWidth}
           zoomValue={zoomValue}
         />

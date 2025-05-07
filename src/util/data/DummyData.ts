@@ -32,6 +32,13 @@ export default class DummyData {
         );
         return this.getMonths(startDate, endDate);
       }
+      case 3: {
+        const startYear = MeterConstants.earliestYearLevel3;
+        const endYear = new Date().getFullYear();
+        console.log(startYear);
+        console.log(endYear);
+        return this.getYears(startYear, endYear, level);
+      }
       default:
         return [];
     }
@@ -62,5 +69,17 @@ export default class DummyData {
   public static getDays = (startDate: Date, endDate: Date): Array<Date> => {
     const totalDays = differenceInDays(endDate, startDate);
     return Array.from({ length: totalDays }, (_, i) => addDays(startDate, i));
+  };
+
+  public static getYears = (
+    startYear: number,
+    endYear: number,
+    level: number
+  ): Array<number> => {
+    const yearMultiplier: number = level === 3 ? 1 : (level - 2) * 10;
+    return Array.from(
+      { length: endYear + startYear },
+      (_, i) => i * yearMultiplier
+    );
   };
 }

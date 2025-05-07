@@ -1,0 +1,38 @@
+@use "@/styles/colors.module.scss";
+
+.yearMonthContainer {
+  height: 100%;
+  display: flex;
+  justify-content: stretch;
+
+  .backgroundYear {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.4rem;
+    color: var(--red);
+    opacity: 0.4;
+  }
+}
+
+.subLinesContainer {
+  display: flex;
+  width: 100%;
+}
+
+.subLevelLinesContainer {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+  justify-content: space-evenly;
+
+  .line {
+    height: 1.2rem;
+    width: 1px;
+    background: #000;
+  }
+}
