@@ -35,7 +35,7 @@ const MeterContent: React.FunctionComponent<IProps> = ({
       {level > 2 && (
         <MeterYear
           year={element as number}
-          level={level - 2}
+          level={level}
           width={elementWidth}
           zoomValue={zoomValue}
         />

@@ -18,4 +18,8 @@ export default class MeterService {
     }
     return items;
   };
+
+  public static getYearMultiplier = (level: number) => {
+    return 10 ** (level - 3);
+  };
 }

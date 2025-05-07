@@ -158,9 +158,7 @@ const CustomVirtualScroll = () => {
 
   const defineLevel = (newZoomValue: number) => {
     if (!meterComponentRef.current) return;
-
     const centerOffset = meterComponentRef.current.scrollLeft + screenWidth / 2;
-
     if (
       newZoomValue === MeterConstants.maxZoomValue &&
       level !== MeterConstants.minLevel
@@ -310,8 +308,8 @@ const CustomVirtualScroll = () => {
     );
 
     if (
-      newZoomValue === MeterConstants.maxZoomValue ||
-      newZoomValue === MeterConstants.minZoomValue
+      (zoomDirection > 0 && zoomValue === MeterConstants.maxZoomValue) ||
+      (zoomDirection < 0 && zoomValue === MeterConstants.minZoomValue)
     ) {
       defineLevel(newZoomValue);
       return;
@@ -340,7 +338,7 @@ const CustomVirtualScroll = () => {
   );
   // ===============================================================
 
-  console.log("================");
+  // console.log("================");
   // console.log("range", range);
   // console.log("elementWidth", elementWidth);
   // console.log("scrollOffset", scrollOffset);
@@ -350,8 +348,8 @@ const CustomVirtualScroll = () => {
   //   (scrollOffset + screenWidth / 2) / elementWidth
   // );
   console.log("zoomValue", zoomValue);
-  console.log("level", level);
-  console.log("elementWidth", elementWidth);
+  // console.log("level", level);
+  // console.log("elementWidth", elementWidth);
 
   return (
     <div className={styles.meterWrapper}>

@@ -5,6 +5,7 @@ import {
   differenceInMonths,
 } from "date-fns";
 import MeterConstants from "../constants/MeterConstants";
+import MeterService from "../service/MeterService";
 
 export default class DummyData {
   public static getData = (level: number) => {
@@ -32,15 +33,11 @@ export default class DummyData {
         );
         return this.getMonths(startDate, endDate);
       }
-      case 3: {
+      default: {
         const startYear = MeterConstants.earliestYearLevel3;
         const endYear = new Date().getFullYear();
-        console.log(startYear);
-        console.log(endYear);
         return this.getYears(startYear, endYear, level);
       }
-      default:
-        return [];
     }
   };
 
@@ -76,7 +73,7 @@ export default class DummyData {
     endYear: number,
     level: number
   ): Array<number> => {
-    const yearMultiplier: number = level === 3 ? 1 : (level - 2) * 10;
+    const yearMultiplier: number = MeterService.getYearMultiplier(level);
     return Array.from(
       { length: endYear + startYear },
       (_, i) => i * yearMultiplier

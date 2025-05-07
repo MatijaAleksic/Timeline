@@ -3,6 +3,7 @@ import MeterLine from "../MeterLine/MeterLine";
 import styles from "./MeterYear.module.scss";
 import MeterConstants from "@/util/constants/MeterConstants";
 import DateHelper from "@/util/helper/DateHelper";
+import MeterService from "@/util/service/MeterService";
 
 interface IProps {
   year: number;
@@ -18,11 +19,13 @@ const MeterYear: React.FunctionComponent<IProps> = ({
   zoomValue,
   ...props
 }) => {
-  if (!year) return;
-  // const hours = Array.from({ length: 24 }, (_, i) => i + 1);
-
-  const subLines = Array.from({ length: level === 1 ? 12 : 10 }, (_, i) => {
-    return { index: i, label: DateHelper.getMonthName(i) };
+  const yearMultiplier: number = MeterService.getYearMultiplier(level - 1);
+  const subLines = Array.from({ length: level === 3 ? 12 : 10 }, (_, i) => {
+    return {
+      index: i,
+      label:
+        level === 3 ? DateHelper.getMonthName(i) : year + i * yearMultiplier,
+    };
   });
   const subLevelLines = Array.from({ length: 30 }, (_, i) => i + 1);
 

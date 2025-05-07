@@ -2,16 +2,16 @@ export default class MeterConstants {
   // Levels
 
   public static minLevel: number = 2;
-  public static maxLevel: number = 3;
+  public static maxLevel: number = 14;
 
   public static earliestYearLevel12: number = 3000;
   public static earliestYearLevel3: number = 3000;
 
   // Zoom options
   public static minZoomValue: number = 25;
-  public static maxZoomValue: number = 750;
-  public static smallerLinesValue: number = 500;
-  public static zoomStep: number = 25;
+  public static maxZoomValue: number = 250;
+  public static smallerLinesValue: number = 150;
+  public static zoomStep: number = 20;
 
   // Slide effect options
   public static minTimeElapsedForSlidingEffect: number = 600;
