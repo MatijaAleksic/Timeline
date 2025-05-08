@@ -22,7 +22,7 @@ const CustomVirtualScroll = () => {
   const [elementWidth, setElementWidth] = useState<number>(0);
   const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
   const [range, setRange] = useState<Range>();
-  const [level, setLevel] = useState<number>(2);
+  const [level, setLevel] = useState<number>(10);
 
   // References
   const meterComponentRef = useRef<HTMLDivElement>(null);
@@ -40,13 +40,6 @@ const CustomVirtualScroll = () => {
     [virtualItems]
   );
 
-  // const dummyData = useMemo(() => {
-  //   return DummyData.getDummyData(
-  //     level,
-  //     new Date(2025, 0, 1),
-  //     addYears(new Date(2025, 0, 1), 100)
-  //   );
-  // }, [level]);
   const dummyData = useMemo(() => DummyData.getData(level), [level]);
   // Effects
   useLayoutEffect(() => {
@@ -150,11 +143,15 @@ const CustomVirtualScroll = () => {
     nextLevel: number
   ) => {
     // if (currentLevel === 2 && nextLevel === 1) {
-    const centralIndex = Math.floor(centralOffset / elementWidth);
-    const centraIndexModus = centralOffset % elementWidth;
-
-    const totalDays = differenceInDays(dummyData[centralIndex], dummyData[0]);
-    return totalDays * newWidth;
+    // const centralIndex = Math.floor(centralOffset / elementWidth);
+    // const centralIndexModus = centralOffset % elementWidth;
+    const centralIndex = centralOffset / elementWidth;
+    const centraIndexCorrected = level === 2 ? centralIndex / 12 : centralIndex;
+    const levelTransitionMultiplier =
+      nextLevel > level
+        ? MeterService.getYearMultiplier(nextLevel)
+        : 1 / MeterService.getYearMultiplier(nextLevel);
+    return centraIndexCorrected * levelTransitionMultiplier;
     // }
   };
 
@@ -173,29 +170,38 @@ const CustomVirtualScroll = () => {
       setLevel(newLevel);
       setZoomValue(MeterConstants.minZoomValue);
       setElementWidth(newWidth);
-
-      setScrollOffset(
+      console.log(
+        "center",
         calculateCenterOffsetOnLevelTransition(
           centerOffset,
           newWidth,
           level,
           newLevel
-        ) *
-          scaleFactor -
-          screenWidth / 2
+        )
       );
-      requestAnimationFrame(() => {
-        meterComponentRef.current!.scrollLeft =
-          calculateCenterOffsetOnLevelTransition(
-            centerOffset,
-            newWidth,
-            level,
-            newLevel
-          ) *
-            scaleFactor -
-          screenWidth / 2;
-        updateVirtualItems(true);
-      });
+
+      // setScrollOffset(
+      //   calculateCenterOffsetOnLevelTransition(
+      //     centerOffset,
+      //     newWidth,
+      //     level,
+      //     newLevel
+      //   ) *
+      //     scaleFactor -
+      //     screenWidth / 2
+      // );
+      // requestAnimationFrame(() => {
+      //   meterComponentRef.current!.scrollLeft =
+      //     calculateCenterOffsetOnLevelTransition(
+      //       centerOffset,
+      //       newWidth,
+      //       level,
+      //       newLevel
+      //     ) *
+      //       scaleFactor -
+      //     screenWidth / 2;
+      //   updateVirtualItems(true);
+      // });
     }
 
     if (
@@ -209,12 +215,21 @@ const CustomVirtualScroll = () => {
       setLevel(newLevel);
       setZoomValue(MeterConstants.maxZoomValue);
       setElementWidth(newWidth);
-      setScrollOffset(centerOffset * scaleFactor - screenWidth / 2);
-      requestAnimationFrame(() => {
-        meterComponentRef.current!.scrollLeft =
-          centerOffset * scaleFactor - screenWidth / 2;
-        updateVirtualItems(true);
-      });
+      console.log(
+        "CENTER: -- ",
+        calculateCenterOffsetOnLevelTransition(
+          centerOffset,
+          newWidth,
+          level,
+          newLevel
+        )
+      );
+      // setScrollOffset(centerOffset * scaleFactor - screenWidth / 2);
+      // requestAnimationFrame(() => {
+      //   meterComponentRef.current!.scrollLeft =
+      //     centerOffset * scaleFactor - screenWidth / 2;
+      //   updateVirtualItems(true);
+      // });
     }
   };
 

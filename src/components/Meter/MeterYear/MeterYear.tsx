@@ -20,14 +20,25 @@ const MeterYear: React.FunctionComponent<IProps> = ({
   ...props
 }) => {
   const yearMultiplier: number = MeterService.getYearMultiplier(level - 1);
+  console.log("yearMultiplier", yearMultiplier);
   const subLines = Array.from({ length: level === 3 ? 12 : 10 }, (_, i) => {
     return {
       index: i,
       label:
-        level === 3 ? DateHelper.getMonthName(i) : year + i * yearMultiplier,
+        level === 3
+          ? i === 0
+            ? year
+            : DateHelper.getMonthName(i)
+          : ` ${DateHelper.getYearFormat(
+              year + i * yearMultiplier,
+              yearMultiplier
+            )}`, //${year + i * yearMultiplier}
     };
   });
-  const subLevelLines = Array.from({ length: 30 }, (_, i) => i + 1);
+  const subLevelLines = Array.from(
+    { length: level === 3 ? 30 : 10 },
+    (_, i) => i + 1
+  );
 
   return (
     <div
@@ -39,9 +50,7 @@ const MeterYear: React.FunctionComponent<IProps> = ({
         return (
           <div key={index} className={styles.subLinesContainer}>
             <MeterLine
-              displayValue={
-                index === 0 ? year.toString() : (element.label as string)
-              }
+              displayValue={element.label as string}
               isLarger={index === 0}
             />
             {zoomValue > MeterConstants.smallerLinesValue && (
