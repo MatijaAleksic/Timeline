@@ -10,8 +10,8 @@ export default class MeterConstants {
   // Zoom options
   public static minZoomValue: number = 25;
   public static maxZoomValue: number = 250;
-  public static smallerLinesValue: number = 150;
-  public static zoomStep: number = 20;
+  public static smallerLinesValue: number = 100;
+  public static zoomStep: number = 10;
 
   // Slide effect options
   public static minTimeElapsedForSlidingEffect: number = 600;

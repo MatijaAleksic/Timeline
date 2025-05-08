@@ -141,6 +141,8 @@ const CustomVirtualScroll = () => {
     }, 16); // ~1 animation frame
   };
 
+  // TODO: Fix this method to find the center index of the element and calculate the next scroll offset so that
+  // the zooming in and out of levels centers the meter to the correct offset.
   const calculateCenterOffsetOnLevelTransition = (
     centralOffset: number,
     newWidth: number,
@@ -159,6 +161,7 @@ const CustomVirtualScroll = () => {
   const defineLevel = (newZoomValue: number) => {
     if (!meterComponentRef.current) return;
     const centerOffset = meterComponentRef.current.scrollLeft + screenWidth / 2;
+
     if (
       newZoomValue === MeterConstants.maxZoomValue &&
       level !== MeterConstants.minLevel
@@ -167,20 +170,10 @@ const CustomVirtualScroll = () => {
       const newWidth = screenWidth * (MeterConstants.minZoomValue / 100);
       const scaleFactor = newWidth / elementWidth;
 
-      // console.log(
-      //   "hello",
-      //   calculateCenterOffsetOnLevelTransition(
-      //     centerOffset,
-      //     newWidth,
-      //     level,
-      //     newLevel
-      //   ) *
-      //     scaleFactor -
-      //     screenWidth / 2
-      // );
       setLevel(newLevel);
       setZoomValue(MeterConstants.minZoomValue);
       setElementWidth(newWidth);
+
       setScrollOffset(
         calculateCenterOffsetOnLevelTransition(
           centerOffset,
@@ -347,7 +340,7 @@ const CustomVirtualScroll = () => {
   //   "centerOfScreenIndex",
   //   (scrollOffset + screenWidth / 2) / elementWidth
   // );
-  console.log("zoomValue", zoomValue);
+  // console.log("zoomValue", zoomValue);
   // console.log("level", level);
   // console.log("elementWidth", elementWidth);
 
