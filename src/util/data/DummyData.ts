@@ -14,45 +14,21 @@ export default class DummyData {
       case 1: {
         const startDate = new Date(new Date().getFullYear(), 0, 1);
         const endDate = new Date();
-        startDate.setFullYear(
-          startDate.getFullYear() -
-            endDate.getFullYear() -
-            MeterConstants.earliestYearLevel12 +
-            1
-        );
+        startDate.setFullYear(-MeterConstants.earliestYearLevel1 + 1);
         return this.getDays(startDate, endDate);
       }
       case 2: {
         const startDate = new Date(new Date().getFullYear(), 0, 1);
         const endDate = new Date();
-        startDate.setFullYear(
-          startDate.getFullYear() -
-            endDate.getFullYear() -
-            MeterConstants.earliestYearLevel12 +
-            1
-        );
+        startDate.setFullYear(-MeterConstants.earliestYearLevel2 + 1);
         return this.getMonths(startDate, endDate);
       }
       default: {
-        const startYear = MeterConstants.earliestYearLevel3;
+        const yearMultiplier: number = MeterService.getYearMultiplier(level);
+        const startYear = MeterService.getEarliestYearForLevel(level);
         const endYear = new Date().getFullYear();
-        return this.getYears(startYear, endYear, level);
+        return this.getYears(startYear, endYear, yearMultiplier);
       }
-    }
-  };
-
-  public static getDummyData = (
-    level: number,
-    startDate: Date,
-    endDate: Date
-  ): Array<Date> => {
-    switch (level) {
-      case 1:
-        return this.getDays(startDate, endDate);
-      case 2:
-        return this.getMonths(startDate, endDate);
-      default:
-        return [];
     }
   };
 
@@ -71,12 +47,11 @@ export default class DummyData {
   public static getYears = (
     startYear: number,
     endYear: number,
-    level: number
+    yearMultiplier: number
   ): Array<number> => {
-    const yearMultiplier: number = MeterService.getYearMultiplier(level);
     return Array.from(
-      { length: endYear + startYear },
-      (_, i) => i * yearMultiplier
+      { length: Math.floor((endYear + startYear) / yearMultiplier) },
+      (_, i) => -startYear + i * yearMultiplier
     );
   };
 }

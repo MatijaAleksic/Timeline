@@ -20,7 +20,6 @@ const MeterYear: React.FunctionComponent<IProps> = ({
   ...props
 }) => {
   const yearMultiplier: number = MeterService.getYearMultiplier(level - 1);
-  console.log("yearMultiplier", yearMultiplier);
   const subLines = Array.from({ length: level === 3 ? 12 : 10 }, (_, i) => {
     return {
       index: i,

@@ -7,6 +7,10 @@ export default class DateHelper {
     "Quint", // 10^18
   ];
 
+  private static yearDivision = [
+    1000000, 1000000000, 1000000000000, 1000000000000000, 1000000000000000000,
+  ];
+
   private static formatNumber(year: number, yearMultiplier: number): string {
     if (year / yearMultiplier < 1000) return `${year / yearMultiplier}`;
 
@@ -14,7 +18,6 @@ export default class DateHelper {
     const firstDigit = numStr[0];
     const nextTwoDigits = numStr.slice(1, 3).padEnd(2, "0");
 
-    if (year / yearMultiplier < 1000) return `${firstDigit}${nextTwoDigits}`;
     return `${firstDigit}.${nextTwoDigits}`;
   }
 
@@ -51,13 +54,12 @@ export default class DateHelper {
     year: number,
     yearMultiplier: number
   ): string => {
-    if (year < 1000000) return `${year}`;
-    const scaledValue = year / yearMultiplier;
-    const exponent = Math.floor(Math.log10(scaledValue));
+    if (Math.abs(year) < 1000000) return `${year}`;
+    const exponent = Math.floor(Math.log10(Math.abs(year)));
     const index = Math.floor(exponent / 3);
-    const yearSuffix = this.suffixes[index] || "";
+    const yearSuffix = this.suffixes[index - 2] || "";
     return (
-      `${this.formatNumber(year, yearMultiplier)}` +
+      `${this.formatNumber(year, this.yearDivision[index - 2])}` +
       ` ${yearSuffix !== "" ? yearSuffix : ""}`
     );
   };

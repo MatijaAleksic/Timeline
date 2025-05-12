@@ -8,7 +8,6 @@ import DummyData from "@/util/data/DummyData";
 import { VirtualItem } from "./VirtualScrollDTO/VirtualItem";
 import { Range } from "./VirtualScrollDTO/Range";
 import MeterContent from "../Meter/MeterContent";
-import { addYears, differenceInDays } from "date-fns";
 import MeterService from "@/util/service/MeterService";
 
 const CustomVirtualScroll = () => {
@@ -22,7 +21,7 @@ const CustomVirtualScroll = () => {
   const [elementWidth, setElementWidth] = useState<number>(0);
   const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
   const [range, setRange] = useState<Range>();
-  const [level, setLevel] = useState<number>(10);
+  const [level, setLevel] = useState<number>(2);
 
   // References
   const meterComponentRef = useRef<HTMLDivElement>(null);
@@ -134,25 +133,19 @@ const CustomVirtualScroll = () => {
     }, 16); // ~1 animation frame
   };
 
-  // TODO: Fix this method to find the center index of the element and calculate the next scroll offset so that
-  // the zooming in and out of levels centers the meter to the correct offset.
   const calculateCenterOffsetOnLevelTransition = (
     centralOffset: number,
-    newWidth: number,
     currentLevel: number,
     nextLevel: number
   ) => {
-    // if (currentLevel === 2 && nextLevel === 1) {
-    // const centralIndex = Math.floor(centralOffset / elementWidth);
-    // const centralIndexModus = centralOffset % elementWidth;
     const centralIndex = centralOffset / elementWidth;
-    const centraIndexCorrected = level === 2 ? centralIndex / 12 : centralIndex;
-    const levelTransitionMultiplier =
-      nextLevel > level
-        ? MeterService.getYearMultiplier(nextLevel)
-        : 1 / MeterService.getYearMultiplier(nextLevel);
-    return centraIndexCorrected * levelTransitionMultiplier;
-    // }
+    let adjustedIndex = centralIndex;
+    if (currentLevel === 2 && nextLevel === 3) {
+      adjustedIndex = centralIndex / 12;
+    } else if (currentLevel === 3 && nextLevel === 2) {
+      adjustedIndex = centralIndex * 12;
+    }
+    return adjustedIndex;
   };
 
   const defineLevel = (newZoomValue: number) => {
@@ -165,71 +158,66 @@ const CustomVirtualScroll = () => {
     ) {
       const newLevel = level - 1;
       const newWidth = screenWidth * (MeterConstants.minZoomValue / 100);
-      const scaleFactor = newWidth / elementWidth;
+      const yearMultiplier = MeterService.getYearMultiplier(newLevel);
+      const centralIndex =
+        calculateCenterOffsetOnLevelTransition(centerOffset, level, newLevel) *
+        yearMultiplier;
 
       setLevel(newLevel);
       setZoomValue(MeterConstants.minZoomValue);
       setElementWidth(newWidth);
-      console.log(
-        "center",
-        calculateCenterOffsetOnLevelTransition(
-          centerOffset,
-          newWidth,
-          level,
-          newLevel
-        )
-      );
 
-      // setScrollOffset(
-      //   calculateCenterOffsetOnLevelTransition(
-      //     centerOffset,
-      //     newWidth,
-      //     level,
-      //     newLevel
-      //   ) *
-      //     scaleFactor -
-      //     screenWidth / 2
-      // );
-      // requestAnimationFrame(() => {
-      //   meterComponentRef.current!.scrollLeft =
-      //     calculateCenterOffsetOnLevelTransition(
-      //       centerOffset,
-      //       newWidth,
-      //       level,
-      //       newLevel
-      //     ) *
-      //       scaleFactor -
-      //     screenWidth / 2;
-      //   updateVirtualItems(true);
-      // });
+      const differenceInYearsBetweenLevels =
+        MeterService.getEarliestYearForLevel(newLevel) -
+        MeterService.getEarliestYearForLevel(level);
+      const newScrollOffset =
+        (differenceInYearsBetweenLevels / yearMultiplier) * newWidth +
+        centralIndex * newWidth -
+        screenWidth / 2;
+
+      setScrollOffset(newScrollOffset);
+      updateVirtualItems(true);
+
+      requestAnimationFrame(() => {
+        meterComponentRef.current!.scrollLeft = newScrollOffset;
+        updateVirtualItems(true);
+      });
     }
 
     if (
       newZoomValue === MeterConstants.minZoomValue &&
       level !== MeterConstants.maxLevel
     ) {
+      console.log("2");
       const newLevel = level + 1;
       const newWidth = screenWidth * (MeterConstants.maxZoomValue / 100);
-      const scaleFactor = newWidth / elementWidth;
+      const yearMultiplier = MeterService.getYearMultiplier(newLevel);
+      const centralIndex =
+        calculateCenterOffsetOnLevelTransition(centerOffset, level, newLevel) *
+        yearMultiplier;
 
       setLevel(newLevel);
       setZoomValue(MeterConstants.maxZoomValue);
       setElementWidth(newWidth);
-      console.log(
-        "CENTER: -- ",
-        calculateCenterOffsetOnLevelTransition(
-          centerOffset,
-          newWidth,
-          level,
-          newLevel
-        )
-      );
-      // setScrollOffset(centerOffset * scaleFactor - screenWidth / 2);
-      // requestAnimationFrame(() => {
-      //   meterComponentRef.current!.scrollLeft =
-      //     centerOffset * scaleFactor - screenWidth / 2;
-      //   updateVirtualItems(true);
-      // });
+      const differenceInYearsBetweenLevels =
+        MeterService.getEarliestYearForLevel(newLevel) -
+        MeterService.getEarliestYearForLevel(level);
+      const newScrollOffset =
+        (differenceInYearsBetweenLevels / yearMultiplier) * newWidth +
+        centralIndex * newWidth -
+        screenWidth / 2;
+
+      console.log("centralIndex", centralIndex);
+      console.log("newScrollInde", newScrollOffset);
+      console.log("differenceInYears", differenceInYearsBetweenLevels);
+
+      setScrollOffset(newScrollOffset);
+      updateVirtualItems(true);
+
+      requestAnimationFrame(() => {
+        meterComponentRef.current!.scrollLeft = newScrollOffset;
+        updateVirtualItems(true);
+      });
     }
   };
 
@@ -355,8 +343,10 @@ const CustomVirtualScroll = () => {
   //   "centerOfScreenIndex",
   //   (scrollOffset + screenWidth / 2) / elementWidth
   // );
-  // console.log("zoomValue", zoomValue);
-  // console.log("level", level);
+  console.log("zoomValue", zoomValue);
+  console.log("level", level);
+  // console.log("multiplier", MeterService.getYearMultiplier(level));
+  // console.log("dummyData", dummyData);
   // console.log("elementWidth", elementWidth);
 
   return (
