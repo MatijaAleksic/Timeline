@@ -21,7 +21,7 @@ const CustomVirtualScroll = () => {
   const [elementWidth, setElementWidth] = useState<number>(0);
   const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
   const [range, setRange] = useState<Range>();
-  const [level, setLevel] = useState<number>(2);
+  const [level, setLevel] = useState<number>(3);
 
   // References
   const meterComponentRef = useRef<HTMLDivElement>(null);
@@ -133,87 +133,71 @@ const CustomVirtualScroll = () => {
     }, 16); // ~1 animation frame
   };
 
-  const calculateCenterOffsetOnLevelTransition = (
-    centralOffset: number,
-    currentLevel: number,
-    nextLevel: number
-  ) => {
-    const centralIndex = centralOffset / elementWidth;
-    let adjustedIndex = centralIndex;
-    if (currentLevel === 2 && nextLevel === 3) {
-      adjustedIndex = centralIndex / 12;
-    } else if (currentLevel === 3 && nextLevel === 2) {
-      adjustedIndex = centralIndex * 12;
-    }
-    return adjustedIndex;
-  };
-
   const defineLevel = (newZoomValue: number) => {
     if (!meterComponentRef.current) return;
     const centerOffset = meterComponentRef.current.scrollLeft + screenWidth / 2;
+    const currentIndex = centerOffset / elementWidth;
+    const currentYear =
+      MeterService.getEarliestYearForLevel(level) -
+      currentIndex * MeterService.getYearMultiplier(level);
 
+    // ZOOM IN
     if (
       newZoomValue === MeterConstants.maxZoomValue &&
       level !== MeterConstants.minLevel
     ) {
       const newLevel = level - 1;
-      const newWidth = screenWidth * (MeterConstants.minZoomValue / 100);
+      const newWidth =
+        elementWidth *
+        (MeterConstants.minZoomValue / MeterConstants.maxZoomValue);
+      const earliestYearForNewLevel =
+        MeterService.getEarliestYearForLevel(newLevel);
       const yearMultiplier = MeterService.getYearMultiplier(newLevel);
-      const centralIndex =
-        calculateCenterOffsetOnLevelTransition(centerOffset, level, newLevel) *
-        yearMultiplier;
+
+      const newScrollOffset =
+        ((earliestYearForNewLevel -
+          Math.min(earliestYearForNewLevel, currentYear)) *
+          newWidth) /
+          yearMultiplier -
+        screenWidth / 2;
 
       setLevel(newLevel);
       setZoomValue(MeterConstants.minZoomValue);
       setElementWidth(newWidth);
-
-      const differenceInYearsBetweenLevels =
-        MeterService.getEarliestYearForLevel(newLevel) -
-        MeterService.getEarliestYearForLevel(level);
-      const newScrollOffset =
-        (differenceInYearsBetweenLevels / yearMultiplier) * newWidth +
-        centralIndex * newWidth -
-        screenWidth / 2;
-
       setScrollOffset(newScrollOffset);
-      updateVirtualItems(true);
 
+      updateVirtualItems(true);
       requestAnimationFrame(() => {
         meterComponentRef.current!.scrollLeft = newScrollOffset;
         updateVirtualItems(true);
       });
     }
 
+    // ZOOM OUT
     if (
       newZoomValue === MeterConstants.minZoomValue &&
       level !== MeterConstants.maxLevel
     ) {
-      console.log("2");
       const newLevel = level + 1;
-      const newWidth = screenWidth * (MeterConstants.maxZoomValue / 100);
+      const newWidth =
+        elementWidth *
+        (MeterConstants.maxZoomValue / MeterConstants.minZoomValue);
+      const earliestYearForNewLevel =
+        MeterService.getEarliestYearForLevel(newLevel);
       const yearMultiplier = MeterService.getYearMultiplier(newLevel);
-      const centralIndex =
-        calculateCenterOffsetOnLevelTransition(centerOffset, level, newLevel) *
-        yearMultiplier;
+      const newScrollOffset =
+        ((earliestYearForNewLevel -
+          Math.min(earliestYearForNewLevel, currentYear)) *
+          newWidth) /
+          yearMultiplier -
+        screenWidth / 2;
 
       setLevel(newLevel);
       setZoomValue(MeterConstants.maxZoomValue);
       setElementWidth(newWidth);
-      const differenceInYearsBetweenLevels =
-        MeterService.getEarliestYearForLevel(newLevel) -
-        MeterService.getEarliestYearForLevel(level);
-      const newScrollOffset =
-        (differenceInYearsBetweenLevels / yearMultiplier) * newWidth +
-        centralIndex * newWidth -
-        screenWidth / 2;
-
-      console.log("centralIndex", centralIndex);
-      console.log("newScrollInde", newScrollOffset);
-      console.log("differenceInYears", differenceInYearsBetweenLevels);
-
       setScrollOffset(newScrollOffset);
-      updateVirtualItems(true);
 
+      updateVirtualItems(true);
       requestAnimationFrame(() => {
         meterComponentRef.current!.scrollLeft = newScrollOffset;
         updateVirtualItems(true);
@@ -321,10 +305,10 @@ const CustomVirtualScroll = () => {
     setElementWidth(newElementWidth);
     setScrollOffset(newScrollOffset);
 
-    if (meterComponentRef.current) {
-      meterComponentRef.current.scrollLeft = newScrollOffset;
-    }
     requestAnimationFrame(() => {
+      if (meterComponentRef.current) {
+        meterComponentRef.current.scrollLeft = newScrollOffset;
+      }
       updateVirtualItems(true);
     });
   };
