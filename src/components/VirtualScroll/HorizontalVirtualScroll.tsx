@@ -146,13 +146,11 @@ const CustomVirtualScroll = () => {
   const transitionLevels = (newZoomValue: number) => {
     if (!meterComponentRef.current) return;
     const currentYear = MeterService.calculateCenterYearForLevel(
-      meterComponentRef!,
+      meterComponentRef.current.scrollLeft,
       screenWidth,
       elementWidth,
       level
     );
-
-    console.log("currentYear", currentYear);
 
     // ZOOM IN
     if (
@@ -176,10 +174,6 @@ const CustomVirtualScroll = () => {
         yearMultiplier,
         screenWidth
       );
-      console.log("yearMultiplier", yearMultiplier);
-      console.log("newScrollOffset", newScrollOffset);
-      console.log("newWidth", newWidth);
-
       setLevel(newLevel);
       setZoomValue(MeterConstants.minZoomValue);
       setElementWidth(newWidth);
@@ -207,9 +201,6 @@ const CustomVirtualScroll = () => {
         yearMultiplier,
         screenWidth
       );
-      console.log("yearMultiplier", yearMultiplier);
-      console.log("newScrollOffset", newScrollOffset);
-      console.log("newWidth", newWidth);
       setLevel(newLevel);
       setZoomValue(MeterConstants.maxZoomValue);
       setElementWidth(newWidth);
@@ -339,8 +330,8 @@ const CustomVirtualScroll = () => {
   //   "centerOfScreenIndex",
   //   (scrollOffset + screenWidth / 2) / elementWidth
   // );
-  console.log("zoomValue", zoomValue);
-  console.log("level", level);
+  // console.log("zoomValue", zoomValue);
+  // console.log("level", level);
   // console.log("multiplier", MeterService.getYearMultiplier(level));
   // console.log("dummyData", dummyData);
   // console.log("elementWidth", elementWidth);

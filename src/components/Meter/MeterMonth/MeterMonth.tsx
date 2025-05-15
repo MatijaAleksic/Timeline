@@ -25,7 +25,7 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
     end: lastDayOfMonth,
   });
 
-  const hours = Array.from({ length: 24 }, (_, i) => i + 1);
+  // const hours = Array.from({ length: 24 }, (_, i) => i + 1);
 
   return (
     <div
@@ -35,8 +35,8 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
     >
       <div className={styles.backgroundYear}>
         {date.getFullYear() < 0
-          ? `${format(firstDayOfMonth, "-yyyy")} BC`
-          : format(firstDayOfMonth, "yyyy")}
+          ? `${firstDayOfMonth.getFullYear()} BC`
+          : firstDayOfMonth.getFullYear()}
       </div>
 
       {days.map((day, index) => {
@@ -47,20 +47,20 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
                 isFirstDayOfMonth(day)
                   ? day.getMonth() === 0
                     ? date.getFullYear() < 0
-                      ? `${format(day, "-yyyy")} BC`
-                      : format(day, "yyyy")
+                      ? `${day.getFullYear()} BC`
+                      : `${day.getFullYear()}`
                     : format(day, "d LLL")
                   : format(day, "d")
               }
               isLarger={isFirstDayOfMonth(day)}
             />
-            {zoomValue > MeterConstants.smallerLinesValue && (
+            {/* {zoomValue > MeterConstants.smallerLinesValue && (
               <div className={styles.hoursContainer}>
                 {hours.map((_, index) => (
                   <div key={index} className={styles.hour} />
                 ))}
               </div>
-            )}
+            )} */}
           </div>
         );
       })}

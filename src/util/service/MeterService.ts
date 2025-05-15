@@ -113,17 +113,19 @@ export default class MeterService {
   };
 
   public static calculateCenterYearForLevel = (
-    meterComponentRef: RefObject<HTMLDivElement | null>,
+    scrollOffset: number,
     screenWidth: number,
     elementWidth: number,
     level: number
   ) => {
-    const centerOffset =
-      meterComponentRef.current!.scrollLeft + screenWidth / 2;
+    const centerOffset = scrollOffset + screenWidth / 2;
     const currentIndex = centerOffset / elementWidth;
-    return Math.abs(
+    return (
       this.getEarliestYearForLevel(level) -
-        currentIndex * this.getYearMultiplier(level)
+      currentIndex *
+        (level > 2
+          ? this.getYearMultiplier(level)
+          : 1 / this.getYearMultiplier(level))
     );
   };
 }
