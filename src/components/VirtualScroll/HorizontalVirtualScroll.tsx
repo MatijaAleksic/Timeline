@@ -16,12 +16,16 @@ const CustomVirtualScroll = () => {
   const [lastDragTime, setLastDragTime] = useState<number>(0);
   const [startX, setStartX] = useState<number>(0);
   const [scrollOffset, setScrollOffset] = useState<number>(0);
-  const [zoomValue, setZoomValue] = useState<number>(100); //default 100
   const [screenWidth, setScreenWidth] = useState<number>(0);
   const [elementWidth, setElementWidth] = useState<number>(0);
+
+  const [level, setLevel] = useState<number>(MeterConstants.startLevel);
+  const [zoomValue, setZoomValue] = useState<number>(
+    MeterConstants.startZoomValue
+  ); //default 100
+
   const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
   const [range, setRange] = useState<Range>();
-  const [level, setLevel] = useState<number>(3);
 
   // References
   const meterComponentRef = useRef<HTMLDivElement>(null);
@@ -38,9 +42,10 @@ const CustomVirtualScroll = () => {
     () => virtualItems.map((item) => item.index),
     [virtualItems]
   );
-
   const dummyData = useMemo(() => DummyData.getData(level), [level]);
+
   // Effects
+  // Triggers on resize of the window so that screen width and element width are set correctly
   useLayoutEffect(() => {
     if (typeof window !== "undefined") {
       const updateWidth = () => {
@@ -53,36 +58,30 @@ const CustomVirtualScroll = () => {
       return () => window.removeEventListener("resize", updateWidth);
     }
   }, []);
-
+  // On screen resize recalculate range and virtual items
   useEffect(() => {
-    setRange(getRange());
+    setRange(
+      MeterService.getRange(
+        meterComponentRef,
+        dummyData,
+        scrollOffset,
+        elementWidth
+      )
+    );
     safeUpdateVirtualItems(true);
   }, [screenWidth]);
-
+  // On level change update virtual items
   useEffect(() => {
     safeUpdateVirtualItems(true);
   }, [level]);
 
   //Methods
-  const getRange = () => {
-    if (!meterComponentRef.current) {
-      return;
-    }
-    const containerSize = meterComponentRef.current.clientWidth;
-    const startIndex = Math.floor(scrollOffset / elementWidth);
-    const endIndex = Math.min(
-      dummyData.length - 1,
-      Math.floor((scrollOffset + containerSize) / elementWidth)
-    );
-    return { start: startIndex, end: endIndex };
-  };
   const updateVirtualItems = (forceUpdate: boolean = false) => {
     if (!meterComponentRef.current) return;
 
-    const centralIndex = Math.floor(
-      (meterComponentRef.current.scrollLeft +
-        meterComponentRef.current.clientWidth / 2) /
-        elementWidth
+    const centralIndex = MeterService.calculateCentralIndex(
+      meterComponentRef,
+      elementWidth
     );
 
     // Skips updating virtual indexes when the element on center on the screen falls between the range
@@ -94,7 +93,12 @@ const CustomVirtualScroll = () => {
     )
       return;
 
-    const newRange = getRange();
+    const newRange = MeterService.getRange(
+      meterComponentRef,
+      dummyData,
+      scrollOffset,
+      elementWidth
+    );
 
     // skip when gliding animation is called and the states are frozen then it tracks if the last range ref changes
     if (
@@ -132,14 +136,23 @@ const CustomVirtualScroll = () => {
       updateVirtualItems(forceUpdate);
     }, 16); // ~1 animation frame
   };
-
-  const defineLevel = (newZoomValue: number) => {
+  const centerMeterToOffset = (newScrollOffset: number) => {
+    setScrollOffset(newScrollOffset);
+    requestAnimationFrame(() => {
+      meterComponentRef.current!.scrollLeft = newScrollOffset;
+      updateVirtualItems(true);
+    });
+  };
+  const transitionLevels = (newZoomValue: number) => {
     if (!meterComponentRef.current) return;
-    const centerOffset = meterComponentRef.current.scrollLeft + screenWidth / 2;
-    const currentIndex = centerOffset / elementWidth;
-    const currentYear =
-      MeterService.getEarliestYearForLevel(level) -
-      currentIndex * MeterService.getYearMultiplier(level);
+    const currentYear = MeterService.calculateCenterYearForLevel(
+      meterComponentRef!,
+      screenWidth,
+      elementWidth,
+      level
+    );
+
+    console.log("currentYear", currentYear);
 
     // ZOOM IN
     if (
@@ -152,25 +165,25 @@ const CustomVirtualScroll = () => {
         (MeterConstants.minZoomValue / MeterConstants.maxZoomValue);
       const earliestYearForNewLevel =
         MeterService.getEarliestYearForLevel(newLevel);
-      const yearMultiplier = MeterService.getYearMultiplier(newLevel);
-
-      const newScrollOffset =
-        ((earliestYearForNewLevel -
-          Math.min(earliestYearForNewLevel, currentYear)) *
-          newWidth) /
-          yearMultiplier -
-        screenWidth / 2;
+      const yearMultiplier =
+        newLevel > 2
+          ? MeterService.getYearMultiplier(newLevel)
+          : 1 / MeterService.getYearMultiplier(newLevel);
+      const newScrollOffset = MeterService.calculateOffsetForLevelTransition(
+        earliestYearForNewLevel,
+        currentYear,
+        newWidth,
+        yearMultiplier,
+        screenWidth
+      );
+      console.log("yearMultiplier", yearMultiplier);
+      console.log("newScrollOffset", newScrollOffset);
+      console.log("newWidth", newWidth);
 
       setLevel(newLevel);
       setZoomValue(MeterConstants.minZoomValue);
       setElementWidth(newWidth);
-      setScrollOffset(newScrollOffset);
-
-      updateVirtualItems(true);
-      requestAnimationFrame(() => {
-        meterComponentRef.current!.scrollLeft = newScrollOffset;
-        updateVirtualItems(true);
-      });
+      centerMeterToOffset(newScrollOffset);
     }
 
     // ZOOM OUT
@@ -180,28 +193,28 @@ const CustomVirtualScroll = () => {
     ) {
       const newLevel = level + 1;
       const newWidth =
-        elementWidth *
-        (MeterConstants.maxZoomValue / MeterConstants.minZoomValue);
+        MeterService.calculateNewWidthForLevelTransition(elementWidth);
       const earliestYearForNewLevel =
         MeterService.getEarliestYearForLevel(newLevel);
-      const yearMultiplier = MeterService.getYearMultiplier(newLevel);
-      const newScrollOffset =
-        ((earliestYearForNewLevel -
-          Math.min(earliestYearForNewLevel, currentYear)) *
-          newWidth) /
-          yearMultiplier -
-        screenWidth / 2;
-
+      const yearMultiplier =
+        newLevel > 2
+          ? MeterService.getYearMultiplier(newLevel)
+          : 1 / MeterService.getYearMultiplier(newLevel);
+      const newScrollOffset = MeterService.calculateOffsetForLevelTransition(
+        earliestYearForNewLevel,
+        currentYear,
+        newWidth,
+        yearMultiplier,
+        screenWidth
+      );
+      console.log("yearMultiplier", yearMultiplier);
+      console.log("newScrollOffset", newScrollOffset);
+      console.log("newWidth", newWidth);
       setLevel(newLevel);
       setZoomValue(MeterConstants.maxZoomValue);
       setElementWidth(newWidth);
       setScrollOffset(newScrollOffset);
-
-      updateVirtualItems(true);
-      requestAnimationFrame(() => {
-        meterComponentRef.current!.scrollLeft = newScrollOffset;
-        updateVirtualItems(true);
-      });
+      centerMeterToOffset(newScrollOffset);
     }
   };
 
@@ -291,7 +304,7 @@ const CustomVirtualScroll = () => {
       (zoomDirection > 0 && zoomValue === MeterConstants.maxZoomValue) ||
       (zoomDirection < 0 && zoomValue === MeterConstants.minZoomValue)
     ) {
-      defineLevel(newZoomValue);
+      transitionLevels(newZoomValue);
       return;
     }
 
@@ -317,7 +330,6 @@ const CustomVirtualScroll = () => {
     MeterConstants.debounceWheelMilliseconds
   );
   // ===============================================================
-
   // console.log("================");
   // console.log("range", range);
   // console.log("elementWidth", elementWidth);

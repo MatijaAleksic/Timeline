@@ -1,5 +1,6 @@
 import { VirtualItem } from "@/components/VirtualScroll/VirtualScrollDTO/VirtualItem";
 import MeterConstants from "../constants/MeterConstants";
+import { RefObject } from "react";
 
 export default class MeterService {
   public static generateVirtualIndexes = (
@@ -56,5 +57,73 @@ export default class MeterService {
       default:
         return MeterConstants.earliestYearRestLevels;
     }
+  };
+
+  public static getRange = (
+    meterComponentRef: RefObject<HTMLDivElement | null>,
+    dummyData: any[],
+    scrollOffset: number,
+    elementWidth: number
+  ) => {
+    if (!meterComponentRef.current) {
+      return;
+    }
+    const containerSize = meterComponentRef.current.clientWidth;
+    const startIndex = Math.floor(scrollOffset / elementWidth);
+    const endIndex = Math.min(
+      dummyData.length - 1,
+      Math.floor((scrollOffset + containerSize) / elementWidth)
+    );
+    return { start: startIndex, end: endIndex };
+  };
+
+  public static calculateCentralIndex = (
+    meterComponentRef: RefObject<HTMLDivElement | null>,
+    elementWidth: number
+  ) => {
+    return Math.floor(
+      (meterComponentRef.current!.scrollLeft +
+        meterComponentRef.current!.clientWidth / 2) /
+        elementWidth
+    );
+  };
+
+  public static calculateOffsetForLevelTransition = (
+    earliestYearForNewLevel: number,
+    currentYear: number,
+    newWidth: number,
+    yearMultiplier: number,
+    screenWidth: number
+  ) => {
+    return (
+      ((earliestYearForNewLevel -
+        Math.min(earliestYearForNewLevel, currentYear)) *
+        newWidth) /
+        yearMultiplier -
+      screenWidth / 2
+    );
+  };
+
+  public static calculateNewWidthForLevelTransition = (
+    elementWidth: number
+  ) => {
+    return (
+      elementWidth * (MeterConstants.maxZoomValue / MeterConstants.minZoomValue)
+    );
+  };
+
+  public static calculateCenterYearForLevel = (
+    meterComponentRef: RefObject<HTMLDivElement | null>,
+    screenWidth: number,
+    elementWidth: number,
+    level: number
+  ) => {
+    const centerOffset =
+      meterComponentRef.current!.scrollLeft + screenWidth / 2;
+    const currentIndex = centerOffset / elementWidth;
+    return Math.abs(
+      this.getEarliestYearForLevel(level) -
+        currentIndex * this.getYearMultiplier(level)
+    );
   };
 }
