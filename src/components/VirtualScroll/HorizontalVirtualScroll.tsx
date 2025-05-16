@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import styles from "./HorizontalVirtualScroll.module.scss";
 import MeterConstants from "@/util/constants/MeterConstants";
 import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
@@ -31,7 +31,8 @@ const CustomVirtualScroll = () => {
   const meterComponentRef = useRef<HTMLDivElement>(null);
   const lastRangeRef = useRef<Range | null>(null);
   const inertiaFrameRef = useRef<number | null>(null);
-  const updateVirtualItemsDebounced = useRef<NodeJS.Timeout | null>(null);
+  // const updateVirtualItemsDebounced = useRef<NodeJS.Timeout | null>(null);
+  const updateVirtualItemsDebounced = useRef<number | null>(null);
 
   // Data
   const overScan: number = useMemo(
@@ -46,6 +47,9 @@ const CustomVirtualScroll = () => {
 
   // Effects
   // Triggers on resize of the window so that screen width and element width are set correctly
+
+  //USEEFFECT - happens after paint
+  //USELAYOUTEFFECT - happens before paint
   useLayoutEffect(() => {
     if (typeof window !== "undefined") {
       const updateWidth = () => {
@@ -59,7 +63,7 @@ const CustomVirtualScroll = () => {
     }
   }, []);
   // On screen resize recalculate range and virtual items
-  useEffect(() => {
+  useLayoutEffect(() => {
     setRange(
       MeterService.getRange(
         meterComponentRef,
@@ -71,7 +75,7 @@ const CustomVirtualScroll = () => {
     safeUpdateVirtualItems(true);
   }, [screenWidth]);
   // On level change update virtual items
-  useEffect(() => {
+  useLayoutEffect(() => {
     safeUpdateVirtualItems(true);
   }, [level]);
 
@@ -132,9 +136,12 @@ const CustomVirtualScroll = () => {
     if (updateVirtualItemsDebounced.current) {
       clearTimeout(updateVirtualItemsDebounced.current);
     }
-    updateVirtualItemsDebounced.current = setTimeout(() => {
+    // updateVirtualItemsDebounced.current = setTimeout(() => {
+    //   updateVirtualItems(forceUpdate);
+    // }, 16); // ~1 animation frame
+    updateVirtualItemsDebounced.current = requestAnimationFrame(() => {
       updateVirtualItems(forceUpdate);
-    }, 16); // ~1 animation frame
+    });
   };
   const centerMeterToOffset = (newScrollOffset: number) => {
     setScrollOffset(newScrollOffset);
@@ -271,7 +278,7 @@ const CustomVirtualScroll = () => {
 
   // Handles ZOOM
   // ===============================================================
-  const handleZoom = (event: any) => {
+  const handleWheel = (event: any) => {
     if (!meterComponentRef.current || isDragging) return;
 
     if (inertiaFrameRef.current) {
@@ -282,13 +289,9 @@ const CustomVirtualScroll = () => {
     const boundingRect = meterComponentRef.current.getBoundingClientRect();
     const offsetX = event.clientX - boundingRect.left;
     const zoomDirection = event.deltaY > 0 ? -1 : 1;
-
-    const newZoomValue = Math.max(
-      MeterConstants.minZoomValue,
-      Math.min(
-        MeterConstants.maxZoomValue,
-        zoomValue + zoomDirection * MeterConstants.zoomStep
-      )
+    const newZoomValue = MeterService.calculateNewZoomValue(
+      zoomValue,
+      zoomDirection
     );
 
     if (
@@ -316,8 +319,8 @@ const CustomVirtualScroll = () => {
       updateVirtualItems(true);
     });
   };
-  const debouncedHandleZoom = useDebouncedWheel(
-    handleZoom,
+  const debouncedHandleWheel = useDebouncedWheel(
+    handleWheel,
     MeterConstants.debounceWheelMilliseconds
   );
   // ===============================================================
@@ -344,11 +347,12 @@ const CustomVirtualScroll = () => {
           width: "0px",
           height: "100%",
           position: "fixed",
+          zIndex: "1",
         }}
       ></div>
       <div
         className={styles.meterComponent}
-        onWheel={debouncedHandleZoom}
+        onWheel={debouncedHandleWheel}
         ref={meterComponentRef}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}

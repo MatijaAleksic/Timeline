@@ -21,14 +21,14 @@ export default class MeterService {
     return items;
   };
 
-  public static getYearMultiplier = (level: number) => {
+  public static getYearMultiplier = (level: number): number => {
     if (level === 1) return 30;
     else if (level === 2) return 12;
     else if (level === 3) return 1;
     return 10 ** (level - 3);
   };
 
-  public static getEarliestYearForLevel = (level: number) => {
+  public static getEarliestYearForLevel = (level: number): number => {
     switch (level) {
       case 1:
         return MeterConstants.earliestYearLevel1;
@@ -80,7 +80,7 @@ export default class MeterService {
   public static calculateCentralIndex = (
     meterComponentRef: RefObject<HTMLDivElement | null>,
     elementWidth: number
-  ) => {
+  ): number => {
     return Math.floor(
       (meterComponentRef.current!.scrollLeft +
         meterComponentRef.current!.clientWidth / 2) /
@@ -94,7 +94,7 @@ export default class MeterService {
     newWidth: number,
     yearMultiplier: number,
     screenWidth: number
-  ) => {
+  ): number => {
     return (
       ((earliestYearForNewLevel -
         Math.min(earliestYearForNewLevel, currentYear)) *
@@ -106,7 +106,7 @@ export default class MeterService {
 
   public static calculateNewWidthForLevelTransition = (
     elementWidth: number
-  ) => {
+  ): number => {
     return (
       elementWidth * (MeterConstants.maxZoomValue / MeterConstants.minZoomValue)
     );
@@ -117,7 +117,7 @@ export default class MeterService {
     screenWidth: number,
     elementWidth: number,
     level: number
-  ) => {
+  ): number => {
     const centerOffset = scrollOffset + screenWidth / 2;
     const currentIndex = centerOffset / elementWidth;
     return (
@@ -126,6 +126,19 @@ export default class MeterService {
         (level > 2
           ? this.getYearMultiplier(level)
           : 1 / this.getYearMultiplier(level))
+    );
+  };
+
+  public static calculateNewZoomValue = (
+    zoomValue: number,
+    zoomDirection: number
+  ): number => {
+    return Math.max(
+      MeterConstants.minZoomValue,
+      Math.min(
+        MeterConstants.maxZoomValue,
+        zoomValue + zoomDirection * MeterConstants.zoomStep
+      )
     );
   };
 }
