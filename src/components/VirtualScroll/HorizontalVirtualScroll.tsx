@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import styles from "./HorizontalVirtualScroll.module.scss";
 import MeterConstants from "@/util/constants/MeterConstants";
 import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
@@ -12,13 +12,9 @@ import MeterService from "@/util/service/MeterService";
 
 const CustomVirtualScroll = () => {
   // States
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [lastDragTime, setLastDragTime] = useState<number>(0);
-  const [startX, setStartX] = useState<number>(0);
   const [scrollOffset, setScrollOffset] = useState<number>(0);
   const [screenWidth, setScreenWidth] = useState<number>(0);
   const [elementWidth, setElementWidth] = useState<number>(0);
-
   const [level, setLevel] = useState<number>(MeterConstants.startLevel);
   const [zoomValue, setZoomValue] = useState<number>(
     MeterConstants.startZoomValue
@@ -28,6 +24,9 @@ const CustomVirtualScroll = () => {
   const [range, setRange] = useState<Range>();
 
   // References
+  const isDraggingRef = useRef<boolean>(false);
+  const startXRef = useRef<number>(0);
+  const lastDragTimeRef = useRef<number>(0);
   const meterComponentRef = useRef<HTMLDivElement>(null);
   const lastRangeRef = useRef<Range | null>(null);
   const inertiaFrameRef = useRef<number | null>(null);
@@ -184,7 +183,12 @@ const CustomVirtualScroll = () => {
       setLevel(newLevel);
       setZoomValue(MeterConstants.minZoomValue);
       setElementWidth(newWidth);
+      setScrollOffset(newScrollOffset);
       centerMeterToOffset(newScrollOffset);
+      requestAnimationFrame(() => {
+        meterComponentRef.current!.scrollLeft = newScrollOffset;
+        updateVirtualItems(true);
+      });
     }
 
     // ZOOM OUT
@@ -213,35 +217,40 @@ const CustomVirtualScroll = () => {
       setElementWidth(newWidth);
       setScrollOffset(newScrollOffset);
       centerMeterToOffset(newScrollOffset);
+      requestAnimationFrame(() => {
+        meterComponentRef.current!.scrollLeft = newScrollOffset;
+        updateVirtualItems(true);
+      });
     }
   };
 
   // Handles dragging the meter so you dont have to use scroll wheel
   // ===============================================================
   const handleMouseDown = (event: React.MouseEvent) => {
-    setIsDragging(true);
-    setStartX(event.pageX - (meterComponentRef.current?.offsetLeft || 0));
+    isDraggingRef.current = true;
+    startXRef.current =
+      event.pageX - (meterComponentRef.current?.offsetLeft || 0);
     setScrollOffset(meterComponentRef.current?.scrollLeft || 0);
-    setLastDragTime(Date.now());
+    lastDragTimeRef.current = Date.now();
   };
   const handleMouseMove = (event: React.MouseEvent) => {
-    if (!isDragging) return;
-    const moveX = event.pageX - startX;
+    if (!isDraggingRef.current) return;
+    const moveX = event.pageX - startXRef.current;
     if (meterComponentRef.current) {
       meterComponentRef.current.scrollLeft = scrollOffset - moveX;
     }
   };
   const handleMouseUp = (event: React.MouseEvent) => {
-    setIsDragging(false);
+    isDraggingRef.current = false;
     const endTime = Date.now();
-    const deltaTime = endTime - lastDragTime;
+    const deltaTime = endTime - lastDragTimeRef.current;
 
     //If dragging lasts more than 0.5 seconds dont apply slide effect
     if (deltaTime > MeterConstants.minTimeElapsedForSlidingEffect) {
       return;
     }
 
-    const moveX = event.pageX - startX;
+    const moveX = event.pageX - startXRef.current;
     const velocity = deltaTime === 0 ? 0 : -(moveX / deltaTime);
 
     applyInertia(velocity * MeterConstants.velocityMultiplier);
@@ -269,8 +278,8 @@ const CustomVirtualScroll = () => {
     inertiaScroll();
   };
   const handleMouseLeave = () => {
-    if (isDragging) {
-      setIsDragging(false);
+    if (isDraggingRef.current) {
+      isDraggingRef.current = false;
       safeUpdateVirtualItems();
     }
   };
@@ -279,7 +288,7 @@ const CustomVirtualScroll = () => {
   // Handles ZOOM
   // ===============================================================
   const handleWheel = (event: any) => {
-    if (!meterComponentRef.current || isDragging) return;
+    if (!meterComponentRef.current || isDraggingRef.current) return;
 
     if (inertiaFrameRef.current) {
       cancelAnimationFrame(inertiaFrameRef.current);
@@ -326,7 +335,6 @@ const CustomVirtualScroll = () => {
   // ===============================================================
   // console.log("================");
   // console.log("range", range);
-  // console.log("elementWidth", elementWidth);
   // console.log("scrollOffset", scrollOffset);
   // console.log("virtualIndexes", virtualIndexes);
   // console.log(
@@ -338,7 +346,7 @@ const CustomVirtualScroll = () => {
   // console.log("multiplier", MeterService.getYearMultiplier(level));
   // console.log("dummyData", dummyData);
   // console.log("elementWidth", elementWidth);
-
+  // console.log("RENDER");
   return (
     <div className={styles.meterWrapper}>
       <div
