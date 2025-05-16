@@ -104,14 +104,6 @@ export default class MeterService {
     );
   };
 
-  public static calculateNewWidthForLevelTransition = (
-    elementWidth: number
-  ): number => {
-    return (
-      elementWidth * (MeterConstants.maxZoomValue / MeterConstants.minZoomValue)
-    );
-  };
-
   public static calculateCenterYearForLevel = (
     scrollOffset: number,
     screenWidth: number,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import styles from "./HorizontalVirtualScroll.module.scss";
 import MeterConstants from "@/util/constants/MeterConstants";
 import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
@@ -198,7 +198,8 @@ const CustomVirtualScroll = () => {
     ) {
       const newLevel = level + 1;
       const newWidth =
-        MeterService.calculateNewWidthForLevelTransition(elementWidth);
+        elementWidth *
+        (MeterConstants.maxZoomValue / MeterConstants.minZoomValue);
       const earliestYearForNewLevel =
         MeterService.getEarliestYearForLevel(newLevel);
       const yearMultiplier =
