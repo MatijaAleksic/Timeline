@@ -1,4 +1,4 @@
-@use "@/styles/colors.module.scss";
+@use "@/styles/colors" as colors;
 
 .meterWrapper {
   position: absolute;
@@ -16,7 +16,7 @@
   width: 100%;
   user-select: none;
 
-  background-color: var(--violet);
+  background-color: colors.$violet;
 
   overflow-x: hidden;
   overflow-y: hidden;

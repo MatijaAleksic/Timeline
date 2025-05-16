@@ -1,4 +1,4 @@
-@use "@/styles/colors.module.scss";
+@use "@/styles/colors" as colors;
 
 .meterLineContainer {
   display: flex;
@@ -11,14 +11,14 @@
   .meterLineNormal {
     height: 4rem;
     width: 1px;
-    background: var(--black);
+    background: colors.$black;
     margin-bottom: 1rem;
   }
 
   .meterLineLarge {
     height: 6rem;
     width: 4px;
-    background: var(--red);
+    background: colors.$red;
     margin-bottom: 1rem;
   }
 

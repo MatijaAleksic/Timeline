@@ -1,4 +1,4 @@
-@use "@/styles/colors.module.scss";
+@use "@/styles/colors" as colors;
 
 .monthDaysContainer {
   height: 100%;
@@ -13,7 +13,7 @@
     align-items: center;
     justify-content: center;
     font-size: 2.4rem;
-    color: var(--red);
+    color: colors.$red;
     opacity: 0.4;
   }
 }

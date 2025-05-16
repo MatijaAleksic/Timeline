@@ -115,7 +115,7 @@ const CustomVirtualScroll = () => {
     if (newRange) {
       lastRangeRef.current = newRange;
 
-      let overScanStart = Math.max(0, newRange.start - overScan);
+      const overScanStart = Math.max(0, newRange.start - overScan);
       const overScanEnd = Math.min(
         dummyData.length - 1,
         newRange.end + overScan
