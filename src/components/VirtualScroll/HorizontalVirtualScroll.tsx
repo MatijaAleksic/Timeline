@@ -9,13 +9,10 @@ import { Range } from "./VirtualScrollDTO/Range";
 import MeterContent from "../Meter/MeterContent";
 import MeterService from "@/util/service/MeterService";
 import { EventDTO } from "@/util/dto/EventDTO";
-
-import _ from "lodash";
-import { addMonths } from "date-fns";
 import MeterLevelsService from "@/util/service/MeterLevelsService";
 import DummyDataService from "@/util/data/DummyData";
 
-const CustomVirtualScroll = () => {
+const HorizontalVirtualScroll = () => {
   // States
   const [scrollOffset, setScrollOffset] = useState<number>(0);
   const [screenWidth, setScreenWidth] = useState<number>(0);
@@ -425,27 +422,32 @@ const CustomVirtualScroll = () => {
       <div
         className={styles.presentationWrapper}
         onWheel={handleRepresentationLayerWheel}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => handleMouseLeave()}
         ref={representationComponentRef}
       >
         <>
           {dummyEvents.map((eventObject: EventDTO, index: number) => {
-            return (
-              <div
-                key={index}
-                className={styles.eventContainer}
-                onClick={(event: any) => {
-                  console.log(`${eventObject.label} CLICKED!`);
-                }}
-                style={{
-                  left: MeterService.calculateEventPosition(eventObject), // Offset eventa na presentation layeru
-                  top: 0 * MeterConstants.eventWidth, // Top Margina sa vrha presentation layera
-                }}
-              >
+            if (MeterService.checkIfEventYearSpanInRange(eventObject, virtualItems, elementWidth, level))
+              return (
                 <div
-                  className={styles.periodContent}
-                >{`${eventObject.label}`}</div>
-              </div>
-            );
+                  key={index}
+                  className={styles.eventContainer}
+                  onClick={(event: any) => {
+                    console.log(`${eventObject.label} CLICKED!`);
+                  }}
+                  style={{
+                    left: MeterService.calculateEventPosition(eventObject, elementWidth, virtualItems), // Offset eventa na presentation layeru
+                    top: 0 * MeterConstants.eventWidth, // Top Margina sa vrha presentation layera
+                  }}
+                >
+                  <div
+                    className={styles.periodContent}
+                  >{`${eventObject.label}`}</div>
+                </div>
+              );
           })}
         </>
       </div>
@@ -453,4 +455,4 @@ const CustomVirtualScroll = () => {
   );
 };
 
-export default CustomVirtualScroll;
+export default HorizontalVirtualScroll;

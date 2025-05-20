@@ -86,7 +86,7 @@ export default class MeterService {
     return Math.floor(
       (meterComponentRef.current!.scrollLeft +
         meterComponentRef.current!.clientWidth / 2) /
-        elementWidth
+      elementWidth
     );
   };
 
@@ -101,7 +101,7 @@ export default class MeterService {
       ((earliestYearForNewLevel -
         Math.min(earliestYearForNewLevel, currentYear)) *
         newWidth) /
-        yearMultiplier -
+      yearMultiplier -
       screenWidth / 2
     );
   };
@@ -117,9 +117,9 @@ export default class MeterService {
     return (
       this.getEarliestYearForLevel(level) -
       currentIndex *
-        (level > 2
-          ? this.getYearMultiplier(level)
-          : 1 / this.getYearMultiplier(level))
+      (level > 2
+        ? this.getYearMultiplier(level)
+        : 1 / this.getYearMultiplier(level))
     );
   };
 
@@ -136,15 +136,67 @@ export default class MeterService {
     );
   };
 
-  public static calculateEventPosition = (event: EventDTO) => {
-    console.log(
-      "event",
-      event.date instanceof Date
-        ? event.date.getFullYear() < 0
-          ? format(event.date, "-yyyy - MM - dd")
-          : format(event.date, "yyyy - MM - dd")
-        : event.date
-    );
+  public static calculateEventPosition = (event: EventDTO, elementWidth: number, virtualItems: VirtualItem[]) => {
+    // console.log('virtualItems', virtualItems);
+
+    // console.log(
+    //   "event.startDate",
+    //   event.startDate instanceof Date
+    //     ? event.startDate.getFullYear() < 0
+    //       ? format(event.startDate, "-yyyy - MM - dd")
+    //       : format(event.startDate, "yyyy - MM - dd")
+    //     : event.startDate
+    // );
+
+    // console.log(
+    //   "event.endDate",
+    //   event.endDate instanceof Date
+    //     ? event.endDate.getFullYear() < 0
+    //       ? format(event.endDate, "-yyyy - MM - dd")
+    //       : format(event.endDate, "yyyy - MM - dd")
+    //     : event.endDate
+    // );
+
     return 0;
   };
+
+
+  private static extractYearOutOfMeterElement = (element: number | Date) => {
+    if (element instanceof Date) {
+      return element.getFullYear()
+    }
+    return element;
+  }
+
+  private static calculateYearForLevelAndOffset = (offset: number, elementWith: number, level: number) => {
+    const yearMultiplier = this.getYearMultiplier(level);
+    if (level < 3) return ((offset / elementWith) / yearMultiplier) - this.getEarliestYearForLevel(level);
+    return ((offset / elementWith) * yearMultiplier) - this.getEarliestYearForLevel(level)
+  }
+
+  public static checkIfEventYearSpanInRange = (event: EventDTO, virtualItems: VirtualItem[], elementWith: number, level: number) => {
+    if (virtualItems.length === 0) return false;
+
+    const eventStartYear = this.extractYearOutOfMeterElement(event.startDate);
+    const eventEndYear = this.extractYearOutOfMeterElement(event.endDate);
+
+    const startVirtualItem = virtualItems[0];
+    const endVirtualItem = virtualItems[virtualItems.length - 1];
+
+    const virtualItemStartOffset = this.extractYearOutOfMeterElement(startVirtualItem.start);
+    const virtualItemEndOffset = this.extractYearOutOfMeterElement(endVirtualItem.end)
+    const virtualItemStartYear = this.calculateYearForLevelAndOffset(virtualItemStartOffset, elementWith, level);
+    const virtualItemEndYear = this.calculateYearForLevelAndOffset(virtualItemEndOffset, elementWith, level);
+
+    console.log('======================')
+    console.log('eventStartYear', eventStartYear)
+    console.log('eventEndYear', eventEndYear)
+    console.log('virtualItemStartYear', virtualItemStartYear)
+    console.log('virtualItemEndYear', virtualItemEndYear)
+
+
+    if (eventStartYear < virtualItemStartYear && eventEndYear < virtualItemStartYear) return false;
+    if (eventStartYear > virtualItemEndYear && eventEndYear > virtualItemEndYear) return false;
+    return true;
+  }
 }

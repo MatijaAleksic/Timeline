@@ -1,5 +1,6 @@
 export interface EventDTO {
   label: string;
   level: number;
-  date: Date | number;
+  startDate: Date | number;
+  endDate: Date | number;
 }

@@ -11,7 +11,8 @@ export default class DummyDataService {
       case 3: {
         return Array.from({ length: 1 }, (_, index) => {
           return {
-            date: addMonths(new Date(-3000, 3, 1), index * 4) as Date,
+            startDate: addMonths(new Date(-3000, 3, 1), index * 4) as Date,
+            endDate: addMonths(new Date(-3000, 8, 1), index * 4) as Date,
             label: `World War ${index}`,
             level: 2,
           } as EventDTO;
