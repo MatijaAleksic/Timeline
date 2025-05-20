@@ -145,9 +145,6 @@ const HorizontalVirtualScroll = () => {
     if (updateVirtualItemsDebounced.current) {
       clearTimeout(updateVirtualItemsDebounced.current);
     }
-    // updateVirtualItemsDebounced.current = setTimeout(() => {
-    //   updateVirtualItems(forceUpdate);
-    // }, 16); // ~1 animation frame
     updateVirtualItemsDebounced.current = requestAnimationFrame(() => {
       updateVirtualItems(forceUpdate);
     });
@@ -439,7 +436,8 @@ const HorizontalVirtualScroll = () => {
                     console.log(`${eventObject.label} CLICKED!`);
                   }}
                   style={{
-                    left: MeterService.calculateEventPosition(eventObject, elementWidth, virtualItems), // Offset eventa na presentation layeru
+                    left: MeterService.calculateEventOffsetPosition(eventObject.startDate, elementWidth, virtualItems, level), // Offset eventa na presentation layeru
+                    width: MeterService.calculateEventOffsetPosition(eventObject.endDate, elementWidth, virtualItems, level),
                     top: 0 * MeterConstants.eventWidth, // Top Margina sa vrha presentation layera
                   }}
                 >

@@ -136,7 +136,10 @@ export default class MeterService {
     );
   };
 
-  public static calculateEventPosition = (event: EventDTO, elementWidth: number, virtualItems: VirtualItem[]) => {
+  public static calculateEventOffsetPosition = (date: Date | number, elementWidth: number, virtualItems: VirtualItem[], level: number) => {
+
+    // TODO: Need to implement logic to caluclate Offset out of date and virtual indexes and levels somehow
+
     // console.log('virtualItems', virtualItems);
 
     // console.log(
@@ -174,9 +177,7 @@ export default class MeterService {
     return ((offset / elementWith) * yearMultiplier) - this.getEarliestYearForLevel(level)
   }
 
-  public static checkIfEventYearSpanInRange = (event: EventDTO, virtualItems: VirtualItem[], elementWith: number, level: number) => {
-    if (virtualItems.length === 0) return false;
-
+  private static extractEventAndVirtualItemEndStartYear = (event: EventDTO, virtualItems: VirtualItem[], elementWith: number, level: number) => {
     const eventStartYear = this.extractYearOutOfMeterElement(event.startDate);
     const eventEndYear = this.extractYearOutOfMeterElement(event.endDate);
 
@@ -188,12 +189,13 @@ export default class MeterService {
     const virtualItemStartYear = this.calculateYearForLevelAndOffset(virtualItemStartOffset, elementWith, level);
     const virtualItemEndYear = this.calculateYearForLevelAndOffset(virtualItemEndOffset, elementWith, level);
 
-    console.log('======================')
-    console.log('eventStartYear', eventStartYear)
-    console.log('eventEndYear', eventEndYear)
-    console.log('virtualItemStartYear', virtualItemStartYear)
-    console.log('virtualItemEndYear', virtualItemEndYear)
+    return { eventStartYear: eventStartYear, eventEndYear: eventEndYear, virtualItemStartYear: virtualItemStartYear, virtualItemEndYear: virtualItemEndYear, virtualItemStartOffset: virtualItemStartOffset, virtualItemEndOffset: virtualItemEndOffset }
+  }
 
+  public static checkIfEventYearSpanInRange = (event: EventDTO, virtualItems: VirtualItem[], elementWith: number, level: number) => {
+    if (virtualItems.length === 0) return false;
+
+    const { eventStartYear, eventEndYear, virtualItemStartYear, virtualItemEndYear } = this.extractEventAndVirtualItemEndStartYear(event, virtualItems, elementWith, level);
 
     if (eventStartYear < virtualItemStartYear && eventEndYear < virtualItemStartYear) return false;
     if (eventStartYear > virtualItemEndYear && eventEndYear > virtualItemEndYear) return false;
