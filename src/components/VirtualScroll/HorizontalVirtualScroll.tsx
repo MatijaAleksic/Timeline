@@ -9,6 +9,7 @@ import { VirtualItem } from "./VirtualScrollDTO/VirtualItem";
 import { Range } from "./VirtualScrollDTO/Range";
 import MeterContent from "../Meter/MeterContent";
 import MeterService from "@/util/service/MeterService";
+import _ from "lodash";
 
 const CustomVirtualScroll = () => {
   // States
@@ -333,6 +334,15 @@ const CustomVirtualScroll = () => {
     handleWheel,
     MeterConstants.debounceWheelMilliseconds
   );
+
+  // const throttledWheel = useMemo(
+  //   () =>
+  //     _.throttle((event: React.WheelEvent<HTMLDivElement>) => {
+  //       handleWheel(event);
+  //     }, MeterConstants.debounceWheelMilliseconds),
+  //   []
+  // );
+
   // ===============================================================
   // console.log("================");
   // console.log("range", range);
@@ -361,7 +371,10 @@ const CustomVirtualScroll = () => {
       ></div>
       <div
         className={styles.meterComponent}
-        onWheel={debouncedHandleWheel}
+        onWheel={
+          debouncedHandleWheel
+          // throttledWheel
+        }
         ref={meterComponentRef}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
@@ -402,6 +415,8 @@ const CustomVirtualScroll = () => {
           </div>
         </div>
       </div>
+
+      <div className={styles.presentationWrapper}>Presentation Layer</div>
     </div>
   );
 };
