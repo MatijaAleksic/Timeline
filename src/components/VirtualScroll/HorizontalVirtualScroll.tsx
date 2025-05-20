@@ -4,12 +4,16 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import styles from "./HorizontalVirtualScroll.module.scss";
 import MeterConstants from "@/util/constants/MeterConstants";
 import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
-import DummyData from "@/util/data/DummyData";
 import { VirtualItem } from "./VirtualScrollDTO/VirtualItem";
 import { Range } from "./VirtualScrollDTO/Range";
 import MeterContent from "../Meter/MeterContent";
 import MeterService from "@/util/service/MeterService";
+import { EventDTO } from "@/util/dto/EventDTO";
+
 import _ from "lodash";
+import { addMonths } from "date-fns";
+import MeterLevelsService from "@/util/service/MeterLevelsService";
+import DummyDataService from "@/util/data/DummyData";
 
 const CustomVirtualScroll = () => {
   // States
@@ -29,6 +33,8 @@ const CustomVirtualScroll = () => {
   const startXRef = useRef<number>(0);
   const lastDragTimeRef = useRef<number>(0);
   const meterComponentRef = useRef<HTMLDivElement>(null);
+  const representationComponentRef = useRef<HTMLDivElement>(null);
+
   const lastRangeRef = useRef<Range | null>(null);
   const inertiaFrameRef = useRef<number | null>(null);
   // const updateVirtualItemsDebounced = useRef<NodeJS.Timeout | null>(null);
@@ -43,11 +49,17 @@ const CustomVirtualScroll = () => {
     () => virtualItems.map((item) => item.index),
     [virtualItems]
   );
-  const dummyData = useMemo(() => DummyData.getData(level), [level]);
+  const levelElements = useMemo(
+    () => MeterLevelsService.getLevelElements(level),
+    [level]
+  );
+  const dummyEvents = useMemo(
+    () => DummyDataService.getDataForLevel(level),
+    [level]
+  );
 
   // Effects
   // Triggers on resize of the window so that screen width and element width are set correctly
-
   //USEEFFECT - happens after paint
   //USELAYOUTEFFECT - happens before paint
   useLayoutEffect(() => {
@@ -67,7 +79,7 @@ const CustomVirtualScroll = () => {
     setRange(
       MeterService.getRange(
         meterComponentRef,
-        dummyData,
+        levelElements,
         scrollOffset,
         elementWidth
       )
@@ -99,7 +111,7 @@ const CustomVirtualScroll = () => {
 
     const newRange = MeterService.getRange(
       meterComponentRef,
-      dummyData,
+      levelElements,
       scrollOffset,
       elementWidth
     );
@@ -118,7 +130,7 @@ const CustomVirtualScroll = () => {
 
       const overScanStart = Math.max(0, newRange.start - overScan);
       const overScanEnd = Math.min(
-        dummyData.length - 1,
+        levelElements.length - 1,
         newRange.end + overScan
       );
 
@@ -285,6 +297,7 @@ const CustomVirtualScroll = () => {
       safeUpdateVirtualItems();
     }
   };
+
   // ===============================================================
 
   // Handles ZOOM
@@ -334,30 +347,23 @@ const CustomVirtualScroll = () => {
     handleWheel,
     MeterConstants.debounceWheelMilliseconds
   );
+  const handleRepresentationLayerWheel = (
+    event: React.WheelEvent<HTMLDivElement>
+  ) => {
+    const target = event.currentTarget;
 
-  // const throttledWheel = useMemo(
-  //   () =>
-  //     _.throttle((event: React.WheelEvent<HTMLDivElement>) => {
-  //       handleWheel(event);
-  //     }, MeterConstants.debounceWheelMilliseconds),
-  //   []
-  // );
+    const isScrollable =
+      target.scrollHeight > target.clientHeight &&
+      (event.deltaY < 0
+        ? target.scrollTop > 0
+        : target.scrollTop + target.clientHeight < target.scrollHeight);
 
-  // ===============================================================
-  // console.log("================");
-  // console.log("range", range);
-  // console.log("scrollOffset", scrollOffset);
-  // console.log("virtualIndexes", virtualIndexes);
-  // console.log(
-  //   "centerOfScreenIndex",
-  //   (scrollOffset + screenWidth / 2) / elementWidth
-  // );
-  // console.log("zoomValue", zoomValue);
-  // console.log("level", level);
-  // console.log("multiplier", MeterService.getYearMultiplier(level));
-  // console.log("dummyData", dummyData);
-  // console.log("elementWidth", elementWidth);
-  // console.log("RENDER");
+    if (!isScrollable) {
+      // event.preventDefault(); // Prevent vertical scroll from doing nothing
+      debouncedHandleWheel(event); // Call horizontal zoom scroll
+    }
+  };
+
   return (
     <div className={styles.meterWrapper}>
       <div
@@ -383,7 +389,7 @@ const CustomVirtualScroll = () => {
         <div
           className={styles.virtualizerWrapper}
           style={{
-            width: `${dummyData.length * elementWidth}px`,
+            width: `${levelElements.length * elementWidth}px`,
           }}
         >
           <div
@@ -405,7 +411,7 @@ const CustomVirtualScroll = () => {
 
                 <MeterContent
                   key={virtualItem.key}
-                  element={dummyData[virtualItem.index]}
+                  element={levelElements[virtualItem.index]}
                   elementWidth={elementWidth}
                   zoomValue={zoomValue}
                   level={level}
@@ -416,13 +422,32 @@ const CustomVirtualScroll = () => {
         </div>
       </div>
 
-      <div className={styles.presentationWrapper}>
-        <div
-          className={styles.element1}
-          onClick={(event: any) => {
-            console.log("ELEMENT1 CLICKED!");
-          }}
-        ></div>
+      <div
+        className={styles.presentationWrapper}
+        onWheel={handleRepresentationLayerWheel}
+        ref={representationComponentRef}
+      >
+        <>
+          {dummyEvents.map((eventObject: EventDTO, index: number) => {
+            return (
+              <div
+                key={index}
+                className={styles.eventContainer}
+                onClick={(event: any) => {
+                  console.log(`${eventObject.label} CLICKED!`);
+                }}
+                style={{
+                  left: MeterService.calculateEventPosition(eventObject), // Offset eventa na presentation layeru
+                  top: 0 * MeterConstants.eventWidth, // Top Margina sa vrha presentation layera
+                }}
+              >
+                <div
+                  className={styles.periodContent}
+                >{`${eventObject.label}`}</div>
+              </div>
+            );
+          })}
+        </>
       </div>
     </div>
   );

@@ -16,10 +16,7 @@
   height: 100%;
   width: 100%;
   user-select: none;
-
-  overflow-x: hidden;
-  // overflow-y: hidden;
-
+  overflow: hidden;
   z-index: 2;
   // will-change: scroll-position, transform;
 }
@@ -61,13 +58,34 @@
   width: 100%;
   position: absolute;
   top: 40%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 2;
+  /* Hide scrollbar */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
 
-  .element1 {
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  .eventContainer {
     width: 200px;
     height: 34px;
     background-color: #fafad2;
     position: relative;
-    left: 50%;
     z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+
+    .periodContent {
+      flex-direction: row;
+      width: auto;
+      height: auto;
+      user-select: none;
+      font-size: 1rem;
+    }
   }
 }

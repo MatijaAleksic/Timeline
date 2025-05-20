@@ -33,4 +33,8 @@ export default class MeterConstants {
   public static slidingInertiaDumping: number = 0.9;
   public static slidingCutoff: number = 0.1;
   public static velocityMultiplier: number = 10;
+
+  // Presentation Later options
+
+  public static eventWidth: number = 34;
 }

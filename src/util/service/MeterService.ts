@@ -1,6 +1,8 @@
 import { VirtualItem } from "@/components/VirtualScroll/VirtualScrollDTO/VirtualItem";
 import MeterConstants from "../constants/MeterConstants";
 import { RefObject } from "react";
+import { EventDTO } from "../dto/EventDTO";
+import { format } from "date-fns";
 
 export default class MeterService {
   public static generateVirtualIndexes = (
@@ -132,5 +134,17 @@ export default class MeterService {
         zoomValue + zoomDirection * MeterConstants.zoomStep
       )
     );
+  };
+
+  public static calculateEventPosition = (event: EventDTO) => {
+    console.log(
+      "event",
+      event.date instanceof Date
+        ? event.date.getFullYear() < 0
+          ? format(event.date, "-yyyy - MM - dd")
+          : format(event.date, "yyyy - MM - dd")
+        : event.date
+    );
+    return 0;
   };
 }

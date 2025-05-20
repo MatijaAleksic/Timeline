@@ -1,57 +1,24 @@
-import {
-  addDays,
-  addMonths,
-  differenceInDays,
-  differenceInMonths,
-} from "date-fns";
-import MeterConstants from "../constants/MeterConstants";
-import MeterService from "../service/MeterService";
+import { addMonths } from "date-fns";
+import { EventDTO } from "../dto/EventDTO";
 
-export default class DummyData {
-  public static getData = (level: number) => {
-    // const earliestDatePossible = new Date(-100_000_000 * 24 * 60 * 60 * 1000); // ~271,821 BCE
+export default class DummyDataService {
+  public static getDataForLevel = (level: number) => {
     switch (level) {
-      case 1: {
-        const startDate = new Date(new Date().getFullYear(), 0, 1);
-        const endDate = new Date();
-        startDate.setFullYear(-MeterConstants.earliestYearLevel1 + 1);
-        return this.getDays(startDate, endDate);
+      case 1:
+        return [];
+      case 2:
+        return [];
+      case 3: {
+        return Array.from({ length: 1 }, (_, index) => {
+          return {
+            date: addMonths(new Date(-3000, 3, 1), index * 4) as Date,
+            label: `World War ${index}`,
+            level: 2,
+          } as EventDTO;
+        });
       }
-      case 2: {
-        const startDate = new Date(new Date().getFullYear(), 0, 1);
-        const endDate = new Date();
-        startDate.setFullYear(-MeterConstants.earliestYearLevel2 + 1);
-        return this.getMonths(startDate, endDate);
-      }
-      default: {
-        const yearMultiplier: number = MeterService.getYearMultiplier(level);
-        const startYear = MeterService.getEarliestYearForLevel(level);
-        const endYear = new Date().getFullYear();
-        return this.getYears(startYear, endYear, yearMultiplier);
-      }
+      default:
+        return [];
     }
-  };
-
-  public static getMonths = (startDate: Date, endDate: Date): Array<Date> => {
-    const totalMonths = differenceInMonths(endDate, startDate);
-    return Array.from({ length: totalMonths }, (_, i) => {
-      return addMonths(startDate, i);
-    });
-  };
-
-  public static getDays = (startDate: Date, endDate: Date): Array<Date> => {
-    const totalDays = differenceInDays(endDate, startDate);
-    return Array.from({ length: totalDays }, (_, i) => addDays(startDate, i));
-  };
-
-  public static getYears = (
-    startYear: number,
-    endYear: number,
-    yearMultiplier: number
-  ): Array<number> => {
-    return Array.from(
-      { length: Math.floor((endYear + startYear) / yearMultiplier) },
-      (_, i) => -startYear + i * yearMultiplier
-    );
   };
 }
