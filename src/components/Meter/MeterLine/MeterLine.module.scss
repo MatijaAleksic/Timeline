@@ -8,13 +8,14 @@
   height: 100%; // important for full height
   justify-content: center;
   width: 0;
+  z-index: 2; // ↑ Ensures it's above .presentationWrapper
 
   .meterLineNormal {
     height: 4rem;
     width: 1px;
     background: colors.$black;
     margin-bottom: 1rem;
-    z-index: 1;
+    z-index: 2;
   }
 
   .meterLineLarge {
@@ -45,10 +46,11 @@
   }
   .dashedLine {
     border-left: 1px dashed #000;
-    height: 150%;
+    height: 200%;
     position: absolute;
     top: 0;
-    z-index: 10; // increase to be above .presentationWrapper
-    pointer-events: none; // prevents interfering with interactions
+    z-index: 1;
+    pointer-events: none;
+    top: 50%;
   }
 }

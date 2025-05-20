@@ -289,7 +289,7 @@ const CustomVirtualScroll = () => {
 
   // Handles ZOOM
   // ===============================================================
-  const handleWheel = (event: any) => {
+  const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     if (!meterComponentRef.current || isDraggingRef.current) return;
 
     if (inertiaFrameRef.current) {
@@ -371,10 +371,9 @@ const CustomVirtualScroll = () => {
       ></div>
       <div
         className={styles.meterComponent}
-        onWheel={
-          debouncedHandleWheel
-          // throttledWheel
-        }
+        onWheel={(event: React.WheelEvent<HTMLDivElement>) => {
+          debouncedHandleWheel(event);
+        }}
         ref={meterComponentRef}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
@@ -387,7 +386,6 @@ const CustomVirtualScroll = () => {
             width: `${dummyData.length * elementWidth}px`,
           }}
         >
-          <div className={styles.meterCenterLine} />
           <div
             className={styles.virtualizerOffset}
             style={{
@@ -403,6 +401,8 @@ const CustomVirtualScroll = () => {
                   width: `${elementWidth}px`,
                 }}
               >
+                <div className={styles.meterCenterLine} />
+
                 <MeterContent
                   key={virtualItem.key}
                   element={dummyData[virtualItem.index]}
@@ -416,7 +416,14 @@ const CustomVirtualScroll = () => {
         </div>
       </div>
 
-      <div className={styles.presentationWrapper}>Presentation Layer</div>
+      <div className={styles.presentationWrapper}>
+        <div
+          className={styles.element1}
+          onClick={(event: any) => {
+            console.log("ELEMENT1 CLICKED!");
+          }}
+        ></div>
+      </div>
     </div>
   );
 };

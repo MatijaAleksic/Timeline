@@ -1,7 +1,7 @@
 @use "@/styles/colors" as colors;
 
 .meterWrapper {
-  // position: relative; // was 'absolute', change this
+  position: absolute;
   width: 100%;
   height: 400px;
 
@@ -13,20 +13,23 @@
 }
 
 .meterComponent {
-  height: 40%;
+  height: 100%;
   width: 100%;
   user-select: none;
 
   overflow-x: hidden;
+  // overflow-y: hidden;
 
+  z-index: 2;
   // will-change: scroll-position, transform;
 }
 
 .meterCenterLine {
-  position: fixed;
   width: 100%;
   height: 1px;
-  background: black;
+  background: #000;
+  top: 50%;
+  position: relative;
 }
 
 .virtualizerWrapper {
@@ -41,8 +44,7 @@
 .virtualizerContainer {
   position: absolute;
   top: 0;
-  height: 100%;
-
+  height: 40%;
   // For Mozila
   // will-change: transform;
   // transform: translateZ(0);
@@ -55,11 +57,17 @@
 }
 
 .presentationWrapper {
-  display: flex;
   height: 60%;
   width: 100%;
-  align-items: center;
-  justify-content: center;
-  background: lightgray;
-  z-index: 1;
+  position: absolute;
+  top: 40%;
+
+  .element1 {
+    width: 200px;
+    height: 34px;
+    background-color: #fafad2;
+    position: relative;
+    left: 50%;
+    z-index: 2;
+  }
 }
