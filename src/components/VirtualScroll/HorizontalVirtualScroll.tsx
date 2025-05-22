@@ -8,9 +8,8 @@ import { VirtualItem } from "./VirtualScrollDTO/VirtualItem";
 import { Range } from "./VirtualScrollDTO/Range";
 import MeterContent from "../Meter/MeterContent";
 import MeterService from "@/util/service/MeterService";
-import { EventDTO } from "@/util/dto/EventDTO";
 import MeterLevelsService from "@/util/service/MeterLevelsService";
-import DummyDataService from "@/util/data/DummyData";
+import DummyDataService from "@/util/data/DummyDataService";
 import EventPresentationLayer from "./PresentationLayer/EventPresentationLayer";
 
 const HorizontalVirtualScroll = () => {

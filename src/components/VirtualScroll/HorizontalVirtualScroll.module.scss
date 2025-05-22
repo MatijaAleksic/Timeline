@@ -58,9 +58,10 @@
   width: 100%;
   position: absolute;
   top: 40%;
-  overflow-y: auto;
+  overflow-y: hidden; // change to auto when you want to scroll the period elements
   overflow-x: hidden;
   z-index: 2;
+
   /* Hide scrollbar */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */

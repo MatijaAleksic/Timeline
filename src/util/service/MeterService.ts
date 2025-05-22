@@ -166,7 +166,7 @@ export default class MeterService {
     else {
       calculatedOffset =
         (this.getEarliestYearForLevel(level) / yearMultiplier +
-          (date as number) * yearMultiplier) *
+          (date as number)) *
         elementWidth;
     }
 
@@ -201,8 +201,14 @@ export default class MeterService {
         eventEndOffset < virtualItemStartOffset) ||
       (eventStartOffset > virtualItemEndOffset &&
         eventEndOffset > virtualItemEndOffset)
-    )
+    ) {
+      console.log("eventStartOffset", eventStartOffset);
+      console.log("eventEndOffset", eventEndOffset);
+      console.log("virtualItemStartOffset", virtualItemStartOffset);
+      console.log("virtualItemEndOffset", virtualItemEndOffset);
+      console.log("virtualItems", virtualItems);
       return false;
+    }
 
     return true;
   };
