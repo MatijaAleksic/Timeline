@@ -1,0 +1,19 @@
+.eventContainer {
+  width: 200px;
+  height: 34px;
+  background-color: #fafad2;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 5px;
+
+  .periodContent {
+    flex-direction: row;
+    width: auto;
+    height: auto;
+    user-select: none;
+    font-size: 1rem;
+  }
+}

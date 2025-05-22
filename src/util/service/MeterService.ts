@@ -2,7 +2,6 @@ import { VirtualItem } from "@/components/VirtualScroll/VirtualScrollDTO/Virtual
 import MeterConstants from "../constants/MeterConstants";
 import { RefObject } from "react";
 import { EventDTO } from "../dto/EventDTO";
-import { format } from "date-fns";
 
 export default class MeterService {
   public static generateVirtualIndexes = (
@@ -86,7 +85,7 @@ export default class MeterService {
     return Math.floor(
       (meterComponentRef.current!.scrollLeft +
         meterComponentRef.current!.clientWidth / 2) /
-      elementWidth
+        elementWidth
     );
   };
 
@@ -101,7 +100,7 @@ export default class MeterService {
       ((earliestYearForNewLevel -
         Math.min(earliestYearForNewLevel, currentYear)) *
         newWidth) /
-      yearMultiplier -
+        yearMultiplier -
       screenWidth / 2
     );
   };
@@ -117,9 +116,9 @@ export default class MeterService {
     return (
       this.getEarliestYearForLevel(level) -
       currentIndex *
-      (level > 2
-        ? this.getYearMultiplier(level)
-        : 1 / this.getYearMultiplier(level))
+        (level > 2
+          ? this.getYearMultiplier(level)
+          : 1 / this.getYearMultiplier(level))
     );
   };
 
@@ -136,69 +135,75 @@ export default class MeterService {
     );
   };
 
-  public static calculateEventOffsetPosition = (date: Date | number, elementWidth: number, virtualItems: VirtualItem[], level: number) => {
-
-    // TODO: Need to implement logic to caluclate Offset out of date and virtual indexes and levels somehow
-
-    // console.log('virtualItems', virtualItems);
-
-    // console.log(
-    //   "event.startDate",
-    //   event.startDate instanceof Date
-    //     ? event.startDate.getFullYear() < 0
-    //       ? format(event.startDate, "-yyyy - MM - dd")
-    //       : format(event.startDate, "yyyy - MM - dd")
-    //     : event.startDate
-    // );
-
-    // console.log(
-    //   "event.endDate",
-    //   event.endDate instanceof Date
-    //     ? event.endDate.getFullYear() < 0
-    //       ? format(event.endDate, "-yyyy - MM - dd")
-    //       : format(event.endDate, "yyyy - MM - dd")
-    //     : event.endDate
-    // );
-
-    return 0;
+  public static calculateEventWidth = (
+    startDate: Date | number,
+    endDate: Date | number,
+    level: number,
+    elementWidth: number
+  ) => {
+    return (
+      this.calculateOffsetForLevelAndDate(endDate, level, elementWidth) -
+      this.calculateOffsetForLevelAndDate(startDate, level, elementWidth)
+    );
   };
 
-
-  private static extractYearOutOfMeterElement = (element: number | Date) => {
-    if (element instanceof Date) {
-      return element.getFullYear()
-    }
-    return element;
-  }
-
-  private static calculateYearForLevelAndOffset = (offset: number, elementWith: number, level: number) => {
+  public static calculateOffsetForLevelAndDate = (
+    date: Date | number,
+    level: number,
+    elementWidth: number
+  ) => {
+    var calculatedOffset: number = 0;
     const yearMultiplier = this.getYearMultiplier(level);
-    if (level < 3) return ((offset / elementWith) / yearMultiplier) - this.getEarliestYearForLevel(level);
-    return ((offset / elementWith) * yearMultiplier) - this.getEarliestYearForLevel(level)
-  }
 
-  private static extractEventAndVirtualItemEndStartYear = (event: EventDTO, virtualItems: VirtualItem[], elementWith: number, level: number) => {
-    const eventStartYear = this.extractYearOutOfMeterElement(event.startDate);
-    const eventEndYear = this.extractYearOutOfMeterElement(event.endDate);
+    // Days
+    if (level === 1) {
+      // If days implemented, logic here has to be implemented
+    }
+    //Months
+    else if (level === 2) {
+    }
+    // 1, 10, 100, ...
+    else {
+      calculatedOffset =
+        (this.getEarliestYearForLevel(level) / yearMultiplier +
+          (date as number) * yearMultiplier) *
+        elementWidth;
+    }
 
-    const startVirtualItem = virtualItems[0];
-    const endVirtualItem = virtualItems[virtualItems.length - 1];
+    return calculatedOffset;
+  };
 
-    const virtualItemStartOffset = this.extractYearOutOfMeterElement(startVirtualItem.start);
-    const virtualItemEndOffset = this.extractYearOutOfMeterElement(endVirtualItem.end)
-    const virtualItemStartYear = this.calculateYearForLevelAndOffset(virtualItemStartOffset, elementWith, level);
-    const virtualItemEndYear = this.calculateYearForLevelAndOffset(virtualItemEndOffset, elementWith, level);
-
-    return { eventStartYear: eventStartYear, eventEndYear: eventEndYear, virtualItemStartYear: virtualItemStartYear, virtualItemEndYear: virtualItemEndYear, virtualItemStartOffset: virtualItemStartOffset, virtualItemEndOffset: virtualItemEndOffset }
-  }
-
-  public static checkIfEventYearSpanInRange = (event: EventDTO, virtualItems: VirtualItem[], elementWith: number, level: number) => {
+  public static checkIfEventYearSpanInRange = (
+    event: EventDTO,
+    virtualItems: VirtualItem[],
+    elementWidth: number,
+    level: number
+  ) => {
     if (virtualItems.length === 0) return false;
 
-    const { eventStartYear, eventEndYear, virtualItemStartYear, virtualItemEndYear } = this.extractEventAndVirtualItemEndStartYear(event, virtualItems, elementWith, level);
+    const eventStartOffset = this.calculateOffsetForLevelAndDate(
+      event.startDate,
+      level,
+      elementWidth
+    );
+    const eventEndOffset = this.calculateOffsetForLevelAndDate(
+      event.endDate,
+      level,
+      elementWidth
+    );
+    const startVirtualItem = virtualItems[0];
+    const endVirtualItem = virtualItems[virtualItems.length - 1];
+    const virtualItemStartOffset = startVirtualItem.start;
+    const virtualItemEndOffset = endVirtualItem.end;
 
-    if (eventStartYear < virtualItemStartYear && eventEndYear < virtualItemStartYear) return false;
-    if (eventStartYear > virtualItemEndYear && eventEndYear > virtualItemEndYear) return false;
+    if (
+      (eventStartOffset < virtualItemStartOffset &&
+        eventEndOffset < virtualItemStartOffset) ||
+      (eventStartOffset > virtualItemEndOffset &&
+        eventEndOffset > virtualItemEndOffset)
+    )
+      return false;
+
     return true;
-  }
+  };
 }

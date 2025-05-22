@@ -7,19 +7,25 @@ export default class DummyDataService {
       case 1:
         return [];
       case 2:
-        return [];
-      case 3: {
         return Array.from({ length: 1 }, (_, index) => {
           return {
-            startDate: addMonths(new Date(-3000, 3, 1), index * 4) as Date,
-            endDate: addMonths(new Date(-3000, 8, 1), index * 4) as Date,
+            startDate: addMonths(new Date(-2999, 3, 1), index * 4) as Date,
+            endDate: addMonths(new Date(-2999, 8, 1), index * 4) as Date,
             label: `World War ${index}`,
-            level: 2,
+            level: level,
+          } as EventDTO;
+        });
+      default: {
+        const start = -2999;
+        return Array.from({ length: 30 }, (_, index) => {
+          return {
+            startDate: start + index * 0.2,
+            endDate: start + index * 0.2 + 0.2,
+            label: `World War ${index}`,
+            level: level,
           } as EventDTO;
         });
       }
-      default:
-        return [];
     }
   };
 }

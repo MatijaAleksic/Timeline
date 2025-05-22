@@ -11,6 +11,7 @@ import MeterService from "@/util/service/MeterService";
 import { EventDTO } from "@/util/dto/EventDTO";
 import MeterLevelsService from "@/util/service/MeterLevelsService";
 import DummyDataService from "@/util/data/DummyData";
+import EventPresentationLayer from "./PresentationLayer/EventPresentationLayer";
 
 const HorizontalVirtualScroll = () => {
   // States
@@ -30,7 +31,7 @@ const HorizontalVirtualScroll = () => {
   const startXRef = useRef<number>(0);
   const lastDragTimeRef = useRef<number>(0);
   const meterComponentRef = useRef<HTMLDivElement>(null);
-  const representationComponentRef = useRef<HTMLDivElement>(null);
+  const presentationLayerComponentRef = useRef<HTMLDivElement>(null);
 
   const lastRangeRef = useRef<Range | null>(null);
   const inertiaFrameRef = useRef<number | null>(null);
@@ -353,7 +354,6 @@ const HorizontalVirtualScroll = () => {
         : target.scrollTop + target.clientHeight < target.scrollHeight);
 
     if (!isScrollable) {
-      // event.preventDefault(); // Prevent vertical scroll from doing nothing
       debouncedHandleWheel(event); // Call horizontal zoom scroll
     }
   };
@@ -413,41 +413,23 @@ const HorizontalVirtualScroll = () => {
               </div>
             ))}
           </div>
-        </div>
-      </div>
 
-      <div
-        className={styles.presentationWrapper}
-        onWheel={handleRepresentationLayerWheel}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => handleMouseLeave()}
-        ref={representationComponentRef}
-      >
-        <>
-          {dummyEvents.map((eventObject: EventDTO, index: number) => {
-            if (MeterService.checkIfEventYearSpanInRange(eventObject, virtualItems, elementWidth, level))
-              return (
-                <div
-                  key={index}
-                  className={styles.eventContainer}
-                  onClick={(event: any) => {
-                    console.log(`${eventObject.label} CLICKED!`);
-                  }}
-                  style={{
-                    left: MeterService.calculateEventOffsetPosition(eventObject.startDate, elementWidth, virtualItems, level), // Offset eventa na presentation layeru
-                    width: MeterService.calculateEventOffsetPosition(eventObject.endDate, elementWidth, virtualItems, level),
-                    top: 0 * MeterConstants.eventWidth, // Top Margina sa vrha presentation layera
-                  }}
-                >
-                  <div
-                    className={styles.periodContent}
-                  >{`${eventObject.label}`}</div>
-                </div>
-              );
-          })}
-        </>
+          <div
+            className={styles.presentationLayerWrapper}
+            onWheel={handleRepresentationLayerWheel}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={() => handleMouseLeave()}
+            ref={presentationLayerComponentRef}
+          >
+            <EventPresentationLayer
+              elementWidth={elementWidth}
+              level={level}
+              virtualItems={virtualItems}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
