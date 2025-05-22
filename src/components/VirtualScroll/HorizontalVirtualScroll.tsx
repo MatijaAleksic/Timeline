@@ -4,13 +4,15 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import styles from "./HorizontalVirtualScroll.module.scss";
 import MeterConstants from "@/util/constants/MeterConstants";
 import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
-import DummyData from "@/util/data/DummyData";
 import { VirtualItem } from "./VirtualScrollDTO/VirtualItem";
 import { Range } from "./VirtualScrollDTO/Range";
 import MeterContent from "../Meter/MeterContent";
 import MeterService from "@/util/service/MeterService";
+import MeterLevelsService from "@/util/service/MeterLevelsService";
+import DummyDataService from "@/util/data/DummyDataService";
+import EventPresentationLayer from "./PresentationLayer/EventPresentationLayer";
 
-const CustomVirtualScroll = () => {
+const HorizontalVirtualScroll = () => {
   // States
   const [scrollOffset, setScrollOffset] = useState<number>(0);
   const [screenWidth, setScreenWidth] = useState<number>(0);
@@ -28,6 +30,8 @@ const CustomVirtualScroll = () => {
   const startXRef = useRef<number>(0);
   const lastDragTimeRef = useRef<number>(0);
   const meterComponentRef = useRef<HTMLDivElement>(null);
+  const presentationLayerComponentRef = useRef<HTMLDivElement>(null);
+
   const lastRangeRef = useRef<Range | null>(null);
   const inertiaFrameRef = useRef<number | null>(null);
   // const updateVirtualItemsDebounced = useRef<NodeJS.Timeout | null>(null);
@@ -42,11 +46,17 @@ const CustomVirtualScroll = () => {
     () => virtualItems.map((item) => item.index),
     [virtualItems]
   );
-  const dummyData = useMemo(() => DummyData.getData(level), [level]);
+  const levelElements = useMemo(
+    () => MeterLevelsService.getLevelElements(level),
+    [level]
+  );
+  const dummyEvents = useMemo(
+    () => DummyDataService.getDataForLevel(level),
+    [level]
+  );
 
   // Effects
   // Triggers on resize of the window so that screen width and element width are set correctly
-
   //USEEFFECT - happens after paint
   //USELAYOUTEFFECT - happens before paint
   useLayoutEffect(() => {
@@ -66,7 +76,7 @@ const CustomVirtualScroll = () => {
     setRange(
       MeterService.getRange(
         meterComponentRef,
-        dummyData,
+        levelElements,
         scrollOffset,
         elementWidth
       )
@@ -98,7 +108,7 @@ const CustomVirtualScroll = () => {
 
     const newRange = MeterService.getRange(
       meterComponentRef,
-      dummyData,
+      levelElements,
       scrollOffset,
       elementWidth
     );
@@ -117,7 +127,7 @@ const CustomVirtualScroll = () => {
 
       const overScanStart = Math.max(0, newRange.start - overScan);
       const overScanEnd = Math.min(
-        dummyData.length - 1,
+        levelElements.length - 1,
         newRange.end + overScan
       );
 
@@ -135,9 +145,6 @@ const CustomVirtualScroll = () => {
     if (updateVirtualItemsDebounced.current) {
       clearTimeout(updateVirtualItemsDebounced.current);
     }
-    // updateVirtualItemsDebounced.current = setTimeout(() => {
-    //   updateVirtualItems(forceUpdate);
-    // }, 16); // ~1 animation frame
     updateVirtualItemsDebounced.current = requestAnimationFrame(() => {
       updateVirtualItems(forceUpdate);
     });
@@ -284,11 +291,12 @@ const CustomVirtualScroll = () => {
       safeUpdateVirtualItems();
     }
   };
+
   // ===============================================================
 
   // Handles ZOOM
   // ===============================================================
-  const handleWheel = (event: any) => {
+  const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     if (!meterComponentRef.current || isDraggingRef.current) return;
 
     if (inertiaFrameRef.current) {
@@ -333,21 +341,22 @@ const CustomVirtualScroll = () => {
     handleWheel,
     MeterConstants.debounceWheelMilliseconds
   );
-  // ===============================================================
-  // console.log("================");
-  // console.log("range", range);
-  // console.log("scrollOffset", scrollOffset);
-  // console.log("virtualIndexes", virtualIndexes);
-  // console.log(
-  //   "centerOfScreenIndex",
-  //   (scrollOffset + screenWidth / 2) / elementWidth
-  // );
-  // console.log("zoomValue", zoomValue);
-  // console.log("level", level);
-  // console.log("multiplier", MeterService.getYearMultiplier(level));
-  // console.log("dummyData", dummyData);
-  // console.log("elementWidth", elementWidth);
-  // console.log("RENDER");
+  const handleRepresentationLayerWheel = (
+    event: React.WheelEvent<HTMLDivElement>
+  ) => {
+    const target = event.currentTarget;
+
+    const isScrollable =
+      target.scrollHeight > target.clientHeight &&
+      (event.deltaY < 0
+        ? target.scrollTop > 0
+        : target.scrollTop + target.clientHeight < target.scrollHeight);
+
+    if (!isScrollable) {
+      debouncedHandleWheel(event); // Call horizontal zoom scroll
+    }
+  };
+
   return (
     <div className={styles.meterWrapper}>
       <div
@@ -361,7 +370,9 @@ const CustomVirtualScroll = () => {
       ></div>
       <div
         className={styles.meterComponent}
-        onWheel={debouncedHandleWheel}
+        onWheel={(event: React.WheelEvent<HTMLDivElement>) => {
+          debouncedHandleWheel(event);
+        }}
         ref={meterComponentRef}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
@@ -371,10 +382,9 @@ const CustomVirtualScroll = () => {
         <div
           className={styles.virtualizerWrapper}
           style={{
-            width: `${dummyData.length * elementWidth}px`,
+            width: `${levelElements.length * elementWidth}px`,
           }}
         >
-          <div className={styles.meterCenterLine} />
           <div
             className={styles.virtualizerOffset}
             style={{
@@ -390,9 +400,11 @@ const CustomVirtualScroll = () => {
                   width: `${elementWidth}px`,
                 }}
               >
+                <div className={styles.meterCenterLine} />
+
                 <MeterContent
                   key={virtualItem.key}
-                  element={dummyData[virtualItem.index]}
+                  element={levelElements[virtualItem.index]}
                   elementWidth={elementWidth}
                   zoomValue={zoomValue}
                   level={level}
@@ -400,10 +412,26 @@ const CustomVirtualScroll = () => {
               </div>
             ))}
           </div>
+
+          <div
+            className={styles.presentationLayerWrapper}
+            onWheel={handleRepresentationLayerWheel}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={() => handleMouseLeave()}
+            ref={presentationLayerComponentRef}
+          >
+            <EventPresentationLayer
+              elementWidth={elementWidth}
+              level={level}
+              virtualItems={virtualItems}
+            />
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default CustomVirtualScroll;
+export default HorizontalVirtualScroll;

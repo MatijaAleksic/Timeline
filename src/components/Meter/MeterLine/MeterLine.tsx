@@ -25,6 +25,7 @@ const MeterLine: React.FunctionComponent<IProps> = ({
       <div
         className={isLarger ? styles.meterLineLarge : styles.meterLineNormal}
       />
+      <div className={styles.dashedLine} />
     </div>
   );
 };

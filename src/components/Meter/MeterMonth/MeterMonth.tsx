@@ -1,7 +1,7 @@
 import { eachDayOfInterval, format, isFirstDayOfMonth } from "date-fns";
 import MeterLine from "../MeterLine/MeterLine";
 import styles from "./MeterMonth.module.scss";
-import MeterConstants from "@/util/constants/MeterConstants";
+// import MeterConstants from "@/util/constants/MeterConstants";
 
 interface IProps {
   date: Date;
@@ -38,7 +38,6 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
           ? `${firstDayOfMonth.getFullYear()} BC`
           : firstDayOfMonth.getFullYear()}
       </div>
-
       {days.map((day, index) => {
         return (
           <div key={index} className={styles.daysContainer}>

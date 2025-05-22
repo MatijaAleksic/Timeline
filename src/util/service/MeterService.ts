@@ -1,6 +1,7 @@
 import { VirtualItem } from "@/components/VirtualScroll/VirtualScrollDTO/VirtualItem";
 import MeterConstants from "../constants/MeterConstants";
 import { RefObject } from "react";
+import { EventDTO } from "../dto/EventDTO";
 
 export default class MeterService {
   public static generateVirtualIndexes = (
@@ -132,5 +133,83 @@ export default class MeterService {
         zoomValue + zoomDirection * MeterConstants.zoomStep
       )
     );
+  };
+
+  public static calculateEventWidth = (
+    startDate: Date | number,
+    endDate: Date | number,
+    level: number,
+    elementWidth: number
+  ) => {
+    return (
+      this.calculateOffsetForLevelAndDate(endDate, level, elementWidth) -
+      this.calculateOffsetForLevelAndDate(startDate, level, elementWidth)
+    );
+  };
+
+  public static calculateOffsetForLevelAndDate = (
+    date: Date | number,
+    level: number,
+    elementWidth: number
+  ) => {
+    var calculatedOffset: number = 0;
+    const yearMultiplier = this.getYearMultiplier(level);
+
+    // Days
+    if (level === 1) {
+      // If days implemented, logic here has to be implemented
+    }
+    //Months
+    else if (level === 2) {
+    }
+    // 1, 10, 100, ...
+    else {
+      calculatedOffset =
+        (this.getEarliestYearForLevel(level) / yearMultiplier +
+          (date as number)) *
+        elementWidth;
+    }
+
+    return calculatedOffset;
+  };
+
+  public static checkIfEventYearSpanInRange = (
+    event: EventDTO,
+    virtualItems: VirtualItem[],
+    elementWidth: number,
+    level: number
+  ) => {
+    if (virtualItems.length === 0) return false;
+
+    const eventStartOffset = this.calculateOffsetForLevelAndDate(
+      event.startDate,
+      level,
+      elementWidth
+    );
+    const eventEndOffset = this.calculateOffsetForLevelAndDate(
+      event.endDate,
+      level,
+      elementWidth
+    );
+    const startVirtualItem = virtualItems[0];
+    const endVirtualItem = virtualItems[virtualItems.length - 1];
+    const virtualItemStartOffset = startVirtualItem.start;
+    const virtualItemEndOffset = endVirtualItem.end;
+
+    if (
+      (eventStartOffset < virtualItemStartOffset &&
+        eventEndOffset < virtualItemStartOffset) ||
+      (eventStartOffset > virtualItemEndOffset &&
+        eventEndOffset > virtualItemEndOffset)
+    ) {
+      console.log("eventStartOffset", eventStartOffset);
+      console.log("eventEndOffset", eventEndOffset);
+      console.log("virtualItemStartOffset", virtualItemStartOffset);
+      console.log("virtualItemEndOffset", virtualItemEndOffset);
+      console.log("virtualItems", virtualItems);
+      return false;
+    }
+
+    return true;
   };
 }

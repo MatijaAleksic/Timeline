@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef } from "react";
 
 function useDebouncedWheel(
-  callback: (event: React.WheelEvent) => void,
+  callback: (event: React.WheelEvent<HTMLDivElement>) => void,
   delay: number = 40
 ) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastEventRef = useRef<React.WheelEvent | null>(null);
+  const lastEventRef = useRef<React.WheelEvent<HTMLDivElement> | null>(null);
 
   const debouncedCallback = useCallback(
-    (event: React.WheelEvent) => {
+    (event: React.WheelEvent<HTMLDivElement>) => {
       lastEventRef.current = event;
 
       if (timeoutRef.current) {

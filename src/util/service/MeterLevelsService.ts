@@ -5,10 +5,10 @@ import {
   differenceInMonths,
 } from "date-fns";
 import MeterConstants from "../constants/MeterConstants";
-import MeterService from "../service/MeterService";
+import MeterService from "./MeterService";
 
-export default class DummyData {
-  public static getData = (level: number) => {
+export default class MeterLevelsService {
+  public static getLevelElements = (level: number) => {
     // const earliestDatePossible = new Date(-100_000_000 * 24 * 60 * 60 * 1000); // ~271,821 BCE
     switch (level) {
       case 1: {
