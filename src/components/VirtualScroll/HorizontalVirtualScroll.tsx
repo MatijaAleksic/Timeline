@@ -50,10 +50,6 @@ const HorizontalVirtualScroll = () => {
     () => MeterLevelsService.getLevelElements(level),
     [level]
   );
-  const dummyEvents = useMemo(
-    () => DummyDataService.getDataForLevel(level),
-    [level]
-  );
 
   // Effects
   // Triggers on resize of the window so that screen width and element width are set correctly

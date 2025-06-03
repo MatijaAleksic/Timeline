@@ -8,7 +8,7 @@ export default class DummyDataService {
       case 1:
         return [];
       case 2:
-        return Array.from({ length: 1 }, (_, index) => {
+        return Array.from({ length: 10 }, (_, index) => {
           return {
             startDate: addMonths(new Date(-2999, 3, 1), index * 4) as Date,
             endDate: addMonths(new Date(-2999, 8, 1), index * 4) as Date,
@@ -19,7 +19,7 @@ export default class DummyDataService {
       default: {
         const yearMultiplier = MeterService.getYearMultiplier(level);
         const start = -2999 / yearMultiplier;
-        return Array.from({ length: 1 }, (_, index) => {
+        return Array.from({ length: 10 }, (_, index) => {
           return {
             startDate: start + index * yearMultiplier * 0.2,
             endDate: start + index * yearMultiplier * 0.2 + 0.2,

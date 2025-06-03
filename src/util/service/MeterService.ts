@@ -66,10 +66,7 @@ export default class MeterService {
     scrollOffset: number,
     elementWidth: number
   ) => {
-    if (!meterComponentRef.current) {
-      return;
-    }
-    const containerSize = meterComponentRef.current.clientWidth;
+    const containerSize = meterComponentRef.current!.clientWidth;
     const startIndex = Math.floor(scrollOffset / elementWidth);
     const endIndex = Math.min(
       dummyData.length - 1,
