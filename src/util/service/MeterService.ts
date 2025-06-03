@@ -4,7 +4,7 @@ import { RefObject } from "react";
 import { EventDTO } from "../dto/EventDTO";
 
 export default class MeterService {
-  public static generateVirtualIndexes = (
+  public static generateVirtualItems = (
     overScanStart: number,
     overScanEnd: number,
     elementWidth: number
@@ -62,14 +62,14 @@ export default class MeterService {
 
   public static getRange = (
     meterComponentRef: RefObject<HTMLDivElement | null>,
-    dummyData: any[],
+    levelElementsLength: number,
     scrollOffset: number,
     elementWidth: number
   ) => {
     const containerSize = meterComponentRef.current!.clientWidth;
-    const startIndex = Math.floor(scrollOffset / elementWidth);
+    const startIndex = Math.max(0, Math.floor(scrollOffset / elementWidth));
     const endIndex = Math.min(
-      dummyData.length - 1,
+      levelElementsLength - 1,
       Math.floor((scrollOffset + containerSize) / elementWidth)
     );
     return { start: startIndex, end: endIndex };
@@ -93,13 +93,13 @@ export default class MeterService {
     yearMultiplier: number,
     screenWidth: number
   ): number => {
-    return (
-      ((earliestYearForNewLevel -
+    const newScrollOffsetCalculation =
+      (earliestYearForNewLevel -
         Math.min(earliestYearForNewLevel, currentYear)) *
-        newWidth) /
+        newWidth *
         yearMultiplier -
-      screenWidth / 2
-    );
+      screenWidth / 2;
+    return Math.max(0, newScrollOffsetCalculation);
   };
 
   public static calculateCenterYearForLevel = (
@@ -198,14 +198,8 @@ export default class MeterService {
         eventEndOffset < virtualItemStartOffset) ||
       (eventStartOffset > virtualItemEndOffset &&
         eventEndOffset > virtualItemEndOffset)
-    ) {
-      console.log("eventStartOffset", eventStartOffset);
-      console.log("eventEndOffset", eventEndOffset);
-      console.log("virtualItemStartOffset", virtualItemStartOffset);
-      console.log("virtualItemEndOffset", virtualItemEndOffset);
-      console.log("virtualItems", virtualItems);
+    )
       return false;
-    }
 
     return true;
   };
