@@ -87,19 +87,34 @@ export default class MeterService {
   };
 
   public static calculateOffsetForLevelTransition = (
-    earliestYearForNewLevel: number,
-    currentYear: number,
-    newWidth: number,
-    yearMultiplier: number,
+    previousLevel: number,
+    newLevel: number,
+    currentScrollOffset: number,
+    previousElementWidth: number,
+    newElementWidth: number,
     screenWidth: number
   ): number => {
-    const newScrollOffsetCalculation =
-      (earliestYearForNewLevel -
-        Math.min(earliestYearForNewLevel, currentYear)) *
-        newWidth *
-        yearMultiplier -
-      screenWidth / 2;
-    return Math.max(0, newScrollOffsetCalculation);
+    const currentYearMultiplier = this.getYearMultiplier(previousLevel);
+    const newYearMultiplier = this.getYearMultiplier(newLevel);
+
+    const earliestYearPrevious = this.getEarliestYearForLevel(previousLevel);
+    const earliestYearNew = this.getEarliestYearForLevel(newLevel);
+
+    // 1. Calculate center year in previous level
+    const centerOffset = currentScrollOffset + screenWidth / 2;
+    const indexAtCenter = centerOffset / previousElementWidth;
+    const centerYear =
+      earliestYearPrevious - indexAtCenter * currentYearMultiplier;
+
+    console.log("centerYear", centerYear);
+
+    // 3. Convert center year to offset in new level
+    const offsetInNewLevel =
+      ((earliestYearNew - centerYear) / newYearMultiplier) * newElementWidth;
+
+    // 4. Adjust so center year appears at screen center
+    const scrollOffset = Math.max(0, offsetInNewLevel - screenWidth / 2);
+    return scrollOffset;
   };
 
   public static calculateCenterYearForLevel = (
