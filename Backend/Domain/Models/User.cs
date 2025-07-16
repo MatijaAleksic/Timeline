@@ -1,4 +1,4 @@
-namespace Backend.Domain.Models.User; 
+namespace Backend.Domain.Models; 
 
 public class User
 {

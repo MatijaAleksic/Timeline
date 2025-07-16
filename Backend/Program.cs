@@ -3,12 +3,12 @@ using Backend.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// DB Config
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseNpgsql(connectionString));
 
-
+// Konfigurise metapodatke za Swagger/OpenAi
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
