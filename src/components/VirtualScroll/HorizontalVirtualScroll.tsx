@@ -108,9 +108,9 @@ const HorizontalVirtualScroll = () => {
   }, [virtualMeterState.screenWidth]);
 
   // On level change update virtual items
-  // useLayoutEffect(() => {
-  //   safeUpdateVirtualItems(true);
-  // }, [level]);
+  useLayoutEffect(() => {
+    safeUpdateVirtualItems(true);
+  }, [virtualMeterState.level]);
 
   //Methods
   const updateVirtualItems = (forceUpdate: boolean = false) => {
