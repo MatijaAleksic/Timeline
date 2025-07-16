@@ -9,19 +9,26 @@ import { Range } from "./VirtualScrollDTO/Range";
 import MeterContent from "../Meter/MeterContent";
 import MeterService from "@/util/service/MeterService";
 import MeterLevelsService from "@/util/service/MeterLevelsService";
-import DummyDataService from "@/util/data/DummyDataService";
 import EventPresentationLayer from "./PresentationLayer/EventPresentationLayer";
+
+interface VirtualScrollState {
+  scrollOffset: number;
+  screenWidth: number;
+  elementWidth: number;
+  zoomValue: number;
+  level: number;
+}
 
 const HorizontalVirtualScroll = () => {
   // States
-  const [scrollOffset, setScrollOffset] = useState<number>(0);
-  const [screenWidth, setScreenWidth] = useState<number>(0);
-  const [elementWidth, setElementWidth] = useState<number>(0);
-  const [level, setLevel] = useState<number>(MeterConstants.startLevel);
-  const [zoomValue, setZoomValue] = useState<number>(
-    MeterConstants.startZoomValue
-  ); //default 100
-
+  const [virtualMeterState, setVirtualMeterState] =
+    useState<VirtualScrollState>({
+      scrollOffset: 0,
+      elementWidth: 0,
+      screenWidth: 0,
+      zoomValue: MeterConstants.startZoomValue,
+      level: MeterConstants.startLevel,
+    });
   const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
   const [range, setRange] = useState<Range>();
 
@@ -31,24 +38,35 @@ const HorizontalVirtualScroll = () => {
   const lastDragTimeRef = useRef<number>(0);
   const meterComponentRef = useRef<HTMLDivElement>(null);
   const presentationLayerComponentRef = useRef<HTMLDivElement>(null);
-
   const lastRangeRef = useRef<Range | null>(null);
   const inertiaFrameRef = useRef<number | null>(null);
-  // const updateVirtualItemsDebounced = useRef<NodeJS.Timeout | null>(null);
   const updateVirtualItemsDebounced = useRef<number | null>(null);
 
+  const scrollOffsetRef = useRef(virtualMeterState.scrollOffset);
+  useLayoutEffect(() => {
+    scrollOffsetRef.current = virtualMeterState.scrollOffset;
+  }, [virtualMeterState.scrollOffset]);
+  const elementWidthRef = useRef(virtualMeterState.elementWidth);
+  useLayoutEffect(() => {
+    elementWidthRef.current = virtualMeterState.elementWidth;
+  }, [virtualMeterState.elementWidth]);
   // Data
   const overScan: number = useMemo(
-    () => Math.ceil(Math.ceil(screenWidth / elementWidth) * 4),
-    [screenWidth, elementWidth]
+    () =>
+      Math.ceil(
+        Math.ceil(
+          virtualMeterState.screenWidth / virtualMeterState.elementWidth
+        ) * 4
+      ),
+    [virtualMeterState.screenWidth, virtualMeterState.elementWidth]
   );
   const virtualIndexes = useMemo(
     () => virtualItems.map((item) => item.index),
     [virtualItems]
   );
   const levelElements = useMemo(
-    () => MeterLevelsService.getLevelElements(level),
-    [level]
+    () => MeterLevelsService.getLevelElements(virtualMeterState.level),
+    [virtualMeterState.level]
   );
 
   // Effects
@@ -56,11 +74,20 @@ const HorizontalVirtualScroll = () => {
   //USEEFFECT - happens after paint
   //USELAYOUTEFFECT - happens before paint
   useLayoutEffect(() => {
+    if (meterComponentRef.current) {
+      meterComponentRef.current.scrollLeft = virtualMeterState.scrollOffset;
+    }
+  }, [virtualMeterState.scrollOffset]);
+
+  useLayoutEffect(() => {
     if (typeof window !== "undefined") {
       const updateWidth = () => {
         const newWidth = window.innerWidth;
-        setScreenWidth(newWidth);
-        setElementWidth(newWidth);
+        setVirtualMeterState((prev) => ({
+          ...prev,
+          elementWidth: newWidth,
+          screenWidth: newWidth,
+        }));
       };
       updateWidth();
       window.addEventListener("resize", updateWidth);
@@ -72,17 +99,18 @@ const HorizontalVirtualScroll = () => {
     setRange(
       MeterService.getRange(
         meterComponentRef,
-        levelElements,
-        scrollOffset,
-        elementWidth
+        levelElements.length,
+        virtualMeterState.scrollOffset,
+        virtualMeterState.elementWidth
       )
     );
     safeUpdateVirtualItems(true);
-  }, [screenWidth]);
+  }, [virtualMeterState.screenWidth]);
+
   // On level change update virtual items
   useLayoutEffect(() => {
     safeUpdateVirtualItems(true);
-  }, [level]);
+  }, [virtualMeterState.level]);
 
   //Methods
   const updateVirtualItems = (forceUpdate: boolean = false) => {
@@ -90,7 +118,7 @@ const HorizontalVirtualScroll = () => {
 
     const centralIndex = MeterService.calculateCentralIndex(
       meterComponentRef,
-      elementWidth
+      virtualMeterState.elementWidth
     );
 
     // Skips updating virtual indexes when the element on center on the screen falls between the range
@@ -104,39 +132,45 @@ const HorizontalVirtualScroll = () => {
 
     const newRange = MeterService.getRange(
       meterComponentRef,
-      levelElements,
-      scrollOffset,
-      elementWidth
+      levelElements.length,
+      scrollOffsetRef.current,
+      elementWidthRef.current
     );
 
     // skip when gliding animation is called and the states are frozen then it tracks if the last range ref changes
     if (
+      !forceUpdate &&
       newRange &&
       lastRangeRef.current &&
       newRange.start === lastRangeRef.current.start &&
       newRange.end === lastRangeRef.current.end
-    )
+    ) {
+      // console.("BLOCK1");
       return;
+    }
 
-    if (newRange) {
+    if (
+      newRange &&
+      !Number.isNaN(newRange.start) &&
+      !Number.isNaN(newRange.end)
+    ) {
       lastRangeRef.current = newRange;
-
       const overScanStart = Math.max(0, newRange.start - overScan);
       const overScanEnd = Math.min(
         levelElements.length - 1,
         newRange.end + overScan
       );
-
       setRange({ start: newRange.start, end: newRange.end } as Range);
       setVirtualItems(
-        MeterService.generateVirtualIndexes(
+        MeterService.generateVirtualItems(
           overScanStart,
           overScanEnd,
-          elementWidth
+          virtualMeterState.elementWidth
         )
       );
     }
   };
+
   const safeUpdateVirtualItems = (forceUpdate = false) => {
     if (updateVirtualItemsDebounced.current) {
       clearTimeout(updateVirtualItemsDebounced.current);
@@ -145,86 +179,100 @@ const HorizontalVirtualScroll = () => {
       updateVirtualItems(forceUpdate);
     });
   };
-  const centerMeterToOffset = (newScrollOffset: number) => {
-    setScrollOffset(newScrollOffset);
-    requestAnimationFrame(() => {
-      meterComponentRef.current!.scrollLeft = newScrollOffset;
-      updateVirtualItems(true);
-    });
+
+  const updateStatesOnLevelChange = (
+    newLevel: number,
+    newZoomValue: number,
+    newWidth: number,
+    newScrollOffset: number
+  ) => {
+    setVirtualMeterState((prev) => ({
+      ...prev,
+      level: newLevel,
+      zoomValue: newZoomValue,
+      elementWidth: newWidth,
+      scrollOffset: newScrollOffset,
+    }));
+
+    scrollOffsetRef.current = newScrollOffset;
+    elementWidthRef.current = newWidth;
+    updateVirtualItems(true);
+    // requestAnimationFrame(() => {
+    //   // meterComponentRef.current!.scrollLeft = newScrollOffset;
+    //   updateVirtualItems(true);
+    // });
   };
   const transitionLevels = (newZoomValue: number) => {
     if (!meterComponentRef.current) return;
-    const currentYear = MeterService.calculateCenterYearForLevel(
-      meterComponentRef.current.scrollLeft,
-      screenWidth,
-      elementWidth,
-      level
-    );
 
     // ZOOM IN
     if (
       newZoomValue === MeterConstants.maxZoomValue &&
-      level !== MeterConstants.minLevel
+      virtualMeterState.level !== MeterConstants.minLevel
     ) {
-      const newLevel = level - 1;
+      const newLevel = virtualMeterState.level - 1;
       const newWidth =
-        elementWidth *
+        virtualMeterState.elementWidth *
         (MeterConstants.minZoomValue / MeterConstants.maxZoomValue);
-      const earliestYearForNewLevel =
-        MeterService.getEarliestYearForLevel(newLevel);
-      const yearMultiplier =
-        newLevel > 2
-          ? MeterService.getYearMultiplier(newLevel)
-          : 1 / MeterService.getYearMultiplier(newLevel);
+
+      console.log("level", virtualMeterState.level);
+      console.log("newLevel", newLevel);
+      console.log("scrollOffset", virtualMeterState.scrollOffset);
+      console.log("elementWidth", virtualMeterState.elementWidth);
+      console.log("newWidth", newWidth);
+      console.log("screenWidth", virtualMeterState.screenWidth);
+
       const newScrollOffset = MeterService.calculateOffsetForLevelTransition(
-        earliestYearForNewLevel,
-        currentYear,
+        virtualMeterState.level,
+        newLevel,
+        virtualMeterState.scrollOffset,
+        virtualMeterState.elementWidth,
         newWidth,
-        yearMultiplier,
-        screenWidth
+        virtualMeterState.screenWidth
       );
-      setLevel(newLevel);
-      setZoomValue(MeterConstants.minZoomValue);
-      setElementWidth(newWidth);
-      setScrollOffset(newScrollOffset);
-      centerMeterToOffset(newScrollOffset);
-      requestAnimationFrame(() => {
-        meterComponentRef.current!.scrollLeft = newScrollOffset;
-        updateVirtualItems(true);
-      });
+      console.log("newScrollOffset", newScrollOffset);
+
+      updateStatesOnLevelChange(
+        newLevel,
+        MeterConstants.minZoomValue,
+        newWidth,
+        newScrollOffset
+      );
     }
 
     // ZOOM OUT
     if (
       newZoomValue === MeterConstants.minZoomValue &&
-      level !== MeterConstants.maxLevel
+      virtualMeterState.level !== MeterConstants.maxLevel
     ) {
-      const newLevel = level + 1;
+      const newLevel = virtualMeterState.level + 1;
       const newWidth =
-        elementWidth *
+        virtualMeterState.elementWidth *
         (MeterConstants.maxZoomValue / MeterConstants.minZoomValue);
-      const earliestYearForNewLevel =
-        MeterService.getEarliestYearForLevel(newLevel);
-      const yearMultiplier =
-        newLevel > 2
-          ? MeterService.getYearMultiplier(newLevel)
-          : 1 / MeterService.getYearMultiplier(newLevel);
+
+      console.log("level", virtualMeterState.level);
+      console.log("newLevel", newLevel);
+      console.log("scrollOffset", virtualMeterState.scrollOffset);
+      console.log("elementWidth", virtualMeterState.elementWidth);
+      console.log("newWidth", newWidth);
+      console.log("screenWidth", virtualMeterState.screenWidth);
+
       const newScrollOffset = MeterService.calculateOffsetForLevelTransition(
-        earliestYearForNewLevel,
-        currentYear,
+        virtualMeterState.level,
+        newLevel,
+        virtualMeterState.scrollOffset,
+        virtualMeterState.elementWidth,
         newWidth,
-        yearMultiplier,
-        screenWidth
+        virtualMeterState.screenWidth
       );
-      setLevel(newLevel);
-      setZoomValue(MeterConstants.maxZoomValue);
-      setElementWidth(newWidth);
-      setScrollOffset(newScrollOffset);
-      centerMeterToOffset(newScrollOffset);
-      requestAnimationFrame(() => {
-        meterComponentRef.current!.scrollLeft = newScrollOffset;
-        updateVirtualItems(true);
-      });
+
+      console.log("newScrollOffset", newScrollOffset);
+      updateStatesOnLevelChange(
+        newLevel,
+        MeterConstants.maxZoomValue,
+        newWidth,
+        newScrollOffset
+      );
     }
   };
 
@@ -234,14 +282,18 @@ const HorizontalVirtualScroll = () => {
     isDraggingRef.current = true;
     startXRef.current =
       event.pageX - (meterComponentRef.current?.offsetLeft || 0);
-    setScrollOffset(meterComponentRef.current?.scrollLeft || 0);
+    setVirtualMeterState((prev) => ({
+      ...prev,
+      scrollOffset: meterComponentRef.current?.scrollLeft || 0,
+    }));
     lastDragTimeRef.current = Date.now();
   };
   const handleMouseMove = (event: React.MouseEvent) => {
     if (!isDraggingRef.current) return;
     const moveX = event.pageX - startXRef.current;
     if (meterComponentRef.current) {
-      meterComponentRef.current.scrollLeft = scrollOffset - moveX;
+      meterComponentRef.current.scrollLeft =
+        virtualMeterState.scrollOffset - moveX;
     }
   };
   const handleMouseUp = (event: React.MouseEvent) => {
@@ -295,6 +347,7 @@ const HorizontalVirtualScroll = () => {
   const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     if (!meterComponentRef.current || isDraggingRef.current) return;
 
+    // disables the sliding effect when wheen event fired
     if (inertiaFrameRef.current) {
       cancelAnimationFrame(inertiaFrameRef.current);
       inertiaFrameRef.current = null;
@@ -304,34 +357,37 @@ const HorizontalVirtualScroll = () => {
     const offsetX = event.clientX - boundingRect.left;
     const zoomDirection = event.deltaY > 0 ? -1 : 1;
     const newZoomValue = MeterService.calculateNewZoomValue(
-      zoomValue,
+      virtualMeterState.zoomValue,
       zoomDirection
     );
 
     if (
-      (zoomDirection > 0 && zoomValue === MeterConstants.maxZoomValue) ||
-      (zoomDirection < 0 && zoomValue === MeterConstants.minZoomValue)
+      (zoomDirection > 0 &&
+        virtualMeterState.zoomValue === MeterConstants.maxZoomValue) ||
+      (zoomDirection < 0 &&
+        virtualMeterState.zoomValue === MeterConstants.minZoomValue)
     ) {
       transitionLevels(newZoomValue);
       return;
     }
 
-    const scaleFactor = newZoomValue / zoomValue;
+    const scaleFactor = newZoomValue / virtualMeterState.zoomValue;
     const currentScrollLeft = meterComponentRef.current.scrollLeft;
-    const newElementWidth = screenWidth * (newZoomValue / 100);
-    const newScrollOffset =
-      (currentScrollLeft + offsetX) * scaleFactor - offsetX;
+    const newElementWidth =
+      virtualMeterState.screenWidth * (newZoomValue / 100);
+    const newScrollOffset = Math.max(
+      0,
+      (currentScrollLeft + offsetX) * scaleFactor - offsetX
+    );
 
-    setZoomValue(newZoomValue);
-    setElementWidth(newElementWidth);
-    setScrollOffset(newScrollOffset);
-
-    requestAnimationFrame(() => {
-      if (meterComponentRef.current) {
-        meterComponentRef.current.scrollLeft = newScrollOffset;
-      }
-      updateVirtualItems(true);
-    });
+    setVirtualMeterState((prev) => ({
+      ...prev,
+      zoomValue: newZoomValue,
+      elementWidth: newElementWidth,
+      scrollOffset: newScrollOffset,
+    }));
+    // meterComponentRef.current.scrollLeft = newScrollOffset;
+    updateVirtualItems(true);
   };
   const debouncedHandleWheel = useDebouncedWheel(
     handleWheel,
@@ -352,6 +408,8 @@ const HorizontalVirtualScroll = () => {
       debouncedHandleWheel(event); // Call horizontal zoom scroll
     }
   };
+
+  console.log("zoomValue", virtualMeterState.zoomValue);
 
   return (
     <div className={styles.meterWrapper}>
@@ -378,13 +436,15 @@ const HorizontalVirtualScroll = () => {
         <div
           className={styles.virtualizerWrapper}
           style={{
-            width: `${levelElements.length * elementWidth}px`,
+            width: `${levelElements.length * virtualMeterState.elementWidth}px`,
           }}
         >
           <div
             className={styles.virtualizerOffset}
             style={{
-              left: `${virtualIndexes[0] * elementWidth}px`,
+              transform: `translateX(${
+                virtualIndexes[0] * virtualMeterState.elementWidth
+              }px)`,
             }}
           >
             {virtualItems.map((virtualItem, index) => (
@@ -392,8 +452,10 @@ const HorizontalVirtualScroll = () => {
                 className={styles.virtualizerContainer}
                 key={virtualItem.key}
                 style={{
-                  left: index * elementWidth,
-                  width: `${elementWidth}px`,
+                  transform: `translateX(${
+                    index * virtualMeterState.elementWidth
+                  }px)`,
+                  width: `${virtualMeterState.elementWidth}px`,
                 }}
               >
                 <div className={styles.meterCenterLine} />
@@ -401,9 +463,9 @@ const HorizontalVirtualScroll = () => {
                 <MeterContent
                   key={virtualItem.key}
                   element={levelElements[virtualItem.index]}
-                  elementWidth={elementWidth}
-                  zoomValue={zoomValue}
-                  level={level}
+                  elementWidth={virtualMeterState.elementWidth}
+                  zoomValue={virtualMeterState.zoomValue}
+                  level={virtualMeterState.level}
                 />
               </div>
             ))}
@@ -419,8 +481,8 @@ const HorizontalVirtualScroll = () => {
             ref={presentationLayerComponentRef}
           >
             <EventPresentationLayer
-              elementWidth={elementWidth}
-              level={level}
+              elementWidth={virtualMeterState.elementWidth}
+              level={virtualMeterState.level}
               virtualItems={virtualItems}
             />
           </div>

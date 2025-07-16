@@ -4,7 +4,7 @@ import { RefObject } from "react";
 import { EventDTO } from "../dto/EventDTO";
 
 export default class MeterService {
-  public static generateVirtualIndexes = (
+  public static generateVirtualItems = (
     overScanStart: number,
     overScanEnd: number,
     elementWidth: number
@@ -62,14 +62,14 @@ export default class MeterService {
 
   public static getRange = (
     meterComponentRef: RefObject<HTMLDivElement | null>,
-    dummyData: any[],
+    levelElementsLength: number,
     scrollOffset: number,
     elementWidth: number
   ) => {
     const containerSize = meterComponentRef.current!.clientWidth;
-    const startIndex = Math.floor(scrollOffset / elementWidth);
+    const startIndex = Math.max(0, Math.floor(scrollOffset / elementWidth));
     const endIndex = Math.min(
-      dummyData.length - 1,
+      levelElementsLength - 1,
       Math.floor((scrollOffset + containerSize) / elementWidth)
     );
     return { start: startIndex, end: endIndex };
@@ -87,19 +87,34 @@ export default class MeterService {
   };
 
   public static calculateOffsetForLevelTransition = (
-    earliestYearForNewLevel: number,
-    currentYear: number,
-    newWidth: number,
-    yearMultiplier: number,
+    previousLevel: number,
+    newLevel: number,
+    currentScrollOffset: number,
+    previousElementWidth: number,
+    newElementWidth: number,
     screenWidth: number
   ): number => {
-    return (
-      ((earliestYearForNewLevel -
-        Math.min(earliestYearForNewLevel, currentYear)) *
-        newWidth) /
-        yearMultiplier -
-      screenWidth / 2
-    );
+    const currentYearMultiplier = this.getYearMultiplier(previousLevel);
+    const newYearMultiplier = this.getYearMultiplier(newLevel);
+
+    const earliestYearPrevious = this.getEarliestYearForLevel(previousLevel);
+    const earliestYearNew = this.getEarliestYearForLevel(newLevel);
+
+    // 1. Calculate center year in previous level
+    const centerOffset = currentScrollOffset + screenWidth / 2;
+    const indexAtCenter = centerOffset / previousElementWidth;
+    const centerYear =
+      earliestYearPrevious - indexAtCenter * currentYearMultiplier;
+
+    console.log("centerYear", centerYear);
+
+    // 3. Convert center year to offset in new level
+    const offsetInNewLevel =
+      ((earliestYearNew - centerYear) / newYearMultiplier) * newElementWidth;
+
+    // 4. Adjust so center year appears at screen center
+    const scrollOffset = Math.max(0, offsetInNewLevel - screenWidth / 2);
+    return scrollOffset;
   };
 
   public static calculateCenterYearForLevel = (
@@ -198,14 +213,8 @@ export default class MeterService {
         eventEndOffset < virtualItemStartOffset) ||
       (eventStartOffset > virtualItemEndOffset &&
         eventEndOffset > virtualItemEndOffset)
-    ) {
-      console.log("eventStartOffset", eventStartOffset);
-      console.log("eventEndOffset", eventEndOffset);
-      console.log("virtualItemStartOffset", virtualItemStartOffset);
-      console.log("virtualItemEndOffset", virtualItemEndOffset);
-      console.log("virtualItems", virtualItems);
+    )
       return false;
-    }
 
     return true;
   };
