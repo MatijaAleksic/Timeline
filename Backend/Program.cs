@@ -1,25 +1,12 @@
-using Microsoft.EntityFrameworkCore;
-using Backend.Data; 
+using Backend;
 
 var builder = WebApplication.CreateBuilder(args);
+var startup = new Startup(builder.Configuration);
 
-// DB Config
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
-
-// Konfigurise metapodatke za Swagger/OpenAi
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+startup.ConfigureServices(builder.Services);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+startup.Configure(app, builder.Environment);
 
-app.UseHttpsRedirection();
 app.Run();
