@@ -3,8 +3,6 @@ import HorizontalVirtualScroll from "@/components/VirtualScroll/HorizontalVirtua
 function MeterPage() {
   return (
     <>
-      {/* <MeterCoreVirtualizer /> */}
-      {/* <MeterCoreReactWindow /> */}
       <HorizontalVirtualScroll />
     </>
   );
