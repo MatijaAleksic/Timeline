@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 };
 
 function EventsPage() {
-  return <>Hello</>;
+  return <>Events</>;
 }
 
 export default EventsPage;

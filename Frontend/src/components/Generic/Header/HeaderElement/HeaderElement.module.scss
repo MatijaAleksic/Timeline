@@ -1,0 +1,11 @@
+.headerElement {
+  height: fit-content;
+  color: white;
+  font-size: 1.34rem;
+  margin: 0px 24px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+}

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import "./globals.css";
-import Sidebar from "@/components/Generic/Sidebar/Sidebar";
+import "./globals.scss";
+import Header from "@/components/Generic/Header/Header";
 
 export const metadata: Metadata = {
   title: "Timeline",
@@ -15,7 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Sidebar />
+        <Header />
         {children}
       </body>
     </html>
