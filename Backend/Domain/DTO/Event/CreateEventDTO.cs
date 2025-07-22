@@ -11,8 +11,11 @@ public class CreateEventDTO
     [Required]
     public int Level { get; set; }
 
-    public int Day { get; set; }
-    public int Month { get; set; }
+    [Range(1, 31, ErrorMessage = "Day must be between 1 and 31")]
+    public int? Day { get; set; }
+
+    [Range(1, 12, ErrorMessage = "Month must be between 1 and 12")]
+    public int? Month { get; set; }
 
     [Required]
     public int Year { get; set; }
