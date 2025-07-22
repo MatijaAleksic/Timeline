@@ -1,10 +1,21 @@
 .tableContainer {
   width: 100%;
 
-  .searchContainer {
+  .tableHeader {
     margin-bottom: 10px;
-    width: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .searchContainer {
+      width: 300px;
+    }
+
+    .buttonContainer {
+      width: 180px;
+    }
   }
+
   .paginationContainer {
     margin-top: 10px;
   }
@@ -13,7 +24,7 @@
     width: 100%;
     border-collapse: collapse;
     border: 1px solid black;
-    table-layout: fixed; // fixed size of each value
+    table-layout: fixed;
   }
 
   th,

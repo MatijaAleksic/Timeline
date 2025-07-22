@@ -1,15 +1,19 @@
 "use client";
-import { FunctionComponent } from "react";
+import { FunctionComponent, useState } from "react";
 import styles from "./EventTable.module.scss";
 import { EventDTO } from "@/api/DTO/EventDTO";
 import SearchInput from "@/components/Generic/SearchInput/SearchInput";
 import Pagination from "@/components/Generic/Pagination/Pagination";
+import Button from "@/components/Generic/Button/Button";
+import Modal from "@/components/Generic/Modal/Modal";
 
 interface IProps {
   initialEvents: EventDTO[];
 }
 
 const EventTable: FunctionComponent<IProps> = ({ initialEvents }) => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
   const searchFunctionCallback = (searchString: string) => {
     console.log("searchString", searchString);
   };
@@ -18,10 +22,19 @@ const EventTable: FunctionComponent<IProps> = ({ initialEvents }) => {
     console.log("pageNumber", pageNumber);
   };
 
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+  };
+
   return (
     <div className={styles.tableContainer}>
-      <div className={styles.searchContainer}>
-        <SearchInput searchFunctionCallback={searchFunctionCallback} />
+      <div className={styles.tableHeader}>
+        <div className={styles.searchContainer}>
+          <SearchInput searchFunctionCallback={searchFunctionCallback} />
+        </div>
+        <div className={styles.buttonContainer}>
+          <Button label="Create new event" onClickCallback={toggleModal} />
+        </div>
       </div>
 
       <table className={styles.table}>
@@ -52,6 +65,12 @@ const EventTable: FunctionComponent<IProps> = ({ initialEvents }) => {
       <div className={styles.paginationContainer}>
         <Pagination paginationFunctionCallback={paginationFunctionCallback} />
       </div>
+
+      {isModalOpen && (
+        <Modal height={700} width={600} toggleModal={toggleModal}>
+          <button>Hello</button>
+        </Modal>
+      )}
     </div>
   );
 };

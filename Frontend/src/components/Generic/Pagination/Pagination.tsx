@@ -9,7 +9,7 @@ const Pagination: React.FC<IProps> = ({ paginationFunctionCallback }) => {
   const [currentPageNumber, setCurrentPageNumber] = useState<number>(5);
 
   const numbers = Array.from({ length: 10 }, (_, index) => {
-    return index;
+    return index + 1;
   });
 
   const handlePreviousClicked = () => {

@@ -5,6 +5,10 @@
   display: inline-block;
   display: flex;
   justify-content: center;
+
+  div {
+    cursor: pointer;
+  }
 }
 
 .pagination div {
