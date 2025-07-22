@@ -4,19 +4,19 @@ export interface EventDTO {
      * @type {string}
      * @memberof EventDTO
      */
-    id?: string;
+    id: string;
     /**
      * 
      * @type {string}
      * @memberof EventDTO
      */
-    title?: string | null;
+    title: string;
     /**
      * 
      * @type {number}
      * @memberof EventDTO
      */
-    level?: number;
+    level: number;
     /**
      * 
      * @type {number}
@@ -34,13 +34,17 @@ export interface EventDTO {
      * @type {number}
      * @memberof EventDTO
      */
-    year?: number;
+    year: number;
 }
 
 /**
  * Check if a given object implements the EventDTO interface.
  */
 export function instanceOfEventDTO(value: object): value is EventDTO {
+    if (!('id' in value) || value['id'] === undefined) return false;
+    if (!('title' in value) || value['title'] === undefined) return false;
+    if (!('level' in value) || value['level'] === undefined) return false;
+    if (!('year' in value) || value['year'] === undefined) return false;
     return true;
 }
 
@@ -54,12 +58,12 @@ export function EventDTOFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
     }
     return {
         
-        'id': json['id'] == null ? undefined : json['id'],
-        'title': json['title'] == null ? undefined : json['title'],
-        'level': json['level'] == null ? undefined : json['level'],
+        'id': json['id'],
+        'title': json['title'],
+        'level': json['level'],
         'day': json['day'] == null ? undefined : json['day'],
         'month': json['month'] == null ? undefined : json['month'],
-        'year': json['year'] == null ? undefined : json['year'],
+        'year': json['year'],
     };
 }
 

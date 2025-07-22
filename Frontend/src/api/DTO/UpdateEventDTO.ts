@@ -4,13 +4,13 @@ export interface UpdateEventDTO {
      * @type {string}
      * @memberof UpdateEventDTO
      */
-    title?: string | null;
+    title: string;
     /**
      * 
      * @type {number}
      * @memberof UpdateEventDTO
      */
-    level?: number;
+    level: number;
     /**
      * 
      * @type {number}
@@ -28,13 +28,16 @@ export interface UpdateEventDTO {
      * @type {number}
      * @memberof UpdateEventDTO
      */
-    year?: number;
+    year: number;
 }
 
 /**
  * Check if a given object implements the UpdateEventDTO interface.
  */
 export function instanceOfUpdateEventDTO(value: object): value is UpdateEventDTO {
+    if (!('title' in value) || value['title'] === undefined) return false;
+    if (!('level' in value) || value['level'] === undefined) return false;
+    if (!('year' in value) || value['year'] === undefined) return false;
     return true;
 }
 
@@ -48,11 +51,11 @@ export function UpdateEventDTOFromJSONTyped(json: any, ignoreDiscriminator: bool
     }
     return {
         
-        'title': json['title'] == null ? undefined : json['title'],
-        'level': json['level'] == null ? undefined : json['level'],
+        'title': json['title'],
+        'level': json['level'],
         'day': json['day'] == null ? undefined : json['day'],
         'month': json['month'] == null ? undefined : json['month'],
-        'year': json['year'] == null ? undefined : json['year'],
+        'year': json['year'],
     };
 }
 

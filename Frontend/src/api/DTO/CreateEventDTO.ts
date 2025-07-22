@@ -4,13 +4,13 @@ export interface CreateEventDTO {
      * @type {string}
      * @memberof CreateEventDTO
      */
-    title?: string | null;
+    title: string;
     /**
      * 
      * @type {number}
      * @memberof CreateEventDTO
      */
-    level?: number;
+    level: number;
     /**
      * 
      * @type {number}
@@ -28,13 +28,16 @@ export interface CreateEventDTO {
      * @type {number}
      * @memberof CreateEventDTO
      */
-    year?: number;
+    year: number;
 }
 
 /**
  * Check if a given object implements the CreateEventDTO interface.
  */
 export function instanceOfCreateEventDTO(value: object): value is CreateEventDTO {
+    if (!('title' in value) || value['title'] === undefined) return false;
+    if (!('level' in value) || value['level'] === undefined) return false;
+    if (!('year' in value) || value['year'] === undefined) return false;
     return true;
 }
 
@@ -48,11 +51,11 @@ export function CreateEventDTOFromJSONTyped(json: any, ignoreDiscriminator: bool
     }
     return {
         
-        'title': json['title'] == null ? undefined : json['title'],
-        'level': json['level'] == null ? undefined : json['level'],
+        'title': json['title'],
+        'level': json['level'],
         'day': json['day'] == null ? undefined : json['day'],
         'month': json['month'] == null ? undefined : json['month'],
-        'year': json['year'] == null ? undefined : json['year'],
+        'year': json['year'],
     };
 }
 

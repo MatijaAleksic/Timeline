@@ -4,13 +4,13 @@ export interface CreatePeriodDTO {
      * @type {string}
      * @memberof CreatePeriodDTO
      */
-    title?: string | null;
+    title: string;
     /**
      * 
      * @type {number}
      * @memberof CreatePeriodDTO
      */
-    level?: number;
+    level: number;
     /**
      * 
      * @type {number}
@@ -28,7 +28,7 @@ export interface CreatePeriodDTO {
      * @type {number}
      * @memberof CreatePeriodDTO
      */
-    startYear?: number;
+    startYear: number;
     /**
      * 
      * @type {number}
@@ -46,13 +46,17 @@ export interface CreatePeriodDTO {
      * @type {number}
      * @memberof CreatePeriodDTO
      */
-    endYear?: number;
+    endYear: number;
 }
 
 /**
  * Check if a given object implements the CreatePeriodDTO interface.
  */
 export function instanceOfCreatePeriodDTO(value: object): value is CreatePeriodDTO {
+    if (!('title' in value) || value['title'] === undefined) return false;
+    if (!('level' in value) || value['level'] === undefined) return false;
+    if (!('startYear' in value) || value['startYear'] === undefined) return false;
+    if (!('endYear' in value) || value['endYear'] === undefined) return false;
     return true;
 }
 
@@ -66,14 +70,14 @@ export function CreatePeriodDTOFromJSONTyped(json: any, ignoreDiscriminator: boo
     }
     return {
         
-        'title': json['title'] == null ? undefined : json['title'],
-        'level': json['level'] == null ? undefined : json['level'],
+        'title': json['title'],
+        'level': json['level'],
         'startDay': json['startDay'] == null ? undefined : json['startDay'],
         'startMonth': json['startMonth'] == null ? undefined : json['startMonth'],
-        'startYear': json['startYear'] == null ? undefined : json['startYear'],
+        'startYear': json['startYear'],
         'endDay': json['endDay'] == null ? undefined : json['endDay'],
         'endMonth': json['endMonth'] == null ? undefined : json['endMonth'],
-        'endYear': json['endYear'] == null ? undefined : json['endYear'],
+        'endYear': json['endYear'],
     };
 }
 
