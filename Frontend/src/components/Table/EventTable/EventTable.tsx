@@ -1,56 +1,56 @@
+"use client";
 import { FunctionComponent } from "react";
 import styles from "./EventTable.module.scss";
+import { EventDTO } from "@/api/DTO/EventDTO";
+import SearchInput from "@/components/Generic/SearchInput/SearchInput";
+import Pagination from "@/components/Generic/Pagination/Pagination";
 
-const EventTable: FunctionComponent = ({}) => {
+interface IProps {
+  initialEvents: EventDTO[];
+}
+
+const EventTable: FunctionComponent<IProps> = ({ initialEvents }) => {
+  const searchFunctionCallback = (searchString: string) => {
+    console.log("searchString", searchString);
+  };
+
+  const paginationFunctionCallback = (pageNumber: number) => {
+    console.log("pageNumber", pageNumber);
+  };
+
   return (
     <div className={styles.tableContainer}>
-      <div className="search-container">
-        <input type="text" className="search-input" placeholder="Search..." />
+      <div className={styles.searchContainer}>
+        <SearchInput searchFunctionCallback={searchFunctionCallback} />
       </div>
 
       <table className={styles.table}>
         <thead>
           <tr>
             <th>Id</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Status</th>
+            <th>Title</th>
+            <th>Level</th>
+            <th>Year</th>
+            <th>Month</th>
+            <th>Day</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1</td>
-            <td>Jane Doe</td>
-            <td>jane@example.com</td>
-            <td>Active</td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>John Smith</td>
-            <td>john@example.com</td>
-            <td>Inactive</td>
-          </tr>
-          <tr>
-            <td>3</td>
-            <td>Emily Johnson</td>
-            <td>emily@example.com</td>
-            <td>Active</td>
-          </tr>
-          <tr>
-            <td>4</td>
-            <td>Michael Brown</td>
-            <td>michael@example.com</td>
-            <td>Pending</td>
-          </tr>
+          {initialEvents.map((event: EventDTO, index: number) => (
+            <tr key={index}>
+              <td>{event.id}</td>
+              <td>{event.title}</td>
+              <td>{event.level}</td>
+              <td>{event.year}</td>
+              <td>{event.month}</td>
+              <td>{event.day}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
 
-      <div className="pagination">
-        <button>&laquo; Prev</button>
-        <button className="active">1</button>
-        <button>2</button>
-        <button>3</button>
-        <button>Next &raquo;</button>
+      <div className={styles.paginationContainer}>
+        <Pagination paginationFunctionCallback={paginationFunctionCallback} />
       </div>
     </div>
   );

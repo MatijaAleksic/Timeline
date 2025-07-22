@@ -1,14 +1,24 @@
 .tableContainer {
   width: 100%;
 
+  .searchContainer {
+    margin-bottom: 10px;
+    width: 300px;
+  }
+  .paginationContainer {
+    margin-top: 10px;
+  }
+
   table {
     width: 100%;
     border-collapse: collapse;
     border: 1px solid black;
+    table-layout: fixed; // fixed size of each value
   }
 
   th,
   td {
+    width: 100%;
     border: 1px solid lightgray;
     padding: 8px;
     text-align: left;
