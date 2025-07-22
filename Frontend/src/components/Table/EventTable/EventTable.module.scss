@@ -1,2 +1,16 @@
 .tableContainer {
+  width: 100%;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid black;
+  }
+
+  th,
+  td {
+    border: 1px solid lightgray;
+    padding: 8px;
+    text-align: left;
+  }
 }

@@ -8,10 +8,10 @@ const EventTable: FunctionComponent = ({}) => {
         <input type="text" className="search-input" placeholder="Search..." />
       </div>
 
-      <table>
+      <table className={styles.table}>
         <thead>
           <tr>
-            <th>#</th>
+            <th>Id</th>
             <th>Name</th>
             <th>Email</th>
             <th>Status</th>
