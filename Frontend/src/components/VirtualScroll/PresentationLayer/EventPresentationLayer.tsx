@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import styles from "./EventPresentationLayer.module.scss";
 import DummyDataService from "@/util/data/DummyDataService";
-import { EventDTO } from "@/util/dto/EventDTO";
+import { EventDTO } from "@/util/DTO/EventDTO";
 import MeterService from "@/util/service/MeterService";
 import MeterConstants from "@/util/constants/MeterConstants";
 import { VirtualItem } from "../VirtualScrollDTO/VirtualItem";

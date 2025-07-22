@@ -1,5 +1,5 @@
 import { addMonths } from "date-fns";
-import { EventDTO } from "../dto/EventDTO";
+import { EventDTO } from "../DTO/EventDTO";
 import MeterService from "../service/MeterService";
 
 export default class DummyDataService {

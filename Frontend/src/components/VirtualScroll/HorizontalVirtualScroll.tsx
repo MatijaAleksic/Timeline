@@ -345,6 +345,7 @@ const HorizontalVirtualScroll = () => {
   // Handles ZOOM
   // ===============================================================
   const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    event.preventDefault();
     if (!meterComponentRef.current || isDraggingRef.current) return;
 
     // disables the sliding effect when wheen event fired
@@ -396,6 +397,7 @@ const HorizontalVirtualScroll = () => {
   const handleRepresentationLayerWheel = (
     event: React.WheelEvent<HTMLDivElement>
   ) => {
+    event.preventDefault();
     const target = event.currentTarget;
 
     const isScrollable =

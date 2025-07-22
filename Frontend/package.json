@@ -6,6 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
+    "types": "node src/util/scripts/generate-swagger-dto.js",
     "lint": "next lint"
   },
   "dependencies": {
@@ -15,6 +16,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@openapitools/openapi-generator-cli": "^2.21.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "date-fns": "^4.1.0",

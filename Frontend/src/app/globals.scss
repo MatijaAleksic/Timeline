@@ -10,9 +10,18 @@
   }
 }
 
+.mainContentWrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 89vh;
+}
+
 html,
 body {
   max-width: 100vw;
+  display: flex;
+  flex-direction: column;
   overflow-x: hidden;
 }
 

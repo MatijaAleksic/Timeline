@@ -1,3 +1,4 @@
+import EventTable from "@/components/Table/EventTable/EventTable";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -6,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 function EventsPage() {
-  return <>Events</>;
+  return <EventTable />;
 }
 
 export default EventsPage;

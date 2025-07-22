@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.scss";
 import Header from "@/components/Generic/Header/Header";
+import Footer from "@/components/Generic/Footer/Footer";
 
 export const metadata: Metadata = {
   title: "Timeline",
@@ -16,7 +17,8 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Header />
-        {children}
+        <div className="mainContentWrapper">{children}</div>
+        <Footer />
       </body>
     </html>
   );
