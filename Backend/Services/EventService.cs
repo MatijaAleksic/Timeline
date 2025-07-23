@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Backend.Domain.DTO;
+using Backend.Domain.Exceptions;
 using Backend.Domain.Models;
 using Backend.Repositories.Implementations;
 
@@ -37,7 +38,7 @@ public class EventService : IEventService
         var existingEvent = await GetEventByTitleAsync(ev.Title);
         if (existingEvent != null)
         {
-            throw new Exception("Event with given title already exists!");
+            throw new ConflictingDataException("Event with given title already exists!");
         }
         var createdEvent = _eventRepository.Create(ev);
         await _eventRepository.SaveAsync();
@@ -63,7 +64,11 @@ public class EventService : IEventService
         {
             throw new Exception("Event with given id not found!");
         }
-
+        var eventWithSameTitle = await GetEventByTitleAsync(ev.Title);
+        if (eventWithSameTitle != null && eventWithSameTitle.Id != id)
+        {
+            throw new ConflictingDataException("Event with given title already exists!");
+        }
         existingEvent.Day = ev.Day;
         existingEvent.Month = ev.Month;
         existingEvent.Year = ev.Year;

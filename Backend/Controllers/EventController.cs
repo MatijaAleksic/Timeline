@@ -1,6 +1,7 @@
 using AutoMapper;
 using Backend.Data;
 using Backend.Domain.DTO;
+using Backend.Domain.Exceptions;
 using Backend.Domain.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -49,6 +50,10 @@ public class EventsController : ControllerBase
             );
             return Ok(_mapper.Map<Event, EventDTO>(resultEvent));
         }
+        catch (ConflictingDataException e)
+        {
+            return Conflict(new { message = e.Message });
+        }
         catch (Exception e)
         {
             return BadRequest(e.Message);
@@ -63,9 +68,13 @@ public class EventsController : ControllerBase
             var resultEvent = await _eventService.UpdateEventAsync(id, updatedEvent);
             return Ok(_mapper.Map<Event, EventDTO>(resultEvent));
         }
-        catch (Exception)
+        catch (ConflictingDataException e)
         {
-            return BadRequest();
+            return Conflict(new { message = e.Message });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { message = e.Message });
         }
     }
 
@@ -75,11 +84,11 @@ public class EventsController : ControllerBase
         try
         {
             await _eventService.DeleteEventAsync(id);
-            return Ok();
+            return Ok(new { message = "Event deleted successfully" });
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            return NotFound();
+            return NotFound(new { message = e.Message });
         }
     }
 }

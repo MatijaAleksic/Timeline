@@ -42,6 +42,21 @@ public class Startup
 
         // Mapper service
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
+
+        services.AddCors(options =>
+        {
+            options.AddPolicy(
+                "AllowLocalhost3000",
+                policy =>
+                {
+                    policy
+                        .WithOrigins("http://localhost:3000")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                }
+            );
+        });
     }
 
     public void Configure(WebApplication app, IWebHostEnvironment env)
@@ -55,7 +70,7 @@ public class Startup
                 options.RoutePrefix = "";
             });
         }
-
+        app.UseCors("AllowLocalhost3000");
         app.UseHttpsRedirection();
         app.MapControllers();
     }
