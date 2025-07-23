@@ -2,15 +2,17 @@ import { useState, useEffect } from "react";
 import styles from "./SearchInput.module.scss";
 
 interface IProps {
+  searchString: string;
   searchFunctionCallback: (searchText: string) => void;
   debounceMs?: number;
 }
 
 const SearchInput: React.FC<IProps> = ({
+  searchString,
   searchFunctionCallback,
   debounceMs = 400,
 }) => {
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState<string>(searchString);
 
   useEffect(() => {
     const handler = setTimeout(() => {

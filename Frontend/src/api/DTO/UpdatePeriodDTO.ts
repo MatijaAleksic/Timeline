@@ -16,13 +16,13 @@ export interface UpdatePeriodDTO {
      * @type {number}
      * @memberof UpdatePeriodDTO
      */
-    startDay?: number;
+    startDay?: number | null;
     /**
      * 
      * @type {number}
      * @memberof UpdatePeriodDTO
      */
-    startMonth?: number;
+    startMonth?: number | null;
     /**
      * 
      * @type {number}
@@ -34,13 +34,13 @@ export interface UpdatePeriodDTO {
      * @type {number}
      * @memberof UpdatePeriodDTO
      */
-    endDay?: number;
+    endDay?: number | null;
     /**
      * 
      * @type {number}
      * @memberof UpdatePeriodDTO
      */
-    endMonth?: number;
+    endMonth?: number | null;
     /**
      * 
      * @type {number}

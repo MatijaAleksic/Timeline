@@ -1,45 +1,73 @@
-import { useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import styles from "./Pagination.module.scss";
 
 interface IProps {
+  pageIndex: number;
+  pageSize: number;
+  totalCount: number;
+  setPageIndex: Dispatch<SetStateAction<number>>;
   paginationFunctionCallback: (pageNumber: number) => void;
 }
 
-const Pagination: React.FC<IProps> = ({ paginationFunctionCallback }) => {
-  const [currentPageNumber, setCurrentPageNumber] = useState<number>(5);
-
-  const numbers = Array.from({ length: 10 }, (_, index) => {
-    return index + 1;
-  });
+const Pagination: React.FunctionComponent<IProps> = ({
+  pageIndex,
+  pageSize,
+  totalCount,
+  setPageIndex,
+  paginationFunctionCallback,
+}) => {
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const numbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   const handlePreviousClicked = () => {
-    if (currentPageNumber === 1) return;
-    setCurrentPageNumber(currentPageNumber - 1);
-    paginationFunctionCallback(currentPageNumber - 1);
+    if (pageIndex <= 1) return;
+    const newPage = pageIndex - 1;
+    setPageIndex(newPage);
+    paginationFunctionCallback(newPage);
   };
+
   const handleNextClicked = () => {
-    if (currentPageNumber === numbers.length) return;
-    setCurrentPageNumber(currentPageNumber + 1);
-    paginationFunctionCallback(currentPageNumber + 1);
+    if (pageIndex >= totalPages) return;
+    const newPage = pageIndex + 1;
+    setPageIndex(newPage);
+    paginationFunctionCallback(newPage);
   };
+
   const handlePageOnClick = (pageNumber: number) => {
-    setCurrentPageNumber(pageNumber);
+    if (pageNumber === pageIndex) return;
+    setPageIndex(pageNumber);
     paginationFunctionCallback(pageNumber);
   };
 
+  if (totalPages === 0) return null;
+
   return (
     <div className={styles.pagination}>
-      <div onClick={handlePreviousClicked}>&laquo;</div>
-      {numbers.map((number, index) => (
+      <div
+        onClick={handlePreviousClicked}
+        className={pageIndex === 1 ? styles.disabled : ""}
+        aria-disabled={pageIndex === 1}
+      >
+        &laquo;
+      </div>
+
+      {numbers.map((number) => (
         <div
-          className={number === currentPageNumber ? styles.active : ""}
+          key={number}
+          className={number === pageIndex ? styles.active : ""}
           onClick={() => handlePageOnClick(number)}
-          key={index}
         >
           {number}
         </div>
       ))}
-      <div onClick={handleNextClicked}>&raquo;</div>
+
+      <div
+        onClick={handleNextClicked}
+        className={pageIndex === totalPages ? styles.disabled : ""}
+        aria-disabled={pageIndex === totalPages}
+      >
+        &raquo;
+      </div>
     </div>
   );
 };

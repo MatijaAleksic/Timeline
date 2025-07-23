@@ -1,6 +1,6 @@
 "use client";
 
-import { FunctionComponent, useState } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import styles from "./EventTable.module.scss";
 import { EventDTO } from "@/api/DTO/EventDTO";
 import SearchInput from "@/components/Generic/SearchInput/SearchInput";
@@ -11,30 +11,52 @@ import EventForm from "@/components/Forms/EventForm/EventForm";
 import { ButtonType } from "@/util/enums/ButtonType";
 import { EventApi } from "@/api/interfaces/event";
 import YesNoPrompt from "@/components/Generic/YesNoPrompt/YesNoPrompt";
+import { EventTableDTO } from "@/api/DTO";
+import TableConstants from "@/util/constants/TableConstants";
 
 interface IProps {
-  initialEvents: EventDTO[];
+  initialEventTableDTO: EventTableDTO;
 }
 
-const EventTable: FunctionComponent<IProps> = ({ initialEvents }) => {
+const EventTable: FunctionComponent<IProps> = ({ initialEventTableDTO }) => {
   const [isEventModalOpen, setIsEventModalOpen] = useState<boolean>(false);
   const [isYesNoModalOpen, setIsYesNoModalOpen] = useState<boolean>(false);
-  const [events, setEvents] = useState<EventDTO[]>(initialEvents);
+  const [events, setEvents] = useState<EventDTO[]>(
+    initialEventTableDTO.events || []
+  );
   const [selectedEvent, setSelectedEvent] = useState<EventDTO | undefined>(
     undefined
   );
   const [eventIdToDelete, setEventIdToDelete] = useState<string | undefined>(
     undefined
   );
+  const [pageIndex, setPageIndex] = useState<number>(1);
+  const [pageSize] = useState<number>(TableConstants.defaultPageSize);
+  const [totalCount, setTotalCount] = useState<number>(
+    initialEventTableDTO.totalCount
+  );
+  const [searchString, setSearchString] = useState<string>("");
 
-  const searchFunctionCallback = (searchString: string) => {
-    if (searchString !== "") {
-      console.log("searchString", searchString);
-    }
+  useEffect(() => {
+    fetchEvents();
+  }, [pageIndex, pageSize, searchString]);
+
+  const fetchEvents = async () => {
+    var eventTableDTO: EventTableDTO = await EventApi.GetEvents(
+      pageIndex,
+      pageSize,
+      searchString
+    );
+    setTotalCount(eventTableDTO.totalCount);
+    setEvents(eventTableDTO.events);
   };
 
-  const paginationFunctionCallback = (pageNumber: number) => {
-    console.log("pageNumber", pageNumber);
+  const searchFunctionCallback = async (searchString: string) => {
+    setSearchString(searchString);
+  };
+
+  const paginationFunctionCallback = async (pageIndex: number) => {
+    setPageIndex(pageIndex);
   };
 
   const toggleEventModal = () => {
@@ -93,7 +115,10 @@ const EventTable: FunctionComponent<IProps> = ({ initialEvents }) => {
     <div className={styles.tableContainer}>
       <div className={styles.tableHeader}>
         <div className={styles.searchContainer}>
-          <SearchInput searchFunctionCallback={searchFunctionCallback} />
+          <SearchInput
+            searchFunctionCallback={searchFunctionCallback}
+            searchString={searchString}
+          />
         </div>
         <div className={styles.buttonContainer}>
           <Button
@@ -153,7 +178,13 @@ const EventTable: FunctionComponent<IProps> = ({ initialEvents }) => {
       </table>
 
       <div className={styles.paginationContainer}>
-        <Pagination paginationFunctionCallback={paginationFunctionCallback} />
+        <Pagination
+          paginationFunctionCallback={paginationFunctionCallback}
+          pageIndex={pageIndex}
+          totalCount={totalCount}
+          pageSize={pageSize}
+          setPageIndex={setPageIndex}
+        />
       </div>
 
       {isEventModalOpen && (

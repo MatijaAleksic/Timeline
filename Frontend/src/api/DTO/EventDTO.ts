@@ -22,13 +22,13 @@ export interface EventDTO {
      * @type {number}
      * @memberof EventDTO
      */
-    day?: number;
+    day?: number | null;
     /**
      * 
      * @type {number}
      * @memberof EventDTO
      */
-    month?: number;
+    month?: number | null;
     /**
      * 
      * @type {number}

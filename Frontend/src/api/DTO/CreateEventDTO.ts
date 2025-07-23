@@ -16,13 +16,13 @@ export interface CreateEventDTO {
      * @type {number}
      * @memberof CreateEventDTO
      */
-    day?: number;
+    day?: number | null;
     /**
      * 
      * @type {number}
      * @memberof CreateEventDTO
      */
-    month?: number;
+    month?: number | null;
     /**
      * 
      * @type {number}

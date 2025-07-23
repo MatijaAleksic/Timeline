@@ -1,5 +1,5 @@
 import { FetchRestClient } from "@/api/clients/FetchRestClient";
-import { CreateEventDTO, UpdateEventDTO } from "@/api/DTO";
+import { CreateEventDTO, EventTableDTO, UpdateEventDTO } from "@/api/DTO";
 import { EventDTO } from "@/api/DTO/EventDTO";
 import { ApiUtil } from "@/util/constants/Configs/ApiUtil";
 import Routes from "@/util/constants/ApiRoutes";
@@ -31,8 +31,14 @@ class EventInterface {
     }
   );
 
-  public GetEvents = async (): Promise<EventDTO[]> => {
-    return this._client.get<EventDTO[]>(Routes.EVENTS);
+  public GetEvents = async (
+    pageNumber: number,
+    pageSize: number,
+    searchString: string = ""
+  ): Promise<EventTableDTO> => {
+    return this._client.get<EventTableDTO>(
+      `${Routes.EVENTS}/?pageNumber=${pageNumber}&pageSize=${pageSize}&searchString=${searchString}`
+    );
   };
 
   public PostEvent = async (event: CreateEventDTO): Promise<EventDTO> => {

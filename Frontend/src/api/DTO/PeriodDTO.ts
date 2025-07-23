@@ -22,13 +22,13 @@ export interface PeriodDTO {
      * @type {number}
      * @memberof PeriodDTO
      */
-    startDay?: number;
+    startDay?: number | null;
     /**
      * 
      * @type {number}
      * @memberof PeriodDTO
      */
-    startMonth?: number;
+    startMonth?: number | null;
     /**
      * 
      * @type {number}
@@ -40,13 +40,13 @@ export interface PeriodDTO {
      * @type {number}
      * @memberof PeriodDTO
      */
-    endDay?: number;
+    endDay?: number | null;
     /**
      * 
      * @type {number}
      * @memberof PeriodDTO
      */
-    endMonth?: number;
+    endMonth?: number | null;
     /**
      * 
      * @type {number}
