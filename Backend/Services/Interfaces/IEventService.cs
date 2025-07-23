@@ -5,7 +5,8 @@ public interface IEventService
 {
     Task<(IEnumerable<Event> Events, int TotalCount)> GetEventsPaginatedAsync(
         int pageNumber,
-        int pageSize
+        int pageSize,
+        string searchString
     );
     Task<Event?> GetEventByIdAsync(Guid id);
     Task<Event> CreateEventAsync(Event ev);

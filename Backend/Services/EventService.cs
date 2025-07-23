@@ -20,7 +20,8 @@ public class EventService : IEventService
 
     public async Task<(IEnumerable<Event> Events, int TotalCount)> GetEventsPaginatedAsync(
         int pageNumber,
-        int pageSize
+        int pageSize,
+        string searchString
     )
     {
         if (pageNumber <= 0)
@@ -29,7 +30,14 @@ public class EventService : IEventService
             pageSize = 10;
 
         var query = _eventRepository.Query();
+
+        if (!string.IsNullOrEmpty(searchString))
+        {
+            query = query.Where(e => EF.Functions.Like(e.Title, $"%{searchString}%"));
+        }
+
         var totalCount = await query.CountAsync();
+
         var events = await query
             .OrderBy(e => e.Title)
             .Skip((pageNumber - 1) * pageSize)
