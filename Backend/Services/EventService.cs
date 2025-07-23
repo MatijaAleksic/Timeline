@@ -5,6 +5,7 @@ using Backend.Domain.DTO;
 using Backend.Domain.Exceptions;
 using Backend.Domain.Models;
 using Backend.Repositories.Implementations;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
@@ -17,9 +18,25 @@ public class EventService : IEventService
         _eventRepository = eventRepository;
     }
 
-    public async Task<IEnumerable<Event>> GetEventsAsync()
+    public async Task<(IEnumerable<Event> Events, int TotalCount)> GetEventsPaginatedAsync(
+        int pageNumber,
+        int pageSize
+    )
     {
-        return await _eventRepository.GetAllAsync();
+        if (pageNumber <= 0)
+            pageNumber = 1;
+        if (pageSize <= 0)
+            pageSize = 10;
+
+        var query = _eventRepository.Query();
+        var totalCount = await query.CountAsync();
+        var events = await query
+            .OrderBy(e => e.Title)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (events, totalCount);
     }
 
     public async Task<Event?> GetEventByIdAsync(Guid id)

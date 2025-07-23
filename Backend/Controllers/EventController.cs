@@ -23,12 +23,25 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<EventDTO>>> GetEvents()
+    public async Task<ActionResult> GetEvents(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10
+    )
     {
-        var events = await _eventService.GetEventsAsync();
+        var (events, totalCount) = await _eventService.GetEventsPaginatedAsync(
+            pageNumber,
+            pageSize
+        );
+
         if (!events.Any())
             return NoContent();
-        return Ok(_mapper.Map<IEnumerable<Event>, IEnumerable<EventDTO>>(events));
+
+        var eventDTOs = _mapper.Map<IEnumerable<Event>, IEnumerable<EventDTO>>(events);
+
+        // Optionally, return pagination metadata in headers or response body
+        // Response.Headers.Add("X-Total-Count", totalCount.ToString());
+
+        return Ok(eventDTOs);
     }
 
     [HttpGet("{id}")]

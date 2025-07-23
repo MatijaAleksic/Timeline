@@ -65,6 +65,11 @@ public class GenericRepository<T> : IRepository<T>
         return await _context.Set<T>().ToListAsync();
     }
 
+    public IQueryable<T> Query()
+    {
+        return _context.Set<T>().AsQueryable();
+    }
+
     public virtual async Task<T?> GetByIdAsync(Guid id)
     {
         if (id == Guid.Empty)
