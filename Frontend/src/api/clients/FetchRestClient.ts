@@ -18,7 +18,7 @@ class FetchRestClient {
     method: HttpMethod,
     url: string,
     options: FetchRequestConfig = {},
-    retries = 3,
+    retries = 0,
     retryDelay = 1000
   ): Promise<T> {
     const fullUrl = this.baseURL + url;
@@ -63,10 +63,19 @@ class FetchRestClient {
     try {
       const response = await fetch(fullUrl, fetchOptions);
       if (!response.ok) {
-        // Optionally handle non-2xx status codes here, throw error or retry
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Try to parse error response as JSON and extract message
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          if (errorData && errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch {
+          // If parsing JSON fails, fallback to default message
+        }
+        throw new Error(errorMessage);
       }
-      // Assuming JSON response, you can enhance to handle other response types
+      // Assuming JSON response, parse it
       const data = (await response.json()) as T;
       return data;
     } catch (error) {

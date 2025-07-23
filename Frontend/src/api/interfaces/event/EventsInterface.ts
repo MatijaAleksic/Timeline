@@ -1,6 +1,8 @@
 import { FetchRestClient } from "@/api/clients/FetchRestClient";
+import { CreateEventDTO, UpdateEventDTO } from "@/api/DTO";
 import { EventDTO } from "@/api/DTO/EventDTO";
 import { ApiUtil } from "@/util/constants/Configs/ApiUtil";
+import Routes from "@/util/constants/ApiRoutes";
 
 class ReusableEventClient {
   private static _client: FetchRestClient;
@@ -30,7 +32,22 @@ class EventInterface {
   );
 
   public GetEvents = async (): Promise<EventDTO[]> => {
-    return this._client.get<EventDTO[]>("/api/events");
+    return this._client.get<EventDTO[]>(Routes.EVENTS);
+  };
+
+  public PostEvent = async (event: CreateEventDTO): Promise<EventDTO> => {
+    return this._client.post(Routes.EVENTS, event);
+  };
+
+  public PutEvent = async (
+    event: UpdateEventDTO,
+    id: string
+  ): Promise<EventDTO> => {
+    return this._client.put(Routes.EVENTS + `/${id}`, event);
+  };
+
+  public DeleteEvent = async (id: string): Promise<EventDTO> => {
+    return this._client.delete(Routes.EVENTS + `/${id}`);
   };
 
   // Similarly, for other methods (example for POST):

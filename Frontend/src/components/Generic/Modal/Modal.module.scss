@@ -14,10 +14,16 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  max-height: 90%;
+  width: 100%;
 
   .modalHeader {
-    height: 50px;
+    height: 30px;
     width: 100%;
+    flex-shrink: 0;
     cursor: pointer;
 
     .closeButton {
@@ -50,9 +56,14 @@
     }
   }
 
-  .modalContent {
-    width: 100%;
-    height: 100%;
-    padding: 3%;
+  .modalContentWrapper {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 5%;
+
+    .modalContent {
+      width: 100%;
+      height: 100%;
+    }
   }
 }

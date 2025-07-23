@@ -16,6 +16,15 @@
     }
   }
 
+  .centerButton {
+    display: flex;
+    justify-content: center;
+
+    .tableButtonContainer {
+      width: 110px;
+    }
+  }
+
   .paginationContainer {
     margin-top: 10px;
   }
@@ -23,7 +32,6 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    border: 1px solid black;
     table-layout: fixed;
   }
 

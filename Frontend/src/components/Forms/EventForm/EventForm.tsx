@@ -1,56 +1,93 @@
-import { FunctionComponent } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateEventSchema } from "@/util/schemas/CreateEventSchema";
-import { CreateEventDTO } from "@/api/DTO"; // import your DTO
+import { CreateEventDTO, EventDTO, UpdateEventDTO } from "@/api/DTO"; // import your DTO
 import styles from "./EventForm.module.scss";
+import Button from "@/components/Generic/Button/Button";
+import FormInput from "@/components/Generic/Input/FormInput";
+import { EventApi } from "@/api/interfaces/event";
 
-const EventForm: FunctionComponent = () => {
+interface IProps {
+  event: EventDTO | undefined;
+  modifiedEventCallback: (event: EventDTO) => void;
+  toggleModal: () => void;
+}
+
+const EventForm: FunctionComponent<IProps> = ({
+  event,
+  modifiedEventCallback,
+  toggleModal,
+}) => {
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<CreateEventDTO>({
     resolver: zodResolver(CreateEventSchema),
   });
 
-  const onSubmit = (data: CreateEventDTO) => {
-    console.log("Form data:", data);
+  useEffect(() => {
+    if (event) {
+      reset({
+        title: event.title,
+        level: event.level,
+        day: event.day,
+        month: event.month,
+        year: event.year,
+      });
+    }
+  }, [event, reset]);
+
+  const onSubmit = async (data: CreateEventDTO) => {
+    try {
+      var ev: EventDTO;
+      if (!event) ev = await EventApi.PostEvent(data);
+      else
+        ev = await EventApi.PutEvent({ ...data } as UpdateEventDTO, event.id);
+
+      if (ev) {
+        modifiedEventCallback(ev);
+        toggleModal();
+      }
+    } catch (error: any) {
+      setErrorMessage(error.message);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div>
-        <label>Title:</label>
-        <input {...register("title")} />
-        {errors.title && <p style={{ color: "red" }}>{errors.title.message}</p>}
+    <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+      <FormInput label="Title" {...register("title")} error={errors.title} />
+      <FormInput
+        type="number"
+        label="Level"
+        {...register("level", { valueAsNumber: true })}
+        error={errors.level}
+      />
+      <FormInput
+        type="number"
+        label="Day"
+        {...register("day", { valueAsNumber: true })}
+        error={errors.day}
+      />
+      <FormInput
+        type="number"
+        label="Month"
+        {...register("month", { valueAsNumber: true })}
+        error={errors.month}
+      />
+      <FormInput
+        type="number"
+        label="Year"
+        {...register("year", { valueAsNumber: true })}
+        error={errors.year}
+      />
+      <div className={styles.errorMessage}>{errorMessage}</div>
+      <div className="buttonContainer">
+        <Button label="Submit" type="submit" />
       </div>
-
-      <div>
-        <label>Level:</label>
-        <input {...register("level")} />
-        {errors.level && <p style={{ color: "red" }}>{errors.level.message}</p>}
-      </div>
-
-      <div>
-        <label>Day:</label>
-        <input type="number" {...register("day", { valueAsNumber: true })} />
-        {errors.day && <p style={{ color: "red" }}>{errors.day.message}</p>}
-      </div>
-
-      <div>
-        <label>Month:</label>
-        <input type="number" {...register("month", { valueAsNumber: true })} />
-        {errors.month && <p style={{ color: "red" }}>{errors.month.message}</p>}
-      </div>
-
-      <div>
-        <label>Year:</label>
-        <input type="number" {...register("year", { valueAsNumber: true })} />
-        {errors.year && <p style={{ color: "red" }}>{errors.year.message}</p>}
-      </div>
-
-      <button type="submit">Submit</button>
     </form>
   );
 };

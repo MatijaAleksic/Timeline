@@ -12,8 +12,6 @@ const Header: FunctionComponent<IProps> = ({}) => {
   const router = useRouter();
 
   const navigateToRoute = (route: string) => {
-    console.log("route", route);
-
     router.push(route);
   };
 
@@ -21,17 +19,17 @@ const Header: FunctionComponent<IProps> = ({}) => {
     <div className={styles.header}>
       <HeaderElement
         label="Home"
-        route={Routes.home}
+        route={Routes.HOME}
         navigateToRoute={navigateToRoute}
       />
       <HeaderElement
         label="Events"
-        route={Routes.events}
+        route={Routes.EVENTS}
         navigateToRoute={navigateToRoute}
       />
       <HeaderElement
         label="Periods"
-        route={Routes.periods}
+        route={Routes.PERIODS}
         navigateToRoute={navigateToRoute}
       />
     </div>

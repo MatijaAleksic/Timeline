@@ -1,6 +1,5 @@
 export default class Routes {
-  public static home: string = "/";
-
-  public static events: string = "/events";
-  public static periods: string = "/periods";
+  public static HOME: string = "/";
+  public static EVENTS: string = "/events";
+  public static PERIODS: string = "/periods";
 }
