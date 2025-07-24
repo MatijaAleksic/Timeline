@@ -1,12 +1,4 @@
-import type { Metadata } from "next";
-import "./globals.scss";
 import Header from "@/components/Generic/Layout/Header/Header";
-import Footer from "@/components/Generic/Layout/Footer/Footer";
-
-export const metadata: Metadata = {
-  title: "Timeline",
-  description: "Timeline web app for learning history through visualization",
-};
 
 export default function RootLayout({
   children,

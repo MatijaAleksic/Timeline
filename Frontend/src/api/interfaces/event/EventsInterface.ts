@@ -3,6 +3,8 @@ import { CreateEventDTO, EventTableDTO, UpdateEventDTO } from "@/api/DTO";
 import { EventDTO } from "@/api/DTO/EventDTO";
 import { ApiUtil } from "@/util/constants/Configs/ApiUtil";
 import Routes from "@/util/constants/ApiRoutes";
+import { EventTableHeadersSort } from "@/util/constants/EventConstants";
+import { TableSortDirection } from "@/util/constants/TableConstants";
 
 class ReusableEventClient {
   private static _client: FetchRestClient;
@@ -34,10 +36,12 @@ class EventInterface {
   public GetEvents = async (
     pageNumber: number,
     pageSize: number,
-    searchString: string = ""
+    searchString: string = "",
+    sortColumn: EventTableHeadersSort,
+    sortDirection: TableSortDirection
   ): Promise<EventTableDTO> => {
     return this._client.get<EventTableDTO>(
-      `${Routes.EVENTS}/?pageNumber=${pageNumber}&pageSize=${pageSize}&searchString=${searchString}`
+      `${Routes.EVENTS}/?pageNumber=${pageNumber}&pageSize=${pageSize}&searchString=${searchString}&sortColumn=${sortColumn}&sortDirection=${sortDirection}`
     );
   };
 

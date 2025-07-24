@@ -3,8 +3,8 @@
 import { FunctionComponent, useEffect, useState } from "react";
 import styles from "./EventTable.module.scss";
 import { EventDTO } from "@/api/DTO/EventDTO";
-import SearchInput from "@/components/Generic/SearchInput/SearchInput";
-import Pagination from "@/components/Generic/Pagination/Pagination";
+import SearchInput from "@/components/Generic/Table/SearchInput/SearchInput";
+import Pagination from "@/components/Generic/Table/Pagination/Pagination";
 import Button from "@/components/Generic/Button/Button";
 import Modal from "@/components/Generic/Modal/Modal";
 import EventForm from "@/components/Forms/EventForm/EventForm";
@@ -12,7 +12,11 @@ import { ButtonType } from "@/util/enums/ButtonType";
 import { EventApi } from "@/api/interfaces/event";
 import YesNoPrompt from "@/components/Generic/YesNoPrompt/YesNoPrompt";
 import { EventTableDTO } from "@/api/DTO";
-import TableConstants from "@/util/constants/TableConstants";
+import TableConstants, {
+  TableSortDirection,
+} from "@/util/constants/TableConstants";
+import { EventTableHeadersSort } from "@/util/constants/EventConstants";
+import TableHeader from "@/components/Generic/Table/TableHeader/TableHeader";
 
 interface IProps {
   initialEventTableDTO: EventTableDTO;
@@ -36,19 +40,40 @@ const EventTable: FunctionComponent<IProps> = ({ initialEventTableDTO }) => {
     initialEventTableDTO.totalCount
   );
   const [searchString, setSearchString] = useState<string>("");
+  const [sortColumn, setSortColumn] = useState<EventTableHeadersSort>(
+    EventTableHeadersSort.TITLE
+  );
+  const [sortDirection, setSortDirection] = useState<TableSortDirection>(
+    TableSortDirection.ASC
+  );
 
   useEffect(() => {
     fetchEvents();
-  }, [pageIndex, pageSize, searchString]);
+  }, [pageIndex, pageSize, searchString, sortColumn, sortDirection]);
 
   const fetchEvents = async () => {
     var eventTableDTO: EventTableDTO = await EventApi.GetEvents(
       pageIndex,
       pageSize,
-      searchString
+      searchString,
+      sortColumn,
+      sortDirection
     );
     setTotalCount(eventTableDTO.totalCount);
     setEvents(eventTableDTO.events);
+  };
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection((prev) =>
+        prev === TableSortDirection.ASC
+          ? TableSortDirection.DESC
+          : TableSortDirection.ASC
+      );
+    } else {
+      setSortColumn(column as EventTableHeadersSort);
+      setSortDirection(TableSortDirection.ASC);
+    }
   };
 
   const searchFunctionCallback = async (searchString: string) => {
@@ -132,11 +157,43 @@ const EventTable: FunctionComponent<IProps> = ({ initialEventTableDTO }) => {
         <thead>
           <tr>
             {/* <th>Id</th> */}
-            <th>Title</th>
-            <th>Level</th>
-            <th>Year</th>
-            <th>Month</th>
-            <th>Day</th>
+
+            <TableHeader
+              label="Title"
+              currentSortColumn={sortColumn}
+              sortColumn={EventTableHeadersSort.TITLE}
+              currentSortDirection={sortDirection}
+              handleSort={handleSort}
+            />
+            <TableHeader
+              label="Level"
+              currentSortColumn={sortColumn}
+              sortColumn={EventTableHeadersSort.LEVEL}
+              currentSortDirection={sortDirection}
+              handleSort={handleSort}
+            />
+            <TableHeader
+              label="Year"
+              currentSortColumn={sortColumn}
+              sortColumn={EventTableHeadersSort.YEAR}
+              currentSortDirection={sortDirection}
+              handleSort={handleSort}
+            />
+            <TableHeader
+              label="Month"
+              sortColumn={EventTableHeadersSort.MONTH}
+              currentSortColumn={sortColumn}
+              currentSortDirection={sortDirection}
+              handleSort={handleSort}
+            />
+            <TableHeader
+              label="Day"
+              currentSortColumn={sortColumn}
+              sortColumn={EventTableHeadersSort.DAY}
+              currentSortDirection={sortDirection}
+              handleSort={handleSort}
+            />
+
             <th style={{ border: "none" }}></th>
             <th style={{ border: "none" }}></th>
           </tr>
