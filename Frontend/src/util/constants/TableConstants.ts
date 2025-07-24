@@ -1,3 +1,3 @@
 export default class TableConstants {
-  public static defaultPageSize: number = 2;
+  public static defaultPageSize: number = 10;
 }
