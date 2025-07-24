@@ -26,13 +26,17 @@ public class EventsController : ControllerBase
     public async Task<ActionResult<EventTableDTO>> GetEvents(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
-        [FromQuery] string searchString = ""
+        [FromQuery] string searchString = "",
+        [FromQuery] string? sortColumn = null,
+        [FromQuery] string? sortDirection = null
     )
     {
         var (events, totalCount) = await _eventService.GetEventsPaginatedAsync(
             pageNumber,
             pageSize,
-            searchString
+            searchString,
+            sortColumn,
+            sortDirection
         );
 
         var eventDTOs = _mapper.Map<IEnumerable<Event>, IEnumerable<EventDTO>>(events);

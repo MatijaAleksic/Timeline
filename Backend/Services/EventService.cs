@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Backend.Domain.DTO;
 using Backend.Domain.Exceptions;
 using Backend.Domain.Models;
+using Backend.Helper;
 using Backend.Repositories.Implementations;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,7 +22,9 @@ public class EventService : IEventService
     public async Task<(IEnumerable<Event> Events, int TotalCount)> GetEventsPaginatedAsync(
         int pageNumber,
         int pageSize,
-        string searchString
+        string searchString,
+        string? sortColumn,
+        string? sortDirection
     )
     {
         if (pageNumber <= 0)
@@ -38,11 +41,19 @@ public class EventService : IEventService
 
         var totalCount = await query.CountAsync();
 
-        var events = await query
-            .OrderBy(e => e.Title)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        query = SortingHelper.ApplySorting(
+            query,
+            sortColumn,
+            sortDirection,
+            EventAllowedSortColumns
+        );
+
+        if (string.IsNullOrEmpty(sortColumn) || !EventAllowedSortColumns.Contains(sortColumn))
+        {
+            query = query.OrderBy(e => e.Title);
+        }
+
+        var events = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 
         return (events, totalCount);
     }
@@ -104,4 +115,15 @@ public class EventService : IEventService
         await _eventRepository.SaveAsync();
         return updatedEvent;
     }
+
+    private static readonly HashSet<string> EventAllowedSortColumns = new HashSet<string>(
+        StringComparer.OrdinalIgnoreCase
+    )
+    {
+        "Title",
+        "Level",
+        "Year",
+        "Month",
+        "Day",
+    };
 }
