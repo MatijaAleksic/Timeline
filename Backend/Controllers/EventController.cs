@@ -34,8 +34,6 @@ public class EventsController : ControllerBase
             pageSize,
             searchString
         );
-        if (!events.Any())
-            return NoContent();
 
         var eventDTOs = _mapper.Map<IEnumerable<Event>, IEnumerable<EventDTO>>(events);
         var eventTableDTO = new EventTableDTO
