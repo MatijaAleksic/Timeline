@@ -1,6 +1,8 @@
 import styles from "./TableHeader.module.scss";
 import { TableSortDirection } from "@/util/constants/TableConstants";
 import Image from "next/image";
+import SortUp from "./../../../../../public/svg/sort-up.svg";
+import SortDown from "./../../../../../public/svg/sort-down.svg";
 
 interface IProps {
   label: string;
@@ -22,25 +24,32 @@ const TableHeader: React.FC<IProps> = ({
       <div className={styles.tableHeaderContainer}>
         <span>{label}</span>
         <span className={styles.sortDirection}>
-          {currentSortColumn === sortColumn ? (
-            currentSortDirection === TableSortDirection.ASC ? (
-              <Image
-                src="/svg/sort-up.svg"
-                alt="Sort up"
-                width={20}
-                height={20}
-              />
-            ) : (
-              <Image
-                src="/svg/sort-down.svg"
-                alt="Sort up"
-                width={20}
-                height={20}
-              />
-            )
-          ) : (
-            <></>
-          )}
+          <Image
+            src={SortUp}
+            alt="Sort up"
+            width={20}
+            height={20}
+            style={{
+              display:
+                currentSortColumn === sortColumn &&
+                currentSortDirection === TableSortDirection.ASC
+                  ? "inline"
+                  : "none",
+            }}
+          />
+          <Image
+            src={SortDown}
+            alt="Sort down"
+            width={20}
+            height={20}
+            style={{
+              display:
+                currentSortColumn === sortColumn &&
+                currentSortDirection === TableSortDirection.DESC
+                  ? "inline"
+                  : "none",
+            }}
+          />
         </span>
       </div>
     </th>

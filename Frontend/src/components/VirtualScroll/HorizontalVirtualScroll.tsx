@@ -407,11 +407,9 @@ const HorizontalVirtualScroll = () => {
         : target.scrollTop + target.clientHeight < target.scrollHeight);
 
     if (!isScrollable) {
-      debouncedHandleWheel(event); // Call horizontal zoom scroll
+      debouncedHandleWheel(event);
     }
   };
-
-  console.log("zoomValue", virtualMeterState.zoomValue);
 
   return (
     <div className={styles.meterWrapper}>

@@ -1,0 +1,14 @@
+.form {
+  height: 100%;
+  width: 100%;
+
+  .buttonContainer {
+    position: relative;
+  }
+
+  .errorMessage {
+    color: red;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+}

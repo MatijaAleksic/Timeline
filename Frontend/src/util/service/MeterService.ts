@@ -164,7 +164,7 @@ export default class MeterService {
     level: number,
     elementWidth: number
   ) => {
-    var calculatedOffset: number = 0;
+    let calculatedOffset: number = 0;
     const yearMultiplier = this.getYearMultiplier(level);
 
     // Days

@@ -15,6 +15,10 @@ const SearchInput: React.FC<IProps> = ({
   const [inputValue, setInputValue] = useState<string>(searchString);
 
   useEffect(() => {
+    setInputValue(searchString);
+  }, [searchString]);
+
+  useEffect(() => {
     const handler = setTimeout(() => {
       searchFunctionCallback(inputValue);
     }, debounceMs);

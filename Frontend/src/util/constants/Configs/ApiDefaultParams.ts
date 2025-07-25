@@ -1,5 +1,5 @@
 export type ApiDefaultParams = {
-  // lang?: string;
+  lang?: string;
   // auth?: string;
   // recaptchaToken?: string;
 };

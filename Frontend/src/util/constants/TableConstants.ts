@@ -1,5 +1,5 @@
 export default class TableConstants {
-  public static defaultPageSize: number = 10;
+  public static defaultPageSize: number = 5;
 }
 
 export enum TableSortDirection {

@@ -6,9 +6,7 @@ import { useRouter } from "next/navigation";
 import Routes from "@/util/constants/Routes";
 import HeaderElement from "./HeaderElement/HeaderElement";
 
-interface IProps {}
-
-const Header: FunctionComponent<IProps> = ({}) => {
+const Header: FunctionComponent = ({}) => {
   const router = useRouter();
 
   const navigateToRoute = (route: string) => {

@@ -1,12 +1,30 @@
+import { PeriodDTO, PeriodTableDTO } from "@/api/DTO";
+import { PeriodApi } from "@/api/interfaces/period"; // use your alias or relative path
+import PeriodTable from "@/components/Table/PeriodTable/PeriodTable";
 import type { Metadata } from "next";
+import styles from "./page.module.scss";
+import TableConstants, {
+  TableSortDirection,
+} from "@/util/constants/TableConstants";
+import { PeriodTableHeadersSort } from "@/util/constants/PeriodConstant";
 
 export const metadata: Metadata = {
   title: "Periods",
   description: "Periods of the timeline",
 };
 
-function PeriodsPage() {
-  return <>Periods</>;
-}
+export default async function PeriodsPage() {
+  const periodTableDTO: PeriodTableDTO = await PeriodApi.GetPeriods(
+    1,
+    TableConstants.defaultPageSize,
+    "",
+    PeriodTableHeadersSort.TITLE,
+    TableSortDirection.ASC
+  );
 
-export default PeriodsPage;
+  return (
+    <div className={styles.tableWrapper}>
+      <PeriodTable initialPeriodTableDTO={periodTableDTO} />
+    </div>
+  );
+}

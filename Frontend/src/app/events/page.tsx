@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function EventsPage() {
-  var eventTableDTO: EventTableDTO = await EventApi.GetEvents(
+  const eventTableDTO: EventTableDTO = await EventApi.GetEvents(
     1,
     TableConstants.defaultPageSize,
     "",

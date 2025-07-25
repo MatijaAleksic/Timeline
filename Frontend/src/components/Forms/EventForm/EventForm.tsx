@@ -1,12 +1,12 @@
 import { FunctionComponent, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CreateEventSchema } from "@/util/schemas/CreateEventSchema";
 import { CreateEventDTO, EventDTO, UpdateEventDTO } from "@/api/DTO"; // import your DTO
 import styles from "./EventForm.module.scss";
 import Button from "@/components/Generic/Button/Button";
 import FormInput from "@/components/Generic/Input/FormInput";
 import { EventApi } from "@/api/interfaces/event";
+import { EventFormSchema } from "@/util/schemas/EventFormSchema";
 
 interface IProps {
   event: EventDTO | undefined;
@@ -26,7 +26,7 @@ const EventForm: FunctionComponent<IProps> = ({
     reset,
     formState: { errors },
   } = useForm<CreateEventDTO>({
-    resolver: zodResolver(CreateEventSchema),
+    resolver: zodResolver(EventFormSchema),
   });
 
   useEffect(() => {
@@ -43,7 +43,7 @@ const EventForm: FunctionComponent<IProps> = ({
 
   const onSubmit = async (data: CreateEventDTO) => {
     try {
-      var ev: EventDTO;
+      let ev: EventDTO;
       if (!event) ev = await EventApi.PostEvent(data);
       else
         ev = await EventApi.PutEvent({ ...data } as UpdateEventDTO, event.id);

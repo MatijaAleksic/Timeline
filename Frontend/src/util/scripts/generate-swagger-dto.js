@@ -1,9 +1,8 @@
-// scripts/generate-dtos.js
-const os = require("os");
-const path = require("path");
-const cp = require("child_process");
-const fs = require("fs-extra");
-const axios = require("axios");
+import os from "os";
+import path from "path";
+import cp from "child_process";
+import fs from "fs-extra";
+import axios from "axios";
 
 (async () => {
   // Hardcoded swagger URL and output folder

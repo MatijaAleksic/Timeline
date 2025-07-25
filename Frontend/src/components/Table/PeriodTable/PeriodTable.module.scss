@@ -1,0 +1,45 @@
+.tableContainer {
+  width: 100%;
+
+  .tableHeader {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .searchContainer {
+      width: 300px;
+    }
+
+    .buttonContainer {
+      width: 180px;
+    }
+  }
+
+  .centerButton {
+    display: flex;
+    justify-content: center;
+
+    .tableButtonContainer {
+      width: 110px;
+    }
+  }
+
+  .paginationContainer {
+    margin-top: 10px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  th,
+  td {
+    width: 100%;
+    border: 1px solid lightgray;
+    padding: 8px;
+    text-align: left;
+  }
+}

@@ -1,66 +1,66 @@
 "use client";
 
 import { FunctionComponent, useEffect, useState } from "react";
-import styles from "./EventTable.module.scss";
-import { EventDTO } from "@/api/DTO/EventDTO";
+import styles from "./PeriodTable.module.scss";
+import { PeriodDTO } from "@/api/DTO/PeriodDTO";
 import SearchInput from "@/components/Generic/Table/SearchInput/SearchInput";
 import Pagination from "@/components/Generic/Table/Pagination/Pagination";
 import Button from "@/components/Generic/Button/Button";
 import Modal from "@/components/Generic/Modal/Modal";
-import EventForm from "@/components/Forms/EventForm/EventForm";
+import PeriodForm from "@/components/Forms/PeriodForm/PeriodForm";
 import { ButtonType } from "@/util/enums/ButtonType";
-import { EventApi } from "@/api/interfaces/event";
+import { PeriodApi } from "@/api/interfaces/period";
 import YesNoPrompt from "@/components/Generic/YesNoPrompt/YesNoPrompt";
-import { EventTableDTO } from "@/api/DTO";
+import { PeriodTableDTO } from "@/api/DTO";
 import TableConstants, {
   TableSortDirection,
 } from "@/util/constants/TableConstants";
-import { EventTableHeadersSort } from "@/util/constants/EventConstants";
 import TableHeader from "@/components/Generic/Table/TableHeader/TableHeader";
+import { PeriodTableHeadersSort } from "@/util/constants/PeriodConstant";
 
 interface IProps {
-  initialEventTableDTO: EventTableDTO;
+  initialPeriodTableDTO: PeriodTableDTO;
 }
 
-const EventTable: FunctionComponent<IProps> = ({ initialEventTableDTO }) => {
-  const [isEventModalOpen, setIsEventModalOpen] = useState<boolean>(false);
+const PeriodTable: FunctionComponent<IProps> = ({ initialPeriodTableDTO }) => {
+  const [isPeriodModalOpen, setIsPeriodModalOpen] = useState<boolean>(false);
   const [isYesNoModalOpen, setIsYesNoModalOpen] = useState<boolean>(false);
-  const [events, setEvents] = useState<EventDTO[]>(
-    initialEventTableDTO.events || []
+  const [periods, setPeriods] = useState<PeriodDTO[]>(
+    initialPeriodTableDTO.periods || []
   );
-  const [selectedEvent, setSelectedEvent] = useState<EventDTO | undefined>(
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodDTO | undefined>(
     undefined
   );
-  const [eventIdToDelete, setEventIdToDelete] = useState<string | undefined>(
+  const [periodIdToDelete, setPeriodIdToDelete] = useState<string | undefined>(
     undefined
   );
   const [pageIndex, setPageIndex] = useState<number>(1);
   const [pageSize] = useState<number>(TableConstants.defaultPageSize);
   const [totalCount, setTotalCount] = useState<number>(
-    initialEventTableDTO.totalCount
+    initialPeriodTableDTO.totalCount
   );
   const [searchString, setSearchString] = useState<string>("");
-  const [sortColumn, setSortColumn] = useState<EventTableHeadersSort>(
-    EventTableHeadersSort.TITLE
+  const [sortColumn, setSortColumn] = useState<PeriodTableHeadersSort>(
+    PeriodTableHeadersSort.TITLE
   );
   const [sortDirection, setSortDirection] = useState<TableSortDirection>(
     TableSortDirection.ASC
   );
 
   useEffect(() => {
-    fetchEvents();
+    fetchPeriods();
   }, [pageIndex, pageSize, searchString, sortColumn, sortDirection]);
 
-  const fetchEvents = async () => {
-    const eventTableDTO: EventTableDTO = await EventApi.GetEvents(
+  const fetchPeriods = async () => {
+    const periodTableDTO: PeriodTableDTO = await PeriodApi.GetPeriods(
       pageIndex,
       pageSize,
       searchString,
       sortColumn,
       sortDirection
     );
-    setTotalCount(eventTableDTO.totalCount);
-    setEvents(eventTableDTO.events);
+    setTotalCount(periodTableDTO.totalCount);
+    setPeriods(periodTableDTO.periods);
   };
 
   const handleSort = (column: string) => {
@@ -71,12 +71,12 @@ const EventTable: FunctionComponent<IProps> = ({ initialEventTableDTO }) => {
           : TableSortDirection.ASC
       );
     } else {
-      setSortColumn(column as EventTableHeadersSort);
+      setSortColumn(column as PeriodTableHeadersSort);
       setSortDirection(TableSortDirection.ASC);
     }
   };
 
-  const searchFunctionCallback = (newSearchString: string) => {
+  const searchFunctionCallback = async (newSearchString: string) => {
     if (newSearchString !== searchString) {
       setSearchString(newSearchString);
       setPageIndex(1);
@@ -87,8 +87,8 @@ const EventTable: FunctionComponent<IProps> = ({ initialEventTableDTO }) => {
     setPageIndex(pageIndex);
   };
 
-  const toggleEventModal = () => {
-    setIsEventModalOpen(!isEventModalOpen);
+  const togglePeriodModal = () => {
+    setIsPeriodModalOpen(!isPeriodModalOpen);
   };
 
   const toggleYesNoModal = () => {
@@ -96,47 +96,47 @@ const EventTable: FunctionComponent<IProps> = ({ initialEventTableDTO }) => {
   };
 
   const createButtonClicked = () => {
-    setSelectedEvent(undefined);
-    toggleEventModal();
+    setSelectedPeriod(undefined);
+    togglePeriodModal();
   };
 
-  const editButtonClicked = (event: EventDTO) => {
-    setSelectedEvent(event);
-    toggleEventModal();
+  const editButtonClicked = (period: PeriodDTO) => {
+    setSelectedPeriod(period);
+    togglePeriodModal();
   };
 
-  const deleteButtonClicked = (eventId: string) => {
-    setEventIdToDelete(eventId);
+  const deleteButtonClicked = (periodId: string) => {
+    setPeriodIdToDelete(periodId);
     setIsYesNoModalOpen(true);
   };
 
   const yesNoPromptAnswer = async (decision: boolean) => {
-    if (decision && eventIdToDelete) {
+    if (decision && periodIdToDelete) {
       try {
-        await EventApi.DeleteEvent(eventIdToDelete);
-        setEvents(events.filter((ev) => ev.id !== eventIdToDelete));
+        await PeriodApi.DeletePeriod(periodIdToDelete);
+        setPeriods(periods.filter((ev) => ev.id !== periodIdToDelete));
       } catch (error: any) {
         console.log(error);
       }
     }
-    setEventIdToDelete(undefined);
+    setPeriodIdToDelete(undefined);
     setIsYesNoModalOpen(false);
   };
 
-  const modifiedEventCallback = (event: EventDTO) => {
-    const foundEvent = events.find((ev) => ev.id === event.id);
-    if (foundEvent) {
-      setEvents(
-        events.map((ev) => {
-          if (ev.id === event.id) {
-            return event;
+  const modifiedPeriodCallback = (period: PeriodDTO) => {
+    const foundPeriod = periods.find((ev) => ev.id === period.id);
+    if (foundPeriod) {
+      setPeriods(
+        periods.map((ev) => {
+          if (ev.id === period.id) {
+            return period;
           }
           return ev;
         })
       );
       return;
     }
-    setEvents([...events, event]);
+    setPeriods([...periods, period]);
   };
 
   return (
@@ -150,7 +150,7 @@ const EventTable: FunctionComponent<IProps> = ({ initialEventTableDTO }) => {
         </div>
         <div className={styles.buttonContainer}>
           <Button
-            label="Create new event"
+            label="Create new period"
             onClickCallback={createButtonClicked}
           />
         </div>
@@ -159,38 +159,61 @@ const EventTable: FunctionComponent<IProps> = ({ initialEventTableDTO }) => {
       <table className={styles.table}>
         <thead>
           <tr>
+            {/* <th>Id</th> */}
+
             <TableHeader
               label="Title"
               currentSortColumn={sortColumn}
-              sortColumn={EventTableHeadersSort.TITLE}
+              sortColumn={PeriodTableHeadersSort.TITLE}
               currentSortDirection={sortDirection}
               handleSort={handleSort}
             />
             <TableHeader
               label="Level"
               currentSortColumn={sortColumn}
-              sortColumn={EventTableHeadersSort.LEVEL}
+              sortColumn={PeriodTableHeadersSort.LEVEL}
               currentSortDirection={sortDirection}
               handleSort={handleSort}
             />
             <TableHeader
-              label="Year"
+              label="Start Year"
               currentSortColumn={sortColumn}
-              sortColumn={EventTableHeadersSort.YEAR}
+              sortColumn={PeriodTableHeadersSort.START_YEAR}
               currentSortDirection={sortDirection}
               handleSort={handleSort}
             />
             <TableHeader
-              label="Month"
-              sortColumn={EventTableHeadersSort.MONTH}
+              label="Start Month"
+              sortColumn={PeriodTableHeadersSort.START_MONTH}
               currentSortColumn={sortColumn}
               currentSortDirection={sortDirection}
               handleSort={handleSort}
             />
             <TableHeader
-              label="Day"
+              label="Start Day"
               currentSortColumn={sortColumn}
-              sortColumn={EventTableHeadersSort.DAY}
+              sortColumn={PeriodTableHeadersSort.START_DAY}
+              currentSortDirection={sortDirection}
+              handleSort={handleSort}
+            />
+            <TableHeader
+              label="End Year"
+              currentSortColumn={sortColumn}
+              sortColumn={PeriodTableHeadersSort.END_YEAR}
+              currentSortDirection={sortDirection}
+              handleSort={handleSort}
+            />
+            <TableHeader
+              label="End Month"
+              sortColumn={PeriodTableHeadersSort.END_MONTH}
+              currentSortColumn={sortColumn}
+              currentSortDirection={sortDirection}
+              handleSort={handleSort}
+            />
+            <TableHeader
+              label="End Day"
+              currentSortColumn={sortColumn}
+              sortColumn={PeriodTableHeadersSort.END_DAY}
               currentSortDirection={sortDirection}
               handleSort={handleSort}
             />
@@ -200,19 +223,23 @@ const EventTable: FunctionComponent<IProps> = ({ initialEventTableDTO }) => {
           </tr>
         </thead>
         <tbody>
-          {events.map((event: EventDTO, index: number) => (
+          {periods.map((period: PeriodDTO, index: number) => (
             <tr key={index}>
-              <td>{event.title}</td>
-              <td>{event.level}</td>
-              <td>{event.year}</td>
-              <td>{event.month}</td>
-              <td>{event.day}</td>
+              {/* <td>{period.id}</td> */}
+              <td>{period.title}</td>
+              <td>{period.level}</td>
+              <td>{period.startDay}</td>
+              <td>{period.startMonth}</td>
+              <td>{period.startDay}</td>
+              <td>{period.endDay}</td>
+              <td>{period.endMonth}</td>
+              <td>{period.endDay}</td>
               <td>
                 <div className={styles.centerButton}>
                   <div className={styles.tableButtonContainer}>
                     <Button
                       buttonType={ButtonType.PRIMARY}
-                      onClickCallback={() => editButtonClicked(event)}
+                      onClickCallback={() => editButtonClicked(period)}
                       label="Edit"
                     />
                   </div>
@@ -223,7 +250,7 @@ const EventTable: FunctionComponent<IProps> = ({ initialEventTableDTO }) => {
                   <div className={styles.tableButtonContainer}>
                     <Button
                       buttonType={ButtonType.HOT}
-                      onClickCallback={() => deleteButtonClicked(event.id)}
+                      onClickCallback={() => deleteButtonClicked(period.id)}
                       label="Delete"
                     />
                   </div>
@@ -244,12 +271,12 @@ const EventTable: FunctionComponent<IProps> = ({ initialEventTableDTO }) => {
         />
       </div>
 
-      {isEventModalOpen && (
-        <Modal width={400} toggleModal={toggleEventModal}>
-          <EventForm
-            event={selectedEvent}
-            modifiedEventCallback={modifiedEventCallback}
-            toggleModal={toggleEventModal}
+      {isPeriodModalOpen && (
+        <Modal width={400} toggleModal={togglePeriodModal}>
+          <PeriodForm
+            period={selectedPeriod}
+            modifiedPeriodCallback={modifiedPeriodCallback}
+            toggleModal={togglePeriodModal}
           />
         </Modal>
       )}
@@ -263,4 +290,4 @@ const EventTable: FunctionComponent<IProps> = ({ initialEventTableDTO }) => {
   );
 };
 
-export default EventTable;
+export default PeriodTable;
