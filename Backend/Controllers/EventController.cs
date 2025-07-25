@@ -89,7 +89,7 @@ public class EventsController : ControllerBase
         {
             return Conflict(new { message = e.Message });
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return StatusCode(500);
         }

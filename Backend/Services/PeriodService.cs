@@ -58,6 +58,30 @@ public class PeriodService
         return (periods, totalCount);
     }
 
+    public async Task<IEnumerable<Period>> GetPeriodsByDateRangeAndLevelAsync(
+        int startYear,
+        int? startMonth,
+        int? startDay,
+        int endYear,
+        int? endMonth,
+        int? endDay,
+        int level
+    )
+    {
+        var query = _periodRepository.Query();
+
+        query = query.Where(e => e.Level == level);
+
+        query = query.Where(e =>
+            (e.StartYear * 10000 + (e.StartMonth ?? 1) * 100 + (e.StartDay ?? 1))
+                <= (endYear * 10000 + (endMonth ?? 12) * 100 + (endDay ?? 31))
+            && (e.EndYear * 10000 + (e.EndMonth ?? 12) * 100 + (e.EndDay ?? 31))
+                >= (startYear * 10000 + (startMonth ?? 1) * 100 + (startDay ?? 1))
+        );
+
+        return await query.ToListAsync();
+    }
+
     public async Task<Period?> GetPeriodByIdAsync(Guid id)
     {
         return await _periodRepository.GetByIdAsync(id);

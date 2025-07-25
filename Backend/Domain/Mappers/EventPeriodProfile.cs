@@ -11,10 +11,12 @@ public class EventPeriodProfile : Profile
         CreateMap<Event, EventDTO>().ReverseMap();
         CreateMap<Event, UpdateEventDTO>().ReverseMap();
         CreateMap<Event, CreateEventDTO>().ReverseMap();
+        CreateMap<Event, EventTimelineDTO>().ReverseMap();
 
         CreateMap<Period, PeriodDTO>().ReverseMap();
         CreateMap<Period, UpdatePeriodDTO>().ReverseMap();
         CreateMap<Period, CreatePeriodDTO>().ReverseMap();
+        CreateMap<Period, PeriodTimelineDTO>().ReverseMap();
 
         // Examples from existing project that demonstrates what can be done here
         //=======================================================================

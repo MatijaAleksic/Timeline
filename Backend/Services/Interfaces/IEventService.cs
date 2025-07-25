@@ -10,6 +10,15 @@ public interface IEventService
         string? sortColumn,
         string? sortDirection
     );
+    Task<IEnumerable<Event>> GetEventsByDateRangeAndLevelAsync(
+        int startYear,
+        int? startMonth,
+        int? startDay,
+        int endYear,
+        int? endMonth,
+        int? endDay,
+        int level
+    );
     Task<Event?> GetEventByIdAsync(Guid id);
     Task<Event> CreateEventAsync(Event ev);
     Task DeleteEventAsync(Guid eventId);

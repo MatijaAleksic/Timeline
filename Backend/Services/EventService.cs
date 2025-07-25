@@ -58,6 +58,31 @@ public class EventService : IEventService
         return (events, totalCount);
     }
 
+    public async Task<IEnumerable<Event>> GetEventsByDateRangeAndLevelAsync(
+        int startYear,
+        int? startMonth,
+        int? startDay,
+        int endYear,
+        int? endMonth,
+        int? endDay,
+        int level
+    )
+    {
+        var query = _eventRepository.Query();
+
+        query = query.Where(e => e.Level == level);
+        query = query.Where(e =>
+            e.Year >= startYear
+            && e.Year <= endYear
+            && (startMonth == null || e.Year > startYear || e.Month >= startMonth)
+            && (endMonth == null || e.Year < endYear || e.Month <= endMonth)
+            && (startDay == null || e.Year > startYear || e.Month > startMonth || e.Day >= startDay)
+            && (endDay == null || e.Year < endYear || e.Month < endMonth || e.Day <= endDay)
+        );
+
+        return await query.ToListAsync();
+    }
+
     public async Task<Event?> GetEventByIdAsync(Guid id)
     {
         return await _eventRepository.GetByIdAsync(id);
