@@ -71,9 +71,9 @@ public class EventsController : ControllerBase
         {
             return Conflict(new { message = e.Message });
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            return BadRequest(e.Message);
+            return StatusCode(500);
         }
     }
 
@@ -91,7 +91,7 @@ public class EventsController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(new { message = e.Message });
+            return StatusCode(500);
         }
     }
 

@@ -1,6 +1,7 @@
 using AutoMapper;
 using Backend.Data;
 using Backend.Domain.DTO;
+using Backend.Domain.Exceptions;
 using Backend.Domain.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -22,12 +23,29 @@ public class PeriodsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PeriodDTO>>> GetPeriods()
+    public async Task<ActionResult<PeriodTableDTO>> GetPeriods(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string searchString = "",
+        [FromQuery] string? sortColumn = null,
+        [FromQuery] string? sortDirection = null
+    )
     {
-        var periods = await _periodService.GetPeriodsAsync();
-        if (!periods.Any())
-            return NoContent();
-        return Ok(_mapper.Map<IEnumerable<Period>, IEnumerable<PeriodDTO>>(periods));
+        var (periods, totalCount) = await _periodService.GetPeriodsPaginatedAsync(
+            pageNumber,
+            pageSize,
+            searchString,
+            sortColumn,
+            sortDirection
+        );
+
+        var periodDTOs = _mapper.Map<IEnumerable<Period>, IEnumerable<PeriodDTO>>(periods);
+        var periodTableDTO = new PeriodTableDTO
+        {
+            periods = periodDTOs.ToList(),
+            totalCount = totalCount,
+        };
+        return Ok(periodTableDTO);
     }
 
     [HttpGet("{id}")]
@@ -49,9 +67,13 @@ public class PeriodsController : ControllerBase
             );
             return Ok(_mapper.Map<Period, PeriodDTO>(resultPeriod));
         }
-        catch (Exception e)
+        catch (ConflictingDataException e)
         {
-            return BadRequest(e.Message);
+            return Conflict(new { message = e.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500);
         }
     }
 
@@ -63,9 +85,13 @@ public class PeriodsController : ControllerBase
             var resultPeriod = await _periodService.UpdatePeriodAsync(id, updatedPeriod);
             return Ok(_mapper.Map<Period, PeriodDTO>(resultPeriod));
         }
+        catch (ConflictingDataException e)
+        {
+            return Conflict(new { message = e.Message });
+        }
         catch (Exception)
         {
-            return BadRequest();
+            return StatusCode(500);
         }
     }
 
@@ -75,11 +101,11 @@ public class PeriodsController : ControllerBase
         try
         {
             await _periodService.DeletePeriodAsync(id);
-            return Ok();
+            return Ok(new { message = "Period deleted successfully" });
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            return NotFound();
+            return NotFound(new { message = e.Message });
         }
     }
 }

@@ -105,11 +105,11 @@ public class EventService : IEventService
         {
             throw new ConflictingDataException("Event with given title already exists!");
         }
+        existingEvent.Title = ev.Title;
+        existingEvent.Level = ev.Level;
         existingEvent.Day = ev.Day;
         existingEvent.Month = ev.Month;
         existingEvent.Year = ev.Year;
-        existingEvent.Title = ev.Title;
-        existingEvent.Level = ev.Level;
 
         var updatedEvent = _eventRepository.Update(existingEvent);
         await _eventRepository.SaveAsync();

@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Backend.Domain.DTO;
+using Backend.Domain.Exceptions;
 using Backend.Domain.Models;
+using Backend.Helper;
 using Backend.Repositories.Implementations;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
@@ -16,9 +19,43 @@ public class PeriodService
         _periodRepository = periodRepository;
     }
 
-    public async Task<IEnumerable<Period>> GetPeriodsAsync()
+    public async Task<(IEnumerable<Period> Periods, int TotalCount)> GetPeriodsPaginatedAsync(
+        int pageNumber,
+        int pageSize,
+        string searchString,
+        string? sortColumn,
+        string? sortDirection
+    )
     {
-        return await _periodRepository.GetAllAsync();
+        if (pageNumber <= 0)
+            pageNumber = 1;
+        if (pageSize <= 0)
+            pageSize = 10;
+
+        var query = _periodRepository.Query();
+
+        if (!string.IsNullOrEmpty(searchString))
+        {
+            query = query.Where(e => EF.Functions.Like(e.Title, $"%{searchString}%"));
+        }
+
+        var totalCount = await query.CountAsync();
+
+        query = SortingHelper.ApplySorting(
+            query,
+            sortColumn,
+            sortDirection,
+            PeriodAllowedSortColumns
+        );
+
+        if (string.IsNullOrEmpty(sortColumn) || !PeriodAllowedSortColumns.Contains(sortColumn))
+        {
+            query = query.OrderBy(e => e.Title);
+        }
+
+        var periods = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+
+        return (periods, totalCount);
     }
 
     public async Task<Period?> GetPeriodByIdAsync(Guid id)
@@ -32,14 +69,14 @@ public class PeriodService
         return periods.SingleOrDefault();
     }
 
-    public async Task<Period> CreatePeriodAsync(Period ev)
+    public async Task<Period> CreatePeriodAsync(Period period)
     {
-        var existingPeriod = await GetPeriodByTitleAsync(ev.Title);
+        var existingPeriod = await GetPeriodByTitleAsync(period.Title);
         if (existingPeriod != null)
         {
-            throw new Exception("Period with given title already exists!");
+            throw new ConflictingDataException("Period with given title already exists!");
         }
-        var createdPeriod = _periodRepository.Create(ev);
+        var createdPeriod = _periodRepository.Create(period);
         await _periodRepository.SaveAsync();
         return createdPeriod;
     }
@@ -56,27 +93,45 @@ public class PeriodService
         await _periodRepository.SaveAsync();
     }
 
-    public async Task<Period> UpdatePeriodAsync(Guid id, UpdatePeriodDTO ev)
+    public async Task<Period> UpdatePeriodAsync(Guid id, UpdatePeriodDTO period)
     {
         var existingPeriod = await _periodRepository.GetByIdAsync(id);
         if (existingPeriod == null)
         {
             throw new Exception("Period with given id not found!");
         }
+        var periodWithSameTitle = await GetPeriodByTitleAsync(period.Title);
+        if (periodWithSameTitle != null && periodWithSameTitle.Id != id)
+        {
+            throw new ConflictingDataException("Period with given title already exists!");
+        }
+        existingPeriod.Title = period.Title;
+        existingPeriod.Level = period.Level;
 
-        existingPeriod.Title = ev.Title;
-        existingPeriod.Level = ev.Level;
+        existingPeriod.StartYear = period.StartYear;
+        existingPeriod.StartMonth = period.StartMonth;
+        existingPeriod.StartMonth = period.StartMonth;
 
-        existingPeriod.StartDay = ev.StartDay;
-        existingPeriod.StartMonth = ev.StartMonth;
-        existingPeriod.StartYear = ev.StartYear;
-
-        existingPeriod.EndDay = ev.EndDay;
-        existingPeriod.EndMonth = ev.EndMonth;
-        existingPeriod.EndYear = ev.EndYear;
+        existingPeriod.EndYear = period.EndYear;
+        existingPeriod.EndMonth = period.EndMonth;
+        existingPeriod.EndMonth = period.EndMonth;
 
         var updatedPeriod = _periodRepository.Update(existingPeriod);
         await _periodRepository.SaveAsync();
         return updatedPeriod;
     }
+
+    private static readonly HashSet<string> PeriodAllowedSortColumns = new HashSet<string>(
+        StringComparer.OrdinalIgnoreCase
+    )
+    {
+        "Title",
+        "Level",
+        "StartYear",
+        "StartMonth",
+        "StartDay",
+        "EndYear",
+        "EndMonth",
+        "EndDay",
+    };
 }
