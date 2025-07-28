@@ -16,6 +16,8 @@ interface VirtualScrollState {
   elementWidth: number;
   zoomValue: number;
   level: number;
+  virtualItems: VirtualItem[];
+  range: Range;
 }
 
 interface IProps {
@@ -24,16 +26,17 @@ interface IProps {
 const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   screenWidth,
 }) => {
-  // States
+  console.log("RENDER");
+  // Virtual Scroll State
   const [virtualMeterState, setVirtualMeterState] =
     useState<VirtualScrollState>({
       scrollOffset: 0,
-      elementWidth: 0,
+      elementWidth: screenWidth,
       zoomValue: MeterConstants.startZoomValue,
       level: MeterConstants.startLevel,
+      virtualItems: [],
+      range: { start: 0, end: 0 },
     });
-  const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
-  const [range, setRange] = useState<Range>();
 
   // References
   const isDraggingRef = useRef<boolean>(false);
@@ -43,7 +46,6 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   const presentationLayerComponentRef = useRef<HTMLDivElement>(null);
   const lastRangeRef = useRef<Range | null>(null);
   const inertiaFrameRef = useRef<number | null>(null);
-  const updateVirtualItemsDebounced = useRef<number | null>(null);
 
   // Data
   const overScan: number = useMemo(
@@ -52,8 +54,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
     [screenWidth, virtualMeterState.elementWidth]
   );
   const virtualIndexes = useMemo(
-    () => virtualItems.map((item) => item.index),
-    [virtualItems]
+    () => virtualMeterState.virtualItems.map((item) => item.index),
+    [virtualMeterState.virtualItems]
   );
   const levelElements = useMemo(
     () => MeterLevelsService.getLevelElements(virtualMeterState.level),
@@ -61,65 +63,46 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   );
 
   // Effects
-  // Triggers on resize of the window so that screen width and element width are set correctly
-  //USEEFFECT - happens after paint
-  //USELAYOUTEFFECT - happens before paint
+  // useLayoutEffect - happens before paint
   useLayoutEffect(() => {
     if (meterComponentRef.current) {
       meterComponentRef.current.scrollLeft = virtualMeterState.scrollOffset;
     }
   }, [virtualMeterState.scrollOffset]);
 
-  useLayoutEffect(() => {
-    if (typeof window !== "undefined") {
-      const updateWidth = () => {
-        const newWidth = window.innerWidth;
-        setVirtualMeterState((prev) => ({
-          ...prev,
-          elementWidth: newWidth,
-          screenWidth: newWidth,
-        }));
-      };
-      updateWidth();
-      window.addEventListener("resize", updateWidth);
-      return () => window.removeEventListener("resize", updateWidth);
-    }
-  }, []);
   // On screen resize recalculate range and virtual items
   useLayoutEffect(() => {
-    setRange(
-      MeterService.getRange(
+    setVirtualMeterState((prev) => ({
+      ...prev,
+      range: MeterService.getRange(
         meterComponentRef,
         levelElements.length,
         virtualMeterState.scrollOffset,
         virtualMeterState.elementWidth
-      )
-    );
-    safeUpdateVirtualItems(true);
+      ),
+    }));
+    updateVirtualItems();
   }, [screenWidth]);
 
   // On level change update virtual items
   useLayoutEffect(() => {
-    safeUpdateVirtualItems(true);
+    updateVirtualItems();
   }, [virtualMeterState.level]);
 
-  //Methods
-  const updateVirtualItems = (forceUpdate: boolean = false) => {
-    if (!meterComponentRef.current) return;
-
+  const slidingUpdateVirtualItems = () => {
     const centralIndex = MeterService.calculateCentralIndex(
       meterComponentRef,
       virtualMeterState.elementWidth
     );
 
-    // Skips updating virtual indexes when the element on center on the screen falls between the range
+    // if calculated CentralIndex falls between the range skip update virtual index
     if (
-      !forceUpdate &&
-      range &&
-      centralIndex >= range.start &&
-      centralIndex <= range.end
-    )
+      virtualMeterState.range &&
+      centralIndex >= virtualMeterState.range.start &&
+      centralIndex <= virtualMeterState.range.end
+    ) {
       return;
+    }
 
     const newRange = MeterService.getRange(
       meterComponentRef,
@@ -130,15 +113,25 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
 
     // skip when gliding animation is called and the states are frozen then it tracks if the last range ref changes
     if (
-      !forceUpdate &&
       newRange &&
       lastRangeRef.current &&
       newRange.start === lastRangeRef.current.start &&
       newRange.end === lastRangeRef.current.end
-    ) {
-      // console.("BLOCK1");
+    )
       return;
-    }
+
+    updateVirtualItems();
+  };
+  //Methods
+  const updateVirtualItems = () => {
+    if (!meterComponentRef.current) return;
+
+    const newRange = MeterService.getRange(
+      meterComponentRef,
+      levelElements.length,
+      virtualMeterState.scrollOffset,
+      virtualMeterState.elementWidth
+    );
 
     if (
       newRange &&
@@ -151,26 +144,17 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
         levelElements.length - 1,
         newRange.end + overScan
       );
-      setRange({ start: newRange.start, end: newRange.end } as Range);
-      setVirtualItems(
-        MeterService.generateVirtualItems(
+      setVirtualMeterState((prev) => ({
+        ...prev,
+        range: { start: newRange.start, end: newRange.end } as Range,
+        virtualItems: MeterService.generateVirtualItems(
           overScanStart,
           overScanEnd,
           virtualMeterState.elementWidth
-        )
-      );
+        ),
+      }));
     }
   };
-
-  const safeUpdateVirtualItems = (forceUpdate = false) => {
-    if (updateVirtualItemsDebounced.current) {
-      clearTimeout(updateVirtualItemsDebounced.current);
-    }
-    updateVirtualItemsDebounced.current = requestAnimationFrame(() => {
-      updateVirtualItems(forceUpdate);
-    });
-  };
-
   const updateStatesOnLevelChange = (
     newLevel: number,
     newZoomValue: number,
@@ -184,7 +168,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       elementWidth: newWidth,
       scrollOffset: newScrollOffset,
     }));
-    updateVirtualItems(true);
+    updateVirtualItems();
   };
   const transitionLevels = (newZoomValue: number) => {
     if (!meterComponentRef.current) return;
@@ -308,7 +292,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       }
       velocity *= MeterConstants.slidingInertiaDumping;
       inertiaFrameRef.current = requestAnimationFrame(inertiaScroll);
-      safeUpdateVirtualItems();
+      slidingUpdateVirtualItems();
+      updateVirtualItems();
     };
 
     if (inertiaFrameRef.current) {
@@ -320,7 +305,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   const handleMouseLeave = () => {
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
-      safeUpdateVirtualItems();
+      updateVirtualItems();
     }
   };
 
@@ -329,7 +314,6 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   // Handles ZOOM
   // ===============================================================
   const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    // event.preventDefault();
     if (!meterComponentRef.current || isDraggingRef.current) return;
 
     // disables the sliding effect when wheen event fired
@@ -346,6 +330,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       zoomDirection
     );
 
+    // If zoom value max or min change levels
     if (
       (zoomDirection > 0 &&
         virtualMeterState.zoomValue === MeterConstants.maxZoomValue) ||
@@ -356,6 +341,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       return;
     }
 
+    // If not then calculate new states
     const scaleFactor = newZoomValue / virtualMeterState.zoomValue;
     const currentScrollLeft = meterComponentRef.current.scrollLeft;
     const newElementWidth = screenWidth * (newZoomValue / 100);
@@ -370,8 +356,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       elementWidth: newElementWidth,
       scrollOffset: newScrollOffset,
     }));
-    // meterComponentRef.current.scrollLeft = newScrollOffset;
-    updateVirtualItems(true);
+    updateVirtualItems();
   };
   const debouncedHandleWheel = useDebouncedWheel(
     handleWheel,
@@ -430,7 +415,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
               }px)`,
             }}
           >
-            {virtualItems.map((virtualItem, index) => (
+            {virtualMeterState.virtualItems.map((virtualItem, index) => (
               <div
                 className={styles.virtualizerContainer}
                 key={virtualItem.key}
@@ -466,7 +451,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
             <EventPresentationLayer
               elementWidth={virtualMeterState.elementWidth}
               level={virtualMeterState.level}
-              virtualItems={virtualItems}
+              virtualItems={virtualMeterState.virtualItems}
             />
           </div>
         </div>

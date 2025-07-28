@@ -11,14 +11,15 @@ const VirtualScrollWrapper: React.FunctionComponent<IProps> = () => {
   useLayoutEffect(() => {
     if (typeof window !== "undefined") {
       const updateWidth = () => {
-        const newWidth = window.innerWidth;
-        setScreenWidth(newWidth);
+        setScreenWidth(window.innerWidth);
       };
       updateWidth();
       window.addEventListener("resize", updateWidth);
       return () => window.removeEventListener("resize", updateWidth);
     }
   }, []);
+
+  if (screenWidth === 0) return null;
 
   return <HorizontalVirtualScroll screenWidth={screenWidth} />;
 };
