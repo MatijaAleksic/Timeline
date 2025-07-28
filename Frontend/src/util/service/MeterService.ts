@@ -1,4 +1,4 @@
-import { VirtualItem } from "@/components/VirtualScroll/VirtualScrollDTO/VirtualItem";
+import { VirtualItem } from "@/util/DTO/VirtualScrollDTO/VirtualItem";
 import MeterConstants from "../constants/MeterConstants";
 import { RefObject } from "react";
 import { EventDTO } from "../DTO/EventDTO";

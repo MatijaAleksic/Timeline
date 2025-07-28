@@ -6,7 +6,7 @@ import DummyDataService from "@/util/data/DummyDataService";
 import { EventDTO } from "@/util/DTO/EventDTO";
 import MeterService from "@/util/service/MeterService";
 import MeterConstants from "@/util/constants/MeterConstants";
-import { VirtualItem } from "../VirtualScrollDTO/VirtualItem";
+import { VirtualItem } from "../../../util/DTO/VirtualScrollDTO/VirtualItem";
 
 interface IProps {
   elementWidth: number;

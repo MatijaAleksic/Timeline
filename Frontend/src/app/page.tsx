@@ -1,11 +1,7 @@
-import HorizontalVirtualScroll from "@/components/VirtualScroll/HorizontalVirtualScroll";
+import VirtualScrollWrapper from "@/components/VirtualScroll/VirtualScrollWrapper/VirtualScrollWrapper";
 
-function MeterPage() {
-  return (
-    <>
-      <HorizontalVirtualScroll />
-    </>
-  );
+function HomePage() {
+  return <VirtualScrollWrapper />;
 }
 
-export default MeterPage;
+export default HomePage;
