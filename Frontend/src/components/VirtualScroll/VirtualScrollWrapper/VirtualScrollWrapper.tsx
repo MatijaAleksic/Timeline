@@ -1,11 +1,10 @@
 "use client";
 
+import SearchInput from "@/components/Generic/Table/SearchInput/SearchInput";
 import HorizontalVirtualScroll from "@/components/VirtualScroll/HorizontalVirtualScoll/HorizontalVirtualScroll";
 import { useLayoutEffect, useState } from "react";
 
-interface IProps {}
-
-const VirtualScrollWrapper: React.FunctionComponent<IProps> = () => {
+const VirtualScrollWrapper: React.FunctionComponent = () => {
   const [screenWidth, setScreenWidth] = useState<number>(0);
 
   useLayoutEffect(() => {

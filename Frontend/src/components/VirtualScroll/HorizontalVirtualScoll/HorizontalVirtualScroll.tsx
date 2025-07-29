@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "./HorizontalVirtualScroll.module.scss";
 import MeterConstants from "@/util/constants/MeterConstants";
 // import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
@@ -8,8 +15,8 @@ import { VirtualItem } from "../../../util/DTO/VirtualScrollDTO/VirtualItem";
 import MeterContent from "../../Meter/MeterContent";
 import MeterService from "@/util/service/MeterService";
 import MeterLevelsService from "@/util/service/MeterLevelsService";
-import EventPresentationLayer from "../PresentationLayer/EventPresentationLayer";
 import { Range } from "@/util/DTO/VirtualScrollDTO/Range";
+import EventPresentationLayer from "../PresentationLayer/EventPresentationLayer";
 
 interface VirtualScrollState {
   scrollOffset: number;
@@ -26,10 +33,12 @@ interface IProps {
 const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   screenWidth,
 }) => {
+  console.log("RENDER");
+
   // Virtual Scroll State
   const [virtualMeterState, setVirtualMeterState] =
     useState<VirtualScrollState>({
-      scrollOffset: 0,
+      scrollOffset: 4481250, // for level 4, scrollOffset:5759100 to be on 0 centered
       elementWidth: screenWidth,
       zoomValue: MeterConstants.startZoomValue,
       level: MeterConstants.startLevel,

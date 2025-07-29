@@ -1,7 +1,7 @@
 import { VirtualItem } from "@/util/DTO/VirtualScrollDTO/VirtualItem";
 import MeterConstants from "../constants/MeterConstants";
 import { RefObject } from "react";
-import { EventDTO } from "../DTO/EventDTO";
+import TimelineQueryDTO from "../DTO/VirtualScrollDTO/QueryTimelineDTO";
 
 export default class MeterService {
   public static generateVirtualItems = (
@@ -188,37 +188,78 @@ export default class MeterService {
     return calculatedOffset;
   };
 
-  public static checkIfEventYearSpanInRange = (
-    event: EventDTO,
-    virtualItems: VirtualItem[],
-    elementWidth: number,
-    level: number
+  public static calculateYearFromVirtualItemIndex = (
+    level: number,
+    startVirtualIndex: number,
+    endVirtualIndex: number
   ) => {
-    if (virtualItems.length === 0) return false;
+    const yearMultiplier = this.getYearMultiplier(level);
+    const yearsInThePast = this.getEarliestYearForLevel(level);
 
-    const eventStartOffset = this.calculateOffsetForLevelAndDate(
-      event.startDate,
-      level,
-      elementWidth
-    );
-    const eventEndOffset = this.calculateOffsetForLevelAndDate(
-      event.endDate,
-      level,
-      elementWidth
-    );
-    const startVirtualItem = virtualItems[0];
-    const endVirtualItem = virtualItems[virtualItems.length - 1];
-    const virtualItemStartOffset = startVirtualItem.start;
-    const virtualItemEndOffset = endVirtualItem.end;
-
-    if (
-      (eventStartOffset < virtualItemStartOffset &&
-        eventEndOffset < virtualItemStartOffset) ||
-      (eventStartOffset > virtualItemEndOffset &&
-        eventEndOffset > virtualItemEndOffset)
-    )
-      return false;
-
-    return true;
+    switch (level) {
+      case 1: {
+        // TODO: Not implemented
+      }
+      case 2: {
+        const startYear = Math.floor(
+          -yearsInThePast + startVirtualIndex / yearMultiplier
+        );
+        const endYear = Math.ceil(
+          -yearsInThePast + endVirtualIndex / yearMultiplier
+        );
+        const startMonth = Math.ceil(startVirtualIndex % yearMultiplier);
+        const endMonth = Math.floor(endVirtualIndex % yearMultiplier);
+        return {
+          level: level,
+          startYear: startYear,
+          endYear: endYear,
+          startMonth: startMonth,
+          endMonth: endMonth,
+        } as TimelineQueryDTO;
+      }
+      default: {
+        const startYear = -yearsInThePast + startVirtualIndex * yearMultiplier;
+        const endYear = -yearsInThePast + endVirtualIndex * yearMultiplier;
+        return {
+          level: level,
+          startYear: startYear,
+          endYear: endYear,
+        } as TimelineQueryDTO;
+      }
+    }
   };
+
+  // public static checkIfEventYearSpanInRange = (
+  //   event: EventDTO,
+  //   virtualItems: VirtualItem[],
+  //   elementWidth: number,
+  //   level: number
+  // ) => {
+  //   if (virtualItems.length === 0) return false;
+
+  //   const eventStartOffset = this.calculateOffsetForLevelAndDate(
+  //     event.startDate,
+  //     level,
+  //     elementWidth
+  //   );
+  //   const eventEndOffset = this.calculateOffsetForLevelAndDate(
+  //     event.endDate,
+  //     level,
+  //     elementWidth
+  //   );
+  //   const startVirtualItem = virtualItems[0];
+  //   const endVirtualItem = virtualItems[virtualItems.length - 1];
+  //   const virtualItemStartOffset = startVirtualItem.start;
+  //   const virtualItemEndOffset = endVirtualItem.end;
+
+  //   if (
+  //     (eventStartOffset < virtualItemStartOffset &&
+  //       eventEndOffset < virtualItemStartOffset) ||
+  //     (eventStartOffset > virtualItemEndOffset &&
+  //       eventEndOffset > virtualItemEndOffset)
+  //   )
+  //     return false;
+
+  //   return true;
+  // };
 }

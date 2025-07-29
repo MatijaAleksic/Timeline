@@ -1,10 +1,5 @@
 import type { PeriodDTO } from './PeriodDTO';
-import {
-    PeriodDTOFromJSON,
-    PeriodDTOFromJSONTyped,
-    PeriodDTOToJSON,
-    PeriodDTOToJSONTyped,
-} from './PeriodDTO';
+import { PeriodDTOFromJSON, PeriodDTOToJSON } from './PeriodDTO';
 
 /**
  * 

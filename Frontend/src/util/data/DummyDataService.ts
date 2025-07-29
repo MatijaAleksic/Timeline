@@ -1,5 +1,4 @@
 import { addMonths } from "date-fns";
-import { EventDTO } from "../DTO/EventDTO";
 import MeterService from "../service/MeterService";
 
 export default class DummyDataService {
@@ -14,7 +13,7 @@ export default class DummyDataService {
             endDate: addMonths(new Date(-2999, 8, 1), index * 4) as Date,
             label: `World War ${index}`,
             level: level,
-          } as EventDTO;
+          };
         });
       default: {
         const yearMultiplier = MeterService.getYearMultiplier(level);
@@ -25,7 +24,7 @@ export default class DummyDataService {
             endDate: start + index * yearMultiplier * 0.2 + 0.2,
             label: `World War ${index}`,
             level: level,
-          } as EventDTO;
+          };
         });
       }
     }

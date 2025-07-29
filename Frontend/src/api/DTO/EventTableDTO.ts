@@ -1,10 +1,5 @@
 import type { EventDTO } from './EventDTO';
-import {
-    EventDTOFromJSON,
-    EventDTOFromJSONTyped,
-    EventDTOToJSON,
-    EventDTOToJSONTyped,
-} from './EventDTO';
+import { EventDTOFromJSON, EventDTOToJSON } from './EventDTO';
 
 /**
  * 

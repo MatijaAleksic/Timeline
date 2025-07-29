@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateEventDTO, EventDTO, UpdateEventDTO } from "@/api/DTO"; // import your DTO
 import styles from "./EventForm.module.scss";
 import Button from "@/components/Generic/Button/Button";
-import FormInput from "@/components/Generic/Input/FormInput";
+import FormInput from "@/components/Generic/FormInput/FormInput";
 import { EventApi } from "@/api/interfaces/event";
 import { EventFormSchema } from "@/util/schemas/EventFormSchema";
 

@@ -5,7 +5,7 @@ import { PeriodFormSchema } from "@/util/schemas/PeriodFormSchema";
 import { CreatePeriodDTO, PeriodDTO, UpdatePeriodDTO } from "@/api/DTO"; // import your DTO
 import styles from "./PeriodForm.module.scss";
 import Button from "@/components/Generic/Button/Button";
-import FormInput from "@/components/Generic/Input/FormInput";
+import FormInput from "@/components/Generic/FormInput/FormInput";
 import { PeriodApi } from "@/api/interfaces/period";
 
 interface IProps {

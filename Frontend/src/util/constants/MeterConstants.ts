@@ -1,6 +1,6 @@
 export default class MeterConstants {
   // Start configuration
-  public static startLevel: number = 3;
+  public static startLevel: number = 4;
   public static startZoomValue: number = 100;
 
   // Levels

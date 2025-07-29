@@ -12,8 +12,13 @@ import axios from "axios";
   const outputDir = path.resolve("./src/api/DTO");
   const indexFilePath = path.join(outputDir, "index.ts");
 
-  // Ensure output directory exists
+  // 🧼 Clean out old files to prevent stale DTOs
+  await fs.remove(tempDir);           // Remove temp swagger + generated files
+  await fs.emptyDir(outputDir);       // Remove previously generated DTO files
+
+  // Recreate the necessary directories
   await fs.ensureDir(outputDir);
+  await fs.ensureDir(tempDir); // Not strictly necessary but safe
 
   console.log(`Fetching Swagger spec from ${swaggerUrl}...`);
   const json = (await axios.get(swaggerUrl)).data;
@@ -94,9 +99,34 @@ import axios from "axios";
     const filePath = path.join(outputDir, file);
     let content = await fs.readFile(filePath, "utf-8");
 
-    // Remove the import { mapValues } from '../runtime'; line
-    content = content.replace(/^import\s+\{\s*mapValues\s*\}\s+from\s+'..\/runtime';\s*\n?/m, "");
+    // Remove unused imports including ToJSONTyped, FromJSONTyped, etc.
+    content = content.replace(/^import\s+{[^}]+}\s+from\s+['"][^'"]+['"];?/gm, (importStatement) => {
+      // Extract the imported items from the import statement
+      const matches = importStatement.match(/import\s+{([^}]+)}/);
+      if (!matches) return importStatement;
 
+      const importedItems = matches[1]
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean);
+
+      // Filter out unused imports
+      const usedItems = importedItems.filter(name => {
+        // RegExp to detect usage in the rest of the file (excluding the import line itself)
+        const usageRegex = new RegExp(`\\b${name}\\b`, 'g');
+        const fileWithoutImport = content.replace(importStatement, '');
+        return usageRegex.test(fileWithoutImport);
+      });
+
+      if (usedItems.length === 0) {
+        return ''; // Remove the entire import line
+      }
+
+      // Rebuild the cleaned import statement
+      const moduleMatch = importStatement.match(/from\s+(['"][^'"]+['"])/);
+      const modulePath = moduleMatch ? moduleMatch[1] : '';
+      return `import { ${usedItems.join(', ')} } from ${modulePath};`;
+    });
     // Remove all top consecutive block comments (like tslint:disable, eslint-disable, and JSDoc)
     content = content.replace(/^(\s*\/\*[\s\S]*?\*\/\s*)+/m, "");
 
