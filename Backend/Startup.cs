@@ -111,7 +111,7 @@ public class Startup
             });
         }
         app.UseCors("AllowLocalAndNetwork");
-        app.UseCors("AllowLocalhost3000");
+        // app.UseCors("AllowLocalhost3000");
         app.UseHttpsRedirection();
         app.MapControllers();
     }
