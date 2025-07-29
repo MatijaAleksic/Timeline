@@ -14,13 +14,13 @@ export default class MeterLevelsService {
       case 1: {
         const startDate = new Date(new Date().getFullYear(), 0, 1);
         const endDate = new Date();
-        startDate.setFullYear(-MeterConstants.earliestYearLevel1 + 1);
+        startDate.setFullYear(-MeterConstants.earliestYearLevel1);
         return this.getDays(startDate, endDate);
       }
       case 2: {
         const startDate = new Date(new Date().getFullYear(), 0, 1);
         const endDate = new Date();
-        startDate.setFullYear(-MeterConstants.earliestYearLevel2 + 1);
+        startDate.setFullYear(-MeterConstants.earliestYearLevel2);
         return this.getMonths(startDate, endDate);
       }
       default: {

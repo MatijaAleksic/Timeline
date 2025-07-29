@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import styles from "./HorizontalVirtualScroll.module.scss";
 import MeterConstants from "@/util/constants/MeterConstants";
 // import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
@@ -9,7 +9,7 @@ import MeterContent from "../../Meter/MeterContent";
 import MeterService from "@/util/service/MeterService";
 import MeterLevelsService from "@/util/service/MeterLevelsService";
 import EventPresentationLayer from "../PresentationLayer/EventPresentationLayer";
-import { Range } from "@/util/dto/VirtualScrollDTO/Range";
+import { Range } from "@/util/DTO/VirtualScrollDTO/Range";
 
 interface VirtualScrollState {
   scrollOffset: number;
@@ -101,7 +101,6 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       centralIndex <= virtualMeterState.range.end
     )
       return;
-
 
     updateVirtualItems();
   };
@@ -349,7 +348,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
         ? newVirtualItems
         : prev.virtualItems,
     }));
-  }
+  };
   //DEBOUNCED WHEEL IF NEEDED
   // ========================================================
   // const debouncedHandleWheel = useDebouncedWheel(
@@ -411,8 +410,9 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
           <div
             className={styles.virtualizerOffset}
             style={{
-              transform: `translateX(${virtualIndexes[0] * virtualMeterState.elementWidth
-                }px)`,
+              transform: `translateX(${
+                virtualIndexes[0] * virtualMeterState.elementWidth
+              }px)`,
             }}
           >
             {virtualMeterState.virtualItems.map((virtualItem, index) => (
@@ -420,8 +420,9 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
                 className={styles.virtualizerContainer}
                 key={virtualItem.key}
                 style={{
-                  transform: `translateX(${index * virtualMeterState.elementWidth
-                    }px)`,
+                  transform: `translateX(${
+                    index * virtualMeterState.elementWidth
+                  }px)`,
                   width: `${virtualMeterState.elementWidth}px`,
                 }}
               >
