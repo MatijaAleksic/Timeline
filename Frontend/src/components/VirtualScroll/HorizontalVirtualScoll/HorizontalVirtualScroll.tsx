@@ -1,15 +1,15 @@
 "use client";
 
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import styles from "./HorizontalVirtualScroll.module.scss";
 import MeterConstants from "@/util/constants/MeterConstants";
-import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
+// import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
 import { VirtualItem } from "../../../util/DTO/VirtualScrollDTO/VirtualItem";
-import { Range } from "../../../util/DTO/VirtualScrollDTO/Range";
 import MeterContent from "../../Meter/MeterContent";
 import MeterService from "@/util/service/MeterService";
 import MeterLevelsService from "@/util/service/MeterLevelsService";
 import EventPresentationLayer from "../PresentationLayer/EventPresentationLayer";
+import { Range } from "@/util/dto/VirtualScrollDTO/Range";
 
 interface VirtualScrollState {
   scrollOffset: number;
@@ -26,7 +26,6 @@ interface IProps {
 const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   screenWidth,
 }) => {
-  console.log("RENDER");
   // Virtual Scroll State
   const [virtualMeterState, setVirtualMeterState] =
     useState<VirtualScrollState>({
@@ -35,7 +34,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       zoomValue: MeterConstants.startZoomValue,
       level: MeterConstants.startLevel,
       virtualItems: [],
-      range: { start: 0, end: 0 },
+      range: { start: 0, end: 0 } as Range,
     });
 
   // References
@@ -44,7 +43,6 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   const lastDragTimeRef = useRef<number>(0);
   const meterComponentRef = useRef<HTMLDivElement>(null);
   const presentationLayerComponentRef = useRef<HTMLDivElement>(null);
-  const lastRangeRef = useRef<Range | null>(null);
   const inertiaFrameRef = useRef<number | null>(null);
 
   // Data
@@ -101,25 +99,9 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       virtualMeterState.range &&
       centralIndex >= virtualMeterState.range.start &&
       centralIndex <= virtualMeterState.range.end
-    ) {
-      return;
-    }
-
-    const newRange = MeterService.getRange(
-      meterComponentRef,
-      levelElements.length,
-      virtualMeterState.scrollOffset,
-      virtualMeterState.elementWidth
-    );
-
-    // skip when gliding animation is called and the states are frozen then it tracks if the last range ref changes
-    if (
-      newRange &&
-      lastRangeRef.current &&
-      newRange.start === lastRangeRef.current.start &&
-      newRange.end === lastRangeRef.current.end
     )
       return;
+
 
     updateVirtualItems();
   };
@@ -138,7 +120,6 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       !Number.isNaN(newRange.start) &&
       !Number.isNaN(newRange.end)
     ) {
-      lastRangeRef.current = newRange;
       const overScanStart = Math.max(0, newRange.start - overScan);
       const overScanEnd = Math.min(
         levelElements.length - 1,
@@ -346,7 +327,6 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       !Number.isNaN(newRange.start) &&
       !Number.isNaN(newRange.end)
     ) {
-      lastRangeRef.current = newRange;
       const overScanStart = Math.max(0, newRange.start - overScan);
       const overScanEnd = Math.min(
         levelElements.length - 1,
@@ -369,8 +349,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
         ? newVirtualItems
         : prev.virtualItems,
     }));
-  };
-
+  }
   //DEBOUNCED WHEEL IF NEEDED
   // ========================================================
   // const debouncedHandleWheel = useDebouncedWheel(
@@ -432,9 +411,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
           <div
             className={styles.virtualizerOffset}
             style={{
-              transform: `translateX(${
-                virtualIndexes[0] * virtualMeterState.elementWidth
-              }px)`,
+              transform: `translateX(${virtualIndexes[0] * virtualMeterState.elementWidth
+                }px)`,
             }}
           >
             {virtualMeterState.virtualItems.map((virtualItem, index) => (
@@ -442,9 +420,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
                 className={styles.virtualizerContainer}
                 key={virtualItem.key}
                 style={{
-                  transform: `translateX(${
-                    index * virtualMeterState.elementWidth
-                  }px)`,
+                  transform: `translateX(${index * virtualMeterState.elementWidth
+                    }px)`,
                   width: `${virtualMeterState.elementWidth}px`,
                 }}
               >

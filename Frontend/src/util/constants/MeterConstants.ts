@@ -25,7 +25,7 @@ export default class MeterConstants {
   public static minZoomValue: number = 30;
   public static maxZoomValue: number = 250;
   public static smallerLinesValue: number = 100;
-  public static zoomStep: number = 10;
+  public static zoomStep: number = 15;
   public static debounceWheelMilliseconds: number = 0;
 
   // Slide effect options
@@ -35,6 +35,5 @@ export default class MeterConstants {
   public static velocityMultiplier: number = 10;
 
   // Presentation Later options
-
   public static eventWidth: number = 34;
 }
