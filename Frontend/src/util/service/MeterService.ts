@@ -104,13 +104,16 @@ export default class MeterService {
     const centerOffset = currentScrollOffset + screenWidth / 2;
     const indexAtCenter = centerOffset / previousElementWidth;
     const centerYear =
-      earliestYearPrevious - indexAtCenter * currentYearMultiplier;
-
-    console.log("centerYear", centerYear);
+      previousLevel < 3
+        ? earliestYearPrevious - indexAtCenter / currentYearMultiplier
+        : earliestYearPrevious - indexAtCenter * currentYearMultiplier;
 
     // 3. Convert center year to offset in new level
     const offsetInNewLevel =
-      ((earliestYearNew - centerYear) / newYearMultiplier) * newElementWidth;
+      newLevel < 3
+        ? (earliestYearNew - centerYear) * newYearMultiplier * newElementWidth
+        : ((earliestYearNew - centerYear) / newYearMultiplier) *
+          newElementWidth;
 
     // 4. Adjust so center year appears at screen center
     const scrollOffset = Math.max(0, offsetInNewLevel - screenWidth / 2);
