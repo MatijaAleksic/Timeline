@@ -46,16 +46,56 @@ public class Startup
         services.AddCors(options =>
         {
             options.AddPolicy(
-                "AllowLocalhost3000",
-                policy =>
+                "AllowLocalAndNetwork",
+                builder =>
                 {
-                    policy
-                        .WithOrigins("http://localhost:3000")
+                    builder
+                        .SetIsOriginAllowed(origin =>
+                        {
+                            if (Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                            {
+                                var host = uri.Host;
+
+                                // Allow localhost for local dev
+                                if (host == "localhost" || host == "127.0.0.1")
+                                    return true;
+
+                                // Allow private network IPs
+                                if (System.Net.IPAddress.TryParse(host, out var ip))
+                                {
+                                    var bytes = ip.GetAddressBytes();
+
+                                    // 10.0.0.0/8
+                                    if (bytes[0] == 10)
+                                        return true;
+                                    // 172.16.0.0/12
+                                    if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31)
+                                        return true;
+                                    // 192.168.0.0/16
+                                    if (bytes[0] == 192 && bytes[1] == 168)
+                                        return true;
+                                }
+                            }
+
+                            return false;
+                        })
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
                 }
             );
+
+            // options.AddPolicy(
+            //     "AllowLocalhost3000",
+            //     policy =>
+            //     {
+            //         policy
+            //             .WithOrigins("http://localhost:3000")
+            //             .AllowAnyHeader()
+            //             .AllowAnyMethod()
+            //             .AllowCredentials();
+            //     }
+            // );
         });
     }
 
@@ -70,6 +110,7 @@ public class Startup
                 options.RoutePrefix = "";
             });
         }
+        app.UseCors("AllowLocalAndNetwork");
         app.UseCors("AllowLocalhost3000");
         app.UseHttpsRedirection();
         app.MapControllers();

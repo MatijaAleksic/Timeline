@@ -10,14 +10,14 @@ using Microsoft.EntityFrameworkCore;
 namespace Backend.Controllers;
 
 [ApiController]
-[Route("api/event-period")]
-public class EventPeriodController : ControllerBase
+[Route("api/timeline")]
+public class TimelineController : ControllerBase
 {
     private readonly EventService _eventService;
     private readonly PeriodService _periodService;
     private readonly IMapper _mapper;
 
-    public EventPeriodController(
+    public TimelineController(
         IMapper mapper,
         EventService eventService,
         PeriodService periodService
@@ -29,7 +29,7 @@ public class EventPeriodController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<EventTableDTO>> GetEventsPeriods(
+    public async Task<ActionResult<TimelinePresentationLayerDTO>> GetEventsPeriods(
         [FromQuery] int startYear,
         [FromQuery] int? startMonth,
         [FromQuery] int? startDay,
@@ -60,7 +60,7 @@ public class EventPeriodController : ControllerBase
         var eventDTOs = _mapper.Map<IEnumerable<EventTimelineDTO>>(events);
         var periodsDTOs = _mapper.Map<IEnumerable<PeriodTimelineDTO>>(periods);
 
-        var result = new EventPeriodDTO
+        var result = new TimelinePresentationLayerDTO
         {
             events = eventDTOs.ToList(),
             periods = periodsDTOs.ToList(),

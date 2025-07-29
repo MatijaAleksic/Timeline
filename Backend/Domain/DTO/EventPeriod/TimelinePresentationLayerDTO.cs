@@ -3,7 +3,7 @@ using Backend.Domain.DTO;
 
 namespace Backend.Domain.DTO;
 
-public class EventPeriodDTO
+public class TimelinePresentationLayerDTO
 {
     [Required]
     public List<EventTimelineDTO> events { get; set; } = new List<EventTimelineDTO>();
