@@ -2,7 +2,6 @@
 
 import {
   useCallback,
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -11,12 +10,12 @@ import {
 import styles from "./HorizontalVirtualScroll.module.scss";
 import MeterConstants from "@/util/constants/MeterConstants";
 // import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
-import { VirtualItem } from "../../../util/DTO/VirtualScrollDTO/VirtualItem";
 import MeterContent from "../../Meter/MeterContent";
 import MeterService from "@/util/service/MeterService";
 import MeterLevelsService from "@/util/service/MeterLevelsService";
-import { Range } from "@/util/DTO/VirtualScrollDTO/Range";
 import EventPresentationLayer from "../PresentationLayer/EventPresentationLayer";
+import { VirtualItem } from "@/util/dto/VirtualScrollDTO/VirtualItem";
+import { MeterRange } from "@/util/dto/VirtualScrollDTO/MeterRange";
 
 interface VirtualScrollState {
   scrollOffset: number;
@@ -24,7 +23,7 @@ interface VirtualScrollState {
   zoomValue: number;
   level: number;
   virtualItems: VirtualItem[];
-  range: Range;
+  range: MeterRange;
 }
 
 interface IProps {
@@ -38,12 +37,12 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   // Virtual Scroll State
   const [virtualMeterState, setVirtualMeterState] =
     useState<VirtualScrollState>({
-      scrollOffset: 4481250, // for level 4, scrollOffset:5759100 to be on 0 centered
+      scrollOffset: 0, // for level 4, scrollOffset:4481250 to be on 0 centered
       elementWidth: screenWidth,
       zoomValue: MeterConstants.startZoomValue,
       level: MeterConstants.startLevel,
       virtualItems: [],
-      range: { start: 0, end: 0 } as Range,
+      range: { start: 0, end: 0 } as MeterRange,
     });
 
   // References
@@ -390,6 +389,11 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
     }
   };
 
+  console.log('virtualMeterState', virtualMeterState);
+  console.log('overScan', overScan);
+  console.log('virtualIndexes', virtualIndexes);
+  console.log('levelElements', levelElements);
+
   return (
     <div className={styles.meterWrapper}>
       <div
@@ -419,9 +423,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
           <div
             className={styles.virtualizerOffset}
             style={{
-              transform: `translateX(${
-                virtualIndexes[0] * virtualMeterState.elementWidth
-              }px)`,
+              transform: `translateX(${virtualIndexes[0] * virtualMeterState.elementWidth
+                }px)`,
             }}
           >
             {virtualMeterState.virtualItems.map((virtualItem, index) => (
@@ -429,9 +432,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
                 className={styles.virtualizerContainer}
                 key={virtualItem.key}
                 style={{
-                  transform: `translateX(${
-                    index * virtualMeterState.elementWidth
-                  }px)`,
+                  transform: `translateX(${index * virtualMeterState.elementWidth
+                    }px)`,
                   width: `${virtualMeterState.elementWidth}px`,
                 }}
               >

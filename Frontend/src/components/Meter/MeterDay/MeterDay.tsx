@@ -39,7 +39,7 @@ const MeterDay: React.FunctionComponent<IProps> = ({
             <MeterLine
               displayValue={
                 hour.getHours() === 0
-                  ? format(hour, "d LLL")
+                  ? format(hour, "d MMM")
                   : format(hour, "h a")
               }
               isLarger={hour.getHours() === 0}

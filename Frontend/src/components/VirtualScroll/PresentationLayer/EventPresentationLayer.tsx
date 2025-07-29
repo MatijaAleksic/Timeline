@@ -2,24 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import styles from "./EventPresentationLayer.module.scss";
-import DummyDataService from "@/util/data/DummyDataService";
 import MeterService from "@/util/service/MeterService";
 import MeterConstants from "@/util/constants/MeterConstants";
-import { VirtualItem } from "../../../util/DTO/VirtualScrollDTO/VirtualItem";
+import { VirtualItem } from "../../../util/dto/VirtualScrollDTO/VirtualItem";
 import React from "react";
 import {
   EventTimelineDTO,
   PeriodTimelineDTO,
   TimelinePresentationLayerDTO,
 } from "@/api/DTO";
-import TimelineQueryDTO from "@/util/DTO/VirtualScrollDTO/QueryTimelineDTO";
 import { TimelineApi } from "@/api/interfaces/timeline";
-interface EventDTO {
-  label: string;
-  level: number;
-  startDate: Date | number;
-  endDate: Date | number;
-}
+import TimelineQueryDTO from "@/util/dto/VirtualScrollDTO/QueryTimelineDTO";
 
 interface IProps {
   elementWidth: number;
@@ -32,10 +25,6 @@ const EventPresentationLayer = React.memo<IProps>(
     const [events, setEvents] = useState<EventTimelineDTO[]>([]);
     const [periods, setPeriods] = useState<PeriodTimelineDTO[]>([]);
 
-    const dummyEvents = useMemo(
-      () => DummyDataService.getDataForLevel(level),
-      [level]
-    );
 
     useEffect(() => {
       if (virtualItems.length === 0) return;
@@ -56,17 +45,18 @@ const EventPresentationLayer = React.memo<IProps>(
     }, [virtualItems]);
 
     const fetchTimelineElements = async (timelineQuery: TimelineQueryDTO) => {
-      const timelineElements: TimelinePresentationLayerDTO =
-        await TimelineApi.GetTimelineElements(timelineQuery);
-
+      let timelineElements: TimelinePresentationLayerDTO = { events: [], periods: [] }
+      try {
+        timelineElements = await TimelineApi.GetTimelineElements(timelineQuery);
+      } catch { }
       setEvents(timelineElements.events);
       setPeriods(timelineElements.periods);
     };
     if (virtualItems.length === 0) return;
 
-    console.log("events", events);
-    console.log("periods", periods);
-    console.log("elementWidth", elementWidth);
+    // console.log("events", events);
+    // console.log("periods", periods);
+    // console.log("elementWidth", elementWidth);
     return (
       <>
         {periods.map((periodObject: PeriodTimelineDTO, index: number) => {
@@ -119,7 +109,7 @@ const EventPresentationLayer = React.memo<IProps>(
         prevProps.level === nextProps.level &&
         prevProps.virtualItems[0].index === nextProps.virtualItems[0].index &&
         prevProps.virtualItems[prevProps.virtualItems.length - 1].index ===
-          nextProps.virtualItems[nextProps.virtualItems.length - 1].index
+        nextProps.virtualItems[nextProps.virtualItems.length - 1].index
       );
     return false;
   }

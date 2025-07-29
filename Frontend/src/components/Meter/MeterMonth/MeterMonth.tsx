@@ -48,7 +48,7 @@ const MeterMonth: React.FunctionComponent<IProps> = ({
                     ? date.getFullYear() < 0
                       ? `${day.getFullYear()} BC`
                       : `${day.getFullYear()}`
-                    : format(day, "d LLL")
+                    : format(day, "d MMM")
                   : format(day, "d")
               }
               isLarger={isFirstDayOfMonth(day)}

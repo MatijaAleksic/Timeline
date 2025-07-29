@@ -10,7 +10,7 @@ import { ApiUtil } from "@/util/constants/Configs/ApiUtil";
 import Routes from "@/util/constants/ApiRoutes";
 import { EventTableHeadersSort } from "@/util/constants/EventConstants";
 import { TableSortDirection } from "@/util/constants/TableConstants";
-import TimelineQueryDTO from "@/util/DTO/VirtualScrollDTO/QueryTimelineDTO";
+import TimelineQueryDTO from "@/util/dto/VirtualScrollDTO/QueryTimelineDTO";
 
 class ReusableEventClient {
   private static _client: FetchRestClient;

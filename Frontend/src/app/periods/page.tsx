@@ -14,13 +14,18 @@ export const metadata: Metadata = {
 };
 
 export default async function PeriodsPage() {
-  const periodTableDTO: PeriodTableDTO = await PeriodApi.GetPeriods(
-    1,
-    TableConstants.defaultPageSize,
-    "",
-    PeriodTableHeadersSort.TITLE,
-    TableSortDirection.ASC
-  );
+  let periodTableDTO: PeriodTableDTO = { periods: [], totalCount: 0 };
+  try {
+    periodTableDTO = await PeriodApi.GetPeriods(
+      1,
+      TableConstants.defaultPageSize,
+      "",
+      PeriodTableHeadersSort.TITLE,
+      TableSortDirection.ASC
+    );
+  } catch {
+  }
+
 
   return (
     <div className={styles.tableWrapper}>

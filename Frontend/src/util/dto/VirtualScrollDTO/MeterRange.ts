@@ -1,4 +1,4 @@
-export interface Range {
+export interface MeterRange {
   start: number;
   end: number;
 }

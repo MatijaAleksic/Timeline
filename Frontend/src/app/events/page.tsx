@@ -14,13 +14,17 @@ export const metadata: Metadata = {
 };
 
 export default async function EventsPage() {
-  const eventTableDTO: EventTableDTO = await EventApi.GetEvents(
-    1,
-    TableConstants.defaultPageSize,
-    "",
-    EventTableHeadersSort.TITLE,
-    TableSortDirection.ASC
-  );
+  let eventTableDTO: EventTableDTO = { events: [], totalCount: 0 };
+  try {
+    eventTableDTO = await EventApi.GetEvents(
+      1,
+      TableConstants.defaultPageSize,
+      "",
+      EventTableHeadersSort.TITLE,
+      TableSortDirection.ASC
+    );
+  } catch {
+  }
 
   return (
     <div className={styles.tableWrapper}>

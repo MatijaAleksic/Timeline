@@ -1,7 +1,7 @@
-import { VirtualItem } from "@/util/DTO/VirtualScrollDTO/VirtualItem";
 import MeterConstants from "../constants/MeterConstants";
 import { RefObject } from "react";
-import TimelineQueryDTO from "../DTO/VirtualScrollDTO/QueryTimelineDTO";
+import { VirtualItem } from "../dto/VirtualScrollDTO/VirtualItem";
+import TimelineQueryDTO from "../dto/VirtualScrollDTO/QueryTimelineDTO";
 
 export default class MeterService {
   public static generateVirtualItems = (
@@ -82,7 +82,7 @@ export default class MeterService {
     return Math.floor(
       (meterComponentRef.current!.scrollLeft +
         meterComponentRef.current!.clientWidth / 2) /
-        elementWidth
+      elementWidth
     );
   };
 
@@ -113,7 +113,7 @@ export default class MeterService {
       newLevel < 3
         ? (earliestYearNew - centerYear) * newYearMultiplier * newElementWidth
         : ((earliestYearNew - centerYear) / newYearMultiplier) *
-          newElementWidth;
+        newElementWidth;
 
     // 4. Adjust so center year appears at screen center
     const scrollOffset = Math.max(0, offsetInNewLevel - screenWidth / 2);
@@ -131,9 +131,9 @@ export default class MeterService {
     return (
       this.getEarliestYearForLevel(level) -
       currentIndex *
-        (level > 2
-          ? this.getYearMultiplier(level)
-          : 1 / this.getYearMultiplier(level))
+      (level > 2
+        ? this.getYearMultiplier(level)
+        : 1 / this.getYearMultiplier(level))
     );
   };
 

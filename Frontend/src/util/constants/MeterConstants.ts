@@ -1,6 +1,6 @@
 export default class MeterConstants {
   // Start configuration
-  public static startLevel: number = 4;
+  public static startLevel: number = 3;
   public static startZoomValue: number = 100;
 
   // Levels
@@ -24,9 +24,9 @@ export default class MeterConstants {
   // Zoom options
   public static minZoomValue: number = 30;
   public static maxZoomValue: number = 250;
-  public static smallerLinesValue: number = 100;
-  public static zoomStep: number = 15;
-  public static debounceWheelMilliseconds: number = 0;
+  public static smallerLinesValue: number = 150;
+  public static zoomStep: number = 10;
+  // public static debounceWheelMilliseconds: number = 5;
 
   // Slide effect options
   public static minTimeElapsedForSlidingEffect: number = 600;
