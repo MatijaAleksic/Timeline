@@ -22,10 +22,10 @@ export default class MeterConstants {
   public static earliestYearRestLevels: number = 15000000000; // 15 bil
 
   // Zoom options
-  public static minZoomValue: number = 100;
-  public static maxZoomValue: number = 400;
-  public static smallerLinesValue: number = 300;
-  public static zoomStep: number = 15;
+  public static minZoomValue: number = 30;
+  public static maxZoomValue: number = 250;
+  public static smallerLinesValue: number = 180;
+  public static zoomStep: number = 10;
   // public static debounceWheelMilliseconds: number = 5;
 
   // Slide effect options

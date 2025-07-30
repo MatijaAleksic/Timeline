@@ -69,9 +69,6 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
 
   // Effects
   // useLayoutEffect - happens before paint
-
-  useEffect(() => { }, [screenWidth]);
-
   useLayoutEffect(() => {
     if (meterComponentRef.current) {
       meterComponentRef.current.scrollLeft = virtualMeterState.scrollOffset;
@@ -315,6 +312,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
 
     const scaleFactor = newZoomValue / virtualMeterState.zoomValue;
     const currentScrollLeft = meterComponentRef.current.scrollLeft;
+    //TODO: this needs to be optimized and Mozila depends on this / MeterConstants.maxZoomValue
+    // used to be 100 and was making not elements not render becuase of huge values such as for translateX(>16mil px)
     const newElementWidth = screenWidth * (newZoomValue / MeterConstants.maxZoomValue);
     const newScrollOffset = Math.max(
       0,
