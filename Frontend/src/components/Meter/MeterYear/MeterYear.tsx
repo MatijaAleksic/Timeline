@@ -1,4 +1,3 @@
-import { getMonth } from "date-fns";
 import MeterLine from "../MeterLine/MeterLine";
 import styles from "./MeterYear.module.scss";
 import MeterConstants from "@/util/constants/MeterConstants";
@@ -29,9 +28,9 @@ const MeterYear: React.FunctionComponent<IProps> = ({
             ? year
             : DateHelper.getMonthName(i)
           : ` ${DateHelper.getYearFormat(
-              year + i * yearMultiplier,
-              yearMultiplier
-            )}`, //${year + i * yearMultiplier}
+            year + i * yearMultiplier,
+            yearMultiplier
+          )}`, //${year + i * yearMultiplier}
     };
   });
   const subLevelLines = Array.from(

@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -32,8 +33,6 @@ interface IProps {
 const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   screenWidth,
 }) => {
-  console.log("RENDER");
-
   // Virtual Scroll State
   const [virtualMeterState, setVirtualMeterState] =
     useState<VirtualScrollState>({
@@ -70,6 +69,9 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
 
   // Effects
   // useLayoutEffect - happens before paint
+
+  useEffect(() => { }, [screenWidth]);
+
   useLayoutEffect(() => {
     if (meterComponentRef.current) {
       meterComponentRef.current.scrollLeft = virtualMeterState.scrollOffset;
@@ -313,7 +315,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
 
     const scaleFactor = newZoomValue / virtualMeterState.zoomValue;
     const currentScrollLeft = meterComponentRef.current.scrollLeft;
-    const newElementWidth = screenWidth * (newZoomValue / 100);
+    const newElementWidth = screenWidth * (newZoomValue / MeterConstants.maxZoomValue);
     const newScrollOffset = Math.max(
       0,
       (currentScrollLeft + offsetX) * scaleFactor - offsetX
@@ -388,11 +390,6 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       // debouncedHandleWheel(event);
     }
   };
-
-  console.log('virtualMeterState', virtualMeterState);
-  console.log('overScan', overScan);
-  console.log('virtualIndexes', virtualIndexes);
-  console.log('levelElements', levelElements);
 
   return (
     <div className={styles.meterWrapper}>

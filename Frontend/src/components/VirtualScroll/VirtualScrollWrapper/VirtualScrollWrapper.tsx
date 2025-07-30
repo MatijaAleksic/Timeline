@@ -1,8 +1,9 @@
 "use client";
 
-import SearchInput from "@/components/Generic/Table/SearchInput/SearchInput";
 import HorizontalVirtualScroll from "@/components/VirtualScroll/HorizontalVirtualScoll/HorizontalVirtualScroll";
 import { useLayoutEffect, useState } from "react";
+import styles from "./VirtualScrollWrapper.module.scss";
+
 
 const VirtualScrollWrapper: React.FunctionComponent = () => {
   const [screenWidth, setScreenWidth] = useState<number>(0);
@@ -20,6 +21,10 @@ const VirtualScrollWrapper: React.FunctionComponent = () => {
 
   if (screenWidth === 0) return null;
 
-  return <HorizontalVirtualScroll screenWidth={screenWidth} />;
+  return (
+    <div className={styles.timelineWrapper}>
+      <HorizontalVirtualScroll screenWidth={screenWidth} />;
+    </div>
+  );
 };
 export default VirtualScrollWrapper;
