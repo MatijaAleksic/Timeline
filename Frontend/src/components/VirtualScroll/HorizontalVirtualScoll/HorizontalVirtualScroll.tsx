@@ -33,6 +33,14 @@ interface IProps {
 const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   screenWidth,
 }) => {
+  // TODO: 6000000px /(1920px (big screen) *2(on two max monitors))=1562.5 elements can be present so it doesnt break any browser/mobile
+  // TODO: Make a state that will hold cachedOffsetChunks = [ChunkSize from consts] * numberOfPerviousCachedChunks
+  // Example: max chunk size can be ~1500 for calculation so if we need to render 2100 element we will do
+  // newOffset = {elementIndex = (2100)} * {elementWidth (max = 1920 * 2)} - {ChunkSize} * {cachedOffsetChunks} * {elementWidth}
+  // and get newOffset that will not exceed 6mil and still do the same job
+  // and whenever you need to calculate offset or width of elements that can hold up to 6mil values just scale them down by the number of chunks
+  // that way we will be able to simulate the virtual scrolling of the offset part of the app
+
   // Virtual Scroll State
   const [virtualMeterState, setVirtualMeterState] =
     useState<VirtualScrollState>({
@@ -76,18 +84,18 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   }, [virtualMeterState.scrollOffset]);
 
   // On screen resize recalculate range and virtual items
-  useLayoutEffect(() => {
-    setVirtualMeterState((prev) => ({
-      ...prev,
-      range: MeterService.getRange(
-        meterComponentRef,
-        levelElements.length,
-        virtualMeterState.scrollOffset,
-        virtualMeterState.elementWidth
-      ),
-    }));
-    updateVirtualItems();
-  }, [screenWidth]);
+  // useLayoutEffect(() => {
+  //   setVirtualMeterState((prev) => ({
+  //     ...prev,
+  //     range: MeterService.getRange(
+  //       meterComponentRef,
+  //       levelElements.length,
+  //       virtualMeterState.scrollOffset,
+  //       virtualMeterState.elementWidth
+  //     ),
+  //   }));
+  //   updateVirtualItems();
+  // }, [screenWidth]);
 
   // On level change update virtual items
   useLayoutEffect(() => {
