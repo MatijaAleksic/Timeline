@@ -1,16 +1,8 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import styles from "./HorizontalVirtualScroll.module.scss";
 import MeterConstants from "@/util/constants/MeterConstants";
-// import useDebouncedWheel from "@/util/hooks/useDebounceWheel";
 import MeterContent from "../../Meter/MeterContent";
 import MeterService from "@/util/service/MeterService";
 import MeterLevelsService from "@/util/service/MeterLevelsService";
@@ -353,20 +345,6 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
         : prev.virtualItems,
     }));
   };
-  //DEBOUNCED WHEEL IF NEEDED
-  // ========================================================
-  // const debouncedHandleWheel = useDebouncedWheel(
-  //   handleWheel,
-  //   MeterConstants.debounceWheelMilliseconds
-  // );
-  // const onWheelHandler = useCallback(
-  //   (event: React.WheelEvent<HTMLDivElement>) => {
-  //     debouncedHandleWheel(event);
-  //   },
-  //   [debouncedHandleWheel]
-  // );
-  // ========================================================
-
   const handleRepresentationLayerWheel = (
     event: React.WheelEvent<HTMLDivElement>
   ) => {
@@ -384,6 +362,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       // debouncedHandleWheel(event);
     }
   };
+
+  console.log(virtualMeterState.range);
 
   return (
     <div className={styles.meterWrapper}>
@@ -409,6 +389,9 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
           className={styles.virtualizerWrapper}
           style={{
             width: `${levelElements.length * virtualMeterState.elementWidth}px`,
+            // (levelElements.length % MeterConstants.cacheElementLength) *
+            //   virtualMeterState.elementWidth
+            // width: `0%`,
           }}
         >
           <div
@@ -416,6 +399,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
             style={{
               transform: `translateX(${
                 virtualIndexes[0] * virtualMeterState.elementWidth
+                // (virtualIndexes[0] % MeterConstants.cacheElementLength) *
+                // virtualMeterState.elementWidth
               }px)`,
             }}
           >

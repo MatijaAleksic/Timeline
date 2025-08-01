@@ -40,4 +40,7 @@ export default class MeterConstants {
 
   // Presentation Later options
   public static eventWidth: number = 34;
+
+  // ChunkElementSize
+  public static cacheElementLength: number = 100;
 }
