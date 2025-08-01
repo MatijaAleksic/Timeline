@@ -9,6 +9,7 @@ interface IProps {
   level: number;
   width: number;
   zoomValue: number;
+  shouldDrawSubLines: boolean;
 }
 
 const MeterYear: React.FunctionComponent<IProps> = ({
@@ -16,10 +17,11 @@ const MeterYear: React.FunctionComponent<IProps> = ({
   level,
   width,
   zoomValue,
+  shouldDrawSubLines = false,
   ...props
 }) => {
   const yearMultiplier: number = MeterService.getYearMultiplier(level - 1);
-  const subLines = Array.from({ length: level === 3 ? 12 : 10 }, (_, i) => {
+  const lines = Array.from({ length: level === 3 ? 12 : 10 }, (_, i) => {
     return {
       index: i,
       label:
@@ -28,15 +30,14 @@ const MeterYear: React.FunctionComponent<IProps> = ({
             ? year
             : DateHelper.getMonthName(i)
           : ` ${DateHelper.getYearFormat(
-            year + i * yearMultiplier,
-            yearMultiplier
-          )}`, //${year + i * yearMultiplier}
+              year + i * yearMultiplier,
+              yearMultiplier
+            )}`, //${year + i * yearMultiplier}
     };
   });
-  const subLevelLines = Array.from(
-    { length: level === 3 ? 30 : 10 },
-    (_, i) => i + 1
-  );
+  const subLevelLines = shouldDrawSubLines
+    ? Array.from({ length: level === 3 ? 30 : 10 }, (_, i) => i + 1)
+    : [];
 
   return (
     <div
@@ -44,20 +45,21 @@ const MeterYear: React.FunctionComponent<IProps> = ({
       {...props}
       style={{ width: `${width}px` }}
     >
-      {subLines.map((element, index) => {
+      {lines.map((element, index) => {
         return (
           <div key={index} className={styles.subLinesContainer}>
             <MeterLine
               displayValue={element.label as string}
               isLarger={index === 0}
             />
-            {zoomValue > MeterConstants.smallerLinesValue && (
-              <div className={styles.subLevelLinesContainer}>
-                {subLevelLines.map((_, index) => (
-                  <div key={index} className={styles.line} />
-                ))}
-              </div>
-            )}
+            {shouldDrawSubLines &&
+              zoomValue > MeterConstants.smallerLinesValue && (
+                <div className={styles.subLevelLinesContainer}>
+                  {subLevelLines.map((_, index) => (
+                    <div key={index} className={styles.line} />
+                  ))}
+                </div>
+              )}
           </div>
         );
       })}

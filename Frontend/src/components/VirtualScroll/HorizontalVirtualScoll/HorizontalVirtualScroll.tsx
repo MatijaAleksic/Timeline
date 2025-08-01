@@ -34,7 +34,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   screenWidth,
 }) => {
   // TODO: 6000000px /(1920px (big screen) *2(on two max monitors))=1562.5 elements can be present so it doesnt break any browser/mobile
-  // TODO: Make a state that will hold cachedOffsetChunks = [ChunkSize from consts] * numberOfPerviousCachedChunks
+  // TODO: Make a state that will hold cachedOffsetChunks = [ChunkSize from const] * numberOfPerviousCachedChunks
   // Example: max chunk size can be ~1500 for calculation so if we need to render 2100 element we will do
   // newOffset = {elementIndex = (2100)} * {elementWidth (max = 1920 * 2)} - {ChunkSize} * {cachedOffsetChunks} * {elementWidth}
   // and get newOffset that will not exceed 6mil and still do the same job
@@ -45,8 +45,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   const [virtualMeterState, setVirtualMeterState] =
     useState<VirtualScrollState>({
       scrollOffset: 0, // for level 4, scrollOffset:4481250 to be on 0 centered
-      elementWidth: screenWidth,
-      zoomValue: MeterConstants.startZoomValue,
+      elementWidth: screenWidth / 2,
+      zoomValue: MeterConstants.maxZoomValue / 2,
       level: MeterConstants.startLevel,
       virtualItems: [],
       range: { start: 0, end: 0 } as MeterRange,
@@ -82,20 +82,6 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       meterComponentRef.current.scrollLeft = virtualMeterState.scrollOffset;
     }
   }, [virtualMeterState.scrollOffset]);
-
-  // On screen resize recalculate range and virtual items
-  // useLayoutEffect(() => {
-  //   setVirtualMeterState((prev) => ({
-  //     ...prev,
-  //     range: MeterService.getRange(
-  //       meterComponentRef,
-  //       levelElements.length,
-  //       virtualMeterState.scrollOffset,
-  //       virtualMeterState.elementWidth
-  //     ),
-  //   }));
-  //   updateVirtualItems();
-  // }, [screenWidth]);
 
   // On level change update virtual items
   useLayoutEffect(() => {
@@ -322,7 +308,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
     const currentScrollLeft = meterComponentRef.current.scrollLeft;
     //TODO: this needs to be optimized and Mozila depends on this / MeterConstants.maxZoomValue
     // used to be 100 and was making not elements not render becuase of huge values such as for translateX(>16mil px)
-    const newElementWidth = screenWidth * (newZoomValue / MeterConstants.maxZoomValue);
+    const newElementWidth =
+      screenWidth * (newZoomValue / MeterConstants.maxZoomValue);
     const newScrollOffset = Math.max(
       0,
       (currentScrollLeft + offsetX) * scaleFactor - offsetX
@@ -427,8 +414,9 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
           <div
             className={styles.virtualizerOffset}
             style={{
-              transform: `translateX(${virtualIndexes[0] * virtualMeterState.elementWidth
-                }px)`,
+              transform: `translateX(${
+                virtualIndexes[0] * virtualMeterState.elementWidth
+              }px)`,
             }}
           >
             {virtualMeterState.virtualItems.map((virtualItem, index) => (
@@ -436,8 +424,9 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
                 className={styles.virtualizerContainer}
                 key={virtualItem.key}
                 style={{
-                  transform: `translateX(${index * virtualMeterState.elementWidth
-                    }px)`,
+                  transform: `translateX(${
+                    index * virtualMeterState.elementWidth
+                  }px)`,
                   width: `${virtualMeterState.elementWidth}px`,
                 }}
               >
@@ -445,6 +434,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
 
                 <MeterContent
                   key={virtualItem.key}
+                  screenWidth={screenWidth}
                   element={levelElements[virtualItem.index]}
                   elementWidth={virtualMeterState.elementWidth}
                   zoomValue={virtualMeterState.zoomValue}

@@ -7,12 +7,14 @@ interface IProps {
   date: Date;
   width: number;
   zoomValue: number;
+  shouldDrawSubLines: boolean;
 }
 
 const MeterMonth: React.FunctionComponent<IProps> = ({
   date,
   width,
   zoomValue,
+  shouldDrawSubLines,
   ...props
 }) => {
   if (!date) return;

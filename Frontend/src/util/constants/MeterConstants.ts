@@ -1,7 +1,6 @@
 export default class MeterConstants {
   // Start configuration
   public static startLevel: number = 3;
-  public static startZoomValue: number = 100;
 
   // Levels
   public static minLevel: number = 2;
@@ -22,10 +21,15 @@ export default class MeterConstants {
   public static earliestYearRestLevels: number = 15000000000; // 15 bil
 
   // Zoom options
-  public static minZoomValue: number = 30;
-  public static maxZoomValue: number = 250;
-  public static smallerLinesValue: number = 180;
-  public static zoomStep: number = 10;
+  // public static minZoomValue: number = 30;
+  // public static maxZoomValue: number = 250;
+  // public static smallerLinesValue: number = 180;
+  // public static zoomStep: number = 10;
+
+  public static minZoomValue: number = 20; // 100/20 = 5 elements when all the way zoomed out on level
+  public static maxZoomValue: number = 100; //100% of the screen
+  public static smallerLinesValue: number = 70;
+  public static zoomStep: number = 5; //1,2,5,10,25 possible steps
   // public static debounceWheelMilliseconds: number = 5;
 
   // Slide effect options

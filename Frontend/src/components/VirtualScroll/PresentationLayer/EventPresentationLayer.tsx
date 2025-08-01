@@ -25,7 +25,6 @@ const EventPresentationLayer = React.memo<IProps>(
     const [events, setEvents] = useState<EventTimelineDTO[]>([]);
     const [periods, setPeriods] = useState<PeriodTimelineDTO[]>([]);
 
-
     useEffect(() => {
       if (virtualItems.length === 0) return;
 
@@ -45,10 +44,13 @@ const EventPresentationLayer = React.memo<IProps>(
     }, [virtualItems]);
 
     const fetchTimelineElements = async (timelineQuery: TimelineQueryDTO) => {
-      let timelineElements: TimelinePresentationLayerDTO = { events: [], periods: [] }
+      let timelineElements: TimelinePresentationLayerDTO = {
+        events: [],
+        periods: [],
+      };
       try {
         timelineElements = await TimelineApi.GetTimelineElements(timelineQuery);
-      } catch { }
+      } catch {}
       setEvents(timelineElements.events);
       setPeriods(timelineElements.periods);
     };
@@ -109,7 +111,7 @@ const EventPresentationLayer = React.memo<IProps>(
         prevProps.level === nextProps.level &&
         prevProps.virtualItems[0].index === nextProps.virtualItems[0].index &&
         prevProps.virtualItems[prevProps.virtualItems.length - 1].index ===
-        nextProps.virtualItems[nextProps.virtualItems.length - 1].index
+          nextProps.virtualItems[nextProps.virtualItems.length - 1].index
       );
     return false;
   }
