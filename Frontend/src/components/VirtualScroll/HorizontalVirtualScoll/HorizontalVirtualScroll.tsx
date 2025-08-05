@@ -17,6 +17,7 @@ interface VirtualScrollState {
   level: number;
   virtualItems: VirtualItem[];
   range: MeterRange;
+  cachedOffsetChunks: number;
 }
 
 interface IProps {
@@ -25,23 +26,16 @@ interface IProps {
 const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   screenWidth,
 }) => {
-  // TODO: 6000000px /(1920px (big screen) *2(on two max monitors))=1562.5 elements can be present so it doesnt break any browser/mobile
-  // TODO: Make a state that will hold cachedOffsetChunks = [ChunkSize from const] * numberOfPerviousCachedChunks
-  // Example: max chunk size can be ~1500 for calculation so if we need to render 2100 element we will do
-  // newOffset = {elementIndex = (2100)} * {elementWidth (max = 1920 * 2)} - {ChunkSize} * {cachedOffsetChunks} * {elementWidth}
-  // and get newOffset that will not exceed 6mil and still do the same job
-  // and whenever you need to calculate offset or width of elements that can hold up to 6mil values just scale them down by the number of chunks
-  // that way we will be able to simulate the virtual scrolling of the offset part of the app
-
   // Virtual Scroll State
   const [virtualMeterState, setVirtualMeterState] =
     useState<VirtualScrollState>({
-      scrollOffset: 0, // for level 4, scrollOffset:4481250 to be on 0 centered
+      scrollOffset: 0,
       elementWidth: screenWidth / 2,
       zoomValue: MeterConstants.maxZoomValue / 2,
       level: MeterConstants.startLevel,
       virtualItems: [],
       range: { start: 0, end: 0 } as MeterRange,
+      cachedOffsetChunks: 0,
     });
 
   // References
@@ -103,7 +97,9 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
     const newRange = MeterService.getRange(
       meterComponentRef,
       levelElements.length,
-      virtualMeterState.scrollOffset,
+      virtualMeterState.scrollOffset +
+        virtualMeterState.cachedOffsetChunks *
+          MeterConstants.cacheOffsetChunkLength,
       virtualMeterState.elementWidth
     );
 
@@ -132,12 +128,14 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
     overScan,
     virtualMeterState.elementWidth,
     virtualMeterState.scrollOffset,
+    virtualMeterState.cachedOffsetChunks,
   ]);
   const updateStatesOnLevelChange = (
     newLevel: number,
     newZoomValue: number,
     newWidth: number,
-    newScrollOffset: number
+    newScrollOffset: number,
+    cachedOffsetChunks: number
   ) => {
     setVirtualMeterState((prev) => ({
       ...prev,
@@ -145,6 +143,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       zoomValue: newZoomValue,
       elementWidth: newWidth,
       scrollOffset: newScrollOffset,
+      cachedOffsetChunks: cachedOffsetChunks,
     }));
   };
   const transitionLevels = (newZoomValue: number) => {
@@ -163,7 +162,9 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       const newScrollOffset = MeterService.calculateOffsetForLevelTransition(
         virtualMeterState.level,
         newLevel,
-        virtualMeterState.scrollOffset,
+        virtualMeterState.scrollOffset +
+          virtualMeterState.cachedOffsetChunks *
+            MeterConstants.cacheOffsetChunkLength,
         virtualMeterState.elementWidth,
         newWidth,
         screenWidth
@@ -172,7 +173,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
         newLevel,
         MeterConstants.minZoomValue,
         newWidth,
-        newScrollOffset
+        newScrollOffset % MeterConstants.cacheOffsetChunkLength,
+        Math.floor(newScrollOffset / MeterConstants.cacheOffsetChunkLength)
       );
     }
 
@@ -189,7 +191,9 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       const newScrollOffset = MeterService.calculateOffsetForLevelTransition(
         virtualMeterState.level,
         newLevel,
-        virtualMeterState.scrollOffset,
+        virtualMeterState.scrollOffset +
+          virtualMeterState.cachedOffsetChunks *
+            MeterConstants.cacheOffsetChunkLength,
         virtualMeterState.elementWidth,
         newWidth,
         screenWidth
@@ -199,7 +203,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
         newLevel,
         MeterConstants.maxZoomValue,
         newWidth,
-        newScrollOffset
+        newScrollOffset % MeterConstants.cacheOffsetChunkLength,
+        Math.floor(newScrollOffset / MeterConstants.cacheOffsetChunkLength)
       );
     }
   };
@@ -297,9 +302,10 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
     }
 
     const scaleFactor = newZoomValue / virtualMeterState.zoomValue;
-    const currentScrollLeft = meterComponentRef.current.scrollLeft;
-    //TODO: this needs to be optimized and Mozila depends on this / MeterConstants.maxZoomValue
-    // used to be 100 and was making not elements not render becuase of huge values such as for translateX(>16mil px)
+    const currentScrollLeft =
+      meterComponentRef.current.scrollLeft +
+      virtualMeterState.cachedOffsetChunks *
+        MeterConstants.cacheOffsetChunkLength;
     const newElementWidth =
       screenWidth * (newZoomValue / MeterConstants.maxZoomValue);
     const newScrollOffset = Math.max(
@@ -311,8 +317,10 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
     const newRange = MeterService.getRange(
       meterComponentRef,
       levelElements.length,
-      newScrollOffset,
-      newElementWidth
+      virtualMeterState.scrollOffset +
+        virtualMeterState.cachedOffsetChunks *
+          MeterConstants.cacheOffsetChunkLength,
+      virtualMeterState.elementWidth
     );
 
     let newVirtualItems: VirtualItem[] = [];
@@ -338,7 +346,10 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       ...prev,
       zoomValue: newZoomValue,
       elementWidth: newElementWidth,
-      scrollOffset: newScrollOffset,
+      scrollOffset: newScrollOffset % MeterConstants.cacheOffsetChunkLength,
+      cachedOffsetChunks: Math.floor(
+        newScrollOffset / MeterConstants.cacheOffsetChunkLength
+      ),
       range: newRange ?? prev.range,
       virtualItems: newVirtualItems.length
         ? newVirtualItems
@@ -363,8 +374,6 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
     }
   };
 
-  console.log(virtualMeterState.range);
-
   return (
     <div className={styles.meterWrapper}>
       <div
@@ -388,19 +397,20 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
         <div
           className={styles.virtualizerWrapper}
           style={{
-            width: `${levelElements.length * virtualMeterState.elementWidth}px`,
-            // (levelElements.length % MeterConstants.cacheElementLength) *
-            //   virtualMeterState.elementWidth
-            // width: `0%`,
+            width: `${
+              levelElements.length * virtualMeterState.elementWidth -
+              virtualMeterState.cachedOffsetChunks *
+                MeterConstants.cacheOffsetChunkLength
+            }px`,
           }}
         >
           <div
             className={styles.virtualizerOffset}
             style={{
               transform: `translateX(${
-                virtualIndexes[0] * virtualMeterState.elementWidth
-                // (virtualIndexes[0] % MeterConstants.cacheElementLength) *
-                // virtualMeterState.elementWidth
+                virtualIndexes[0] * virtualMeterState.elementWidth -
+                virtualMeterState.cachedOffsetChunks *
+                  MeterConstants.cacheOffsetChunkLength
               }px)`,
             }}
           >

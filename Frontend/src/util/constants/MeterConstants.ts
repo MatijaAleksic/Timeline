@@ -42,5 +42,5 @@ export default class MeterConstants {
   public static eventWidth: number = 34;
 
   // ChunkElementSize
-  public static cacheElementLength: number = 100;
+  public static cacheOffsetChunkLength: number = 1000000;
 }
