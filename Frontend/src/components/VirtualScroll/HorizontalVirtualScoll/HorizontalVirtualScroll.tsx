@@ -55,9 +55,18 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   );
 
   const levelElements = useMemo(
+    //TODO: .getLevelElements(virtualMeterState.level, virtualIndexes)
+    // Dont initialize the whole list but you just need to have elements that match virtualIndexes
+    // Only thing that components use is lenght of this list so if you just return the length of possible dates all would work
+    // Virtual Indexes dont represent years so calculate carefully
+    // P.S. ALSO DONT FORGET TO RETURN OBJECT {elementsLength: number, levelElements: Date | number}
     () => MeterLevelsService.getLevelElements(virtualMeterState.level),
     [virtualMeterState.level]
   );
+
+  console.log('virtualIndexes', virtualIndexes);
+  console.log('level', virtualMeterState.level);
+  console.log(levelElements);
 
   // Effects
   // useLayoutEffect - happens before paint

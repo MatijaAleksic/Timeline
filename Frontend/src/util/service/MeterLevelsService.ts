@@ -11,18 +11,21 @@ export default class MeterLevelsService {
   public static getLevelElements = (level: number) => {
     // const earliestDatePossible = new Date(-100_000_000 * 24 * 60 * 60 * 1000); // ~271,821 BCE
     switch (level) {
+      //DAYS
       case 1: {
         const startDate = new Date(new Date().getFullYear(), 0, 1);
         const endDate = new Date();
         startDate.setFullYear(-MeterConstants.earliestYearLevel1);
         return this.getDays(startDate, endDate);
       }
+      //MONTHS
       case 2: {
         const startDate = new Date(new Date().getFullYear(), 0, 1);
         const endDate = new Date();
         startDate.setFullYear(-MeterConstants.earliestYearLevel2);
         return this.getMonths(startDate, endDate);
       }
+      //YEARS
       default: {
         const yearMultiplier: number = MeterService.getYearMultiplier(level);
         const startYear = MeterService.getEarliestYearForLevel(level);
