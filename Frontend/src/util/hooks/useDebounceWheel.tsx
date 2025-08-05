@@ -32,6 +32,20 @@ function useDebouncedWheel(
     };
   }, []);
 
+  //DEBOUNCED WHEEL IF NEEDED (In HorizontalVirtualScroll.tsx)
+  // ========================================================
+  // const debouncedHandleWheel = useDebouncedWheel(
+  //   handleWheel,
+  //   MeterConstants.debounceWheelMilliseconds
+  // );
+  // const onWheelHandler = useCallback(
+  //   (event: React.WheelEvent<HTMLDivElement>) => {
+  //     debouncedHandleWheel(event);
+  //   },
+  //   [debouncedHandleWheel]
+  // );
+  // ========================================================
+
   return debouncedCallback;
 }
 

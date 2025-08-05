@@ -10,15 +10,15 @@
   width: 0;
 
   .meterLineNormal {
-    height: 4rem;
-    width: 1px;
+    height: 42px;
+    width: 1.6px;
     background: colors.$black;
     margin-bottom: 1rem;
     z-index: 2;
   }
 
   .meterLineLarge {
-    height: 6rem;
+    height: 76px;
     width: 4px;
     background: colors.$red;
     margin-bottom: 1rem;
