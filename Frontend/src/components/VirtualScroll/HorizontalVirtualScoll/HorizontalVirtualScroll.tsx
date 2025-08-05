@@ -8,7 +8,6 @@ import MeterService from "@/util/service/MeterService";
 import MeterLevelsService from "@/util/service/MeterLevelsService";
 import EventPresentationLayer from "../PresentationLayer/EventPresentationLayer";
 import { VirtualItem } from "@/util/dto/VirtualScrollDTO/VirtualItem";
-import { MeterRange } from "@/util/dto/VirtualScrollDTO/MeterRange";
 
 interface VirtualScrollState {
   scrollOffset: number;
@@ -16,7 +15,6 @@ interface VirtualScrollState {
   zoomValue: number;
   level: number;
   virtualItems: VirtualItem[];
-  range: MeterRange;
   cachedOffsetChunks: number;
 }
 
@@ -34,7 +32,6 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       zoomValue: MeterConstants.maxZoomValue / 2,
       level: MeterConstants.startLevel,
       virtualItems: [],
-      range: { start: 0, end: 0 } as MeterRange,
       cachedOffsetChunks: 0,
     });
 
@@ -56,6 +53,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
     () => virtualMeterState.virtualItems.map((item) => item.index),
     [virtualMeterState.virtualItems]
   );
+
   const levelElements = useMemo(
     () => MeterLevelsService.getLevelElements(virtualMeterState.level),
     [virtualMeterState.level]
@@ -75,31 +73,15 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   }, [virtualMeterState.level]);
 
   //Methods
-  const slidingUpdateVirtualItems = () => {
-    const centralIndex = MeterService.calculateCentralIndex(
-      meterComponentRef,
-      virtualMeterState.elementWidth
-    );
-
-    // if calculated CentralIndex falls between the range skip update virtual index
-    if (
-      virtualMeterState.range &&
-      centralIndex >= virtualMeterState.range.start &&
-      centralIndex <= virtualMeterState.range.end
-    )
-      return;
-
-    updateVirtualItems();
-  };
   const updateVirtualItems = useCallback(() => {
     if (!meterComponentRef.current) return;
 
     const newRange = MeterService.getRange(
-      meterComponentRef,
+      meterComponentRef.current!.clientWidth,
       levelElements.length,
       virtualMeterState.scrollOffset +
-        virtualMeterState.cachedOffsetChunks *
-          MeterConstants.cacheOffsetChunkLength,
+      virtualMeterState.cachedOffsetChunks *
+      MeterConstants.cacheOffsetChunkLength,
       virtualMeterState.elementWidth
     );
 
@@ -115,7 +97,6 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       );
       setVirtualMeterState((prev) => ({
         ...prev,
-        range: { start: newRange.start, end: newRange.end },
         virtualItems: MeterService.generateVirtualItems(
           overScanStart,
           overScanEnd,
@@ -130,6 +111,20 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
     virtualMeterState.scrollOffset,
     virtualMeterState.cachedOffsetChunks,
   ]);
+  const slidingUpdateVirtualItems = () => {
+    const centralIndex = MeterService.calculateCentralIndex(
+      meterComponentRef.current!.scrollLeft + (virtualMeterState.cachedOffsetChunks * MeterConstants.cacheOffsetChunkLength),
+      meterComponentRef.current!.clientWidth,
+      virtualMeterState.elementWidth
+    );
+
+    // if calculated CentralIndex falls between the range skip update virtual index
+    if (
+      MeterService.isInMiddlePercentage(centralIndex, virtualIndexes, 80)
+    )
+      return;
+    updateVirtualItems();
+  };
   const updateStatesOnLevelChange = (
     newLevel: number,
     newZoomValue: number,
@@ -163,8 +158,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
         virtualMeterState.level,
         newLevel,
         virtualMeterState.scrollOffset +
-          virtualMeterState.cachedOffsetChunks *
-            MeterConstants.cacheOffsetChunkLength,
+        virtualMeterState.cachedOffsetChunks *
+        MeterConstants.cacheOffsetChunkLength,
         virtualMeterState.elementWidth,
         newWidth,
         screenWidth
@@ -192,8 +187,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
         virtualMeterState.level,
         newLevel,
         virtualMeterState.scrollOffset +
-          virtualMeterState.cachedOffsetChunks *
-            MeterConstants.cacheOffsetChunkLength,
+        virtualMeterState.cachedOffsetChunks *
+        MeterConstants.cacheOffsetChunkLength,
         virtualMeterState.elementWidth,
         newWidth,
         screenWidth
@@ -212,6 +207,10 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   // Handles dragging the meter so you dont have to use scroll wheel
   // ===============================================================
   const handleMouseDown = (event: React.MouseEvent) => {
+    if (inertiaFrameRef.current) {
+      cancelAnimationFrame(inertiaFrameRef.current);
+      inertiaFrameRef.current = null;
+    }
     isDraggingRef.current = true;
     startXRef.current =
       event.pageX - (meterComponentRef.current?.offsetLeft || 0);
@@ -305,7 +304,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
     const currentScrollLeft =
       meterComponentRef.current.scrollLeft +
       virtualMeterState.cachedOffsetChunks *
-        MeterConstants.cacheOffsetChunkLength;
+      MeterConstants.cacheOffsetChunkLength;
     const newElementWidth =
       screenWidth * (newZoomValue / MeterConstants.maxZoomValue);
     const newScrollOffset = Math.max(
@@ -315,11 +314,11 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
 
     // Calculate new range and virtualItems here *before* setState
     const newRange = MeterService.getRange(
-      meterComponentRef,
+      meterComponentRef.current!.clientWidth,
       levelElements.length,
       virtualMeterState.scrollOffset +
-        virtualMeterState.cachedOffsetChunks *
-          MeterConstants.cacheOffsetChunkLength,
+      virtualMeterState.cachedOffsetChunks *
+      MeterConstants.cacheOffsetChunkLength,
       virtualMeterState.elementWidth
     );
 
@@ -350,7 +349,6 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       cachedOffsetChunks: Math.floor(
         newScrollOffset / MeterConstants.cacheOffsetChunkLength
       ),
-      range: newRange ?? prev.range,
       virtualItems: newVirtualItems.length
         ? newVirtualItems
         : prev.virtualItems,
@@ -397,21 +395,19 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
         <div
           className={styles.virtualizerWrapper}
           style={{
-            width: `${
-              levelElements.length * virtualMeterState.elementWidth -
+            width: `${levelElements.length * virtualMeterState.elementWidth -
               virtualMeterState.cachedOffsetChunks *
-                MeterConstants.cacheOffsetChunkLength
-            }px`,
+              MeterConstants.cacheOffsetChunkLength
+              }px`,
           }}
         >
           <div
             className={styles.virtualizerOffset}
             style={{
-              transform: `translateX(${
-                virtualIndexes[0] * virtualMeterState.elementWidth -
+              transform: `translateX(${virtualIndexes[0] * virtualMeterState.elementWidth -
                 virtualMeterState.cachedOffsetChunks *
-                  MeterConstants.cacheOffsetChunkLength
-              }px)`,
+                MeterConstants.cacheOffsetChunkLength
+                }px)`,
             }}
           >
             {virtualMeterState.virtualItems.map((virtualItem, index) => (
@@ -419,9 +415,8 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
                 className={styles.virtualizerContainer}
                 key={virtualItem.key}
                 style={{
-                  transform: `translateX(${
-                    index * virtualMeterState.elementWidth
-                  }px)`,
+                  transform: `translateX(${index * virtualMeterState.elementWidth
+                    }px)`,
                   width: `${virtualMeterState.elementWidth}px`,
                 }}
               >

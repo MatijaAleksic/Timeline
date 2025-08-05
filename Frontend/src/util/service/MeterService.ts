@@ -60,29 +60,47 @@ export default class MeterService {
     }
   };
 
+  public static isInMiddlePercentage(
+    centralIndex: number,
+    virtualIndexes: number[],
+    middlePercent: number
+  ): boolean {
+    if (virtualIndexes.length === 0 || middlePercent <= 0 || middlePercent >= 100) return false;
+
+    const startFraction = (1 - middlePercent / 100) / 2;
+    const endFraction = 1 - startFraction;
+
+    const startIndex = Math.floor(virtualIndexes.length * startFraction);
+    const endIndex = Math.ceil(virtualIndexes.length * endFraction);
+
+    const pos = virtualIndexes.indexOf(centralIndex);
+    return pos !== -1 && pos >= startIndex && pos < endIndex;
+  }
+
+
   public static getRange = (
-    meterComponentRef: RefObject<HTMLDivElement | null>,
+    clientWidth: number,
     levelElementsLength: number,
     scrollOffset: number,
     elementWidth: number
   ) => {
-    const containerSize = meterComponentRef.current!.clientWidth;
     const startIndex = Math.max(0, Math.floor(scrollOffset / elementWidth));
     const endIndex = Math.min(
       levelElementsLength - 1,
-      Math.floor((scrollOffset + containerSize) / elementWidth)
+      Math.floor((scrollOffset + clientWidth) / elementWidth)
     );
     return { start: startIndex, end: endIndex };
   };
 
   public static calculateCentralIndex = (
-    meterComponentRef: RefObject<HTMLDivElement | null>,
+    scrollLeft: number,
+    clientWidth: number,
     elementWidth: number
   ): number => {
     return Math.floor(
-      (meterComponentRef.current!.scrollLeft +
-        meterComponentRef.current!.clientWidth / 2) /
-        elementWidth
+      (scrollLeft +
+        clientWidth / 2) /
+      elementWidth
     );
   };
 
@@ -113,7 +131,7 @@ export default class MeterService {
       newLevel < 3
         ? (earliestYearNew - centerYear) * newYearMultiplier * newElementWidth
         : ((earliestYearNew - centerYear) / newYearMultiplier) *
-          newElementWidth;
+        newElementWidth;
 
     // 4. Adjust so center year appears at screen center
     const scrollOffset = Math.max(0, offsetInNewLevel - screenWidth / 2);
@@ -131,9 +149,9 @@ export default class MeterService {
     return (
       this.getEarliestYearForLevel(level) -
       currentIndex *
-        (level > 2
-          ? this.getYearMultiplier(level)
-          : 1 / this.getYearMultiplier(level))
+      (level > 2
+        ? this.getYearMultiplier(level)
+        : 1 / this.getYearMultiplier(level))
     );
   };
 
