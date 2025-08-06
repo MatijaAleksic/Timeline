@@ -6,31 +6,57 @@ import {
 } from "date-fns";
 import MeterConstants from "../constants/MeterConstants";
 import MeterService from "./MeterService";
+import LevelElementDTO from "../dto/VirtualScrollDTO/LevelElementDTO";
 
 export default class MeterLevelsService {
-  public static getLevelElements = (level: number) => {
+  public static getLevelElements = (
+    level: number,
+    virtualIndexes: number[]
+  ): LevelElementDTO => {
     // const earliestDatePossible = new Date(-100_000_000 * 24 * 60 * 60 * 1000); // ~271,821 BCE
     switch (level) {
       //DAYS
-      case 1: {
-        const startDate = new Date(new Date().getFullYear(), 0, 1);
-        const endDate = new Date();
-        startDate.setFullYear(-MeterConstants.earliestYearLevel1);
-        return this.getDays(startDate, endDate);
-      }
+      case 1:
       //MONTHS
       case 2: {
-        const startDate = new Date(new Date().getFullYear(), 0, 1);
-        const endDate = new Date();
-        startDate.setFullYear(-MeterConstants.earliestYearLevel2);
-        return this.getMonths(startDate, endDate);
+        const todaysDate: Date = new Date();
+        const totalMonths =
+          (MeterConstants.earliestYearLevel2 + todaysDate.getFullYear()) * 12 +
+          todaysDate.getMonth();
+        const earliestYear = MeterConstants.earliestYearLevel2;
+
+        let startDate: Date = new Date();
+        let endDate: Date = new Date();
+
+        startDate.setFullYear(
+          Math.floor(-earliestYear + virtualIndexes[0] / 12)
+        );
+        startDate.setMonth(virtualIndexes[0] % 12);
+        startDate.setDate(1);
+        endDate.setFullYear(
+          Math.floor(
+            -earliestYear + virtualIndexes[virtualIndexes.length - 1] / 12
+          )
+        );
+        endDate.setMonth(virtualIndexes[virtualIndexes.length - 1] % 12);
+        endDate.setDate(1);
+        return {
+          levelElements: this.getMonths(startDate, endDate),
+          totalLength: totalMonths,
+        } as LevelElementDTO;
       }
       //YEARS
       default: {
         const yearMultiplier: number = MeterService.getYearMultiplier(level);
-        const startYear = MeterService.getEarliestYearForLevel(level);
-        const endYear = new Date().getFullYear();
-        return this.getYears(startYear, endYear, yearMultiplier);
+        const earliestYear = MeterService.getEarliestYearForLevel(level);
+        const currentYear = new Date().getFullYear();
+        const startYear = earliestYear - virtualIndexes[0];
+        const endYear =
+          earliestYear - virtualIndexes[virtualIndexes.length - 1];
+        return {
+          levelElements: this.getYears(startYear, endYear, yearMultiplier),
+          totalLength: earliestYear + currentYear,
+        } as LevelElementDTO;
       }
     }
   };
@@ -53,7 +79,7 @@ export default class MeterLevelsService {
     yearMultiplier: number
   ): Array<number> => {
     return Array.from(
-      { length: Math.floor((endYear + startYear) / yearMultiplier) },
+      { length: Math.floor(Math.abs(startYear - endYear) / yearMultiplier) },
       (_, i) => -startYear + i * yearMultiplier
     );
   };
