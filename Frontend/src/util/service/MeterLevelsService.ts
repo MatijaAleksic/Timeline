@@ -21,9 +21,10 @@ export default class MeterLevelsService {
       case 2: {
         const todaysDate: Date = new Date();
         const totalMonths =
-          (MeterConstants.earliestYearLevel2 + todaysDate.getFullYear()) * 12 +
+          (MeterConstants.earliestYearLevel1And2 + todaysDate.getFullYear()) *
+            12 +
           todaysDate.getMonth();
-        const earliestYear = MeterConstants.earliestYearLevel2;
+        const earliestYear = MeterConstants.earliestYearLevel1And2;
 
         let startDate: Date = new Date();
         let endDate: Date = new Date();
@@ -50,15 +51,26 @@ export default class MeterLevelsService {
         const yearMultiplier: number = MeterService.getYearMultiplier(level);
         const earliestYear = MeterService.getEarliestYearForLevel(level);
         const currentYear = new Date().getFullYear();
-        const startYear = earliestYear - virtualIndexes[0];
+        const startYear = earliestYear - virtualIndexes[0] * yearMultiplier;
         const endYear =
-          earliestYear - virtualIndexes[virtualIndexes.length - 1];
+          earliestYear -
+          virtualIndexes[virtualIndexes.length - 1] * yearMultiplier;
         return {
           levelElements: this.getYears(startYear, endYear, yearMultiplier),
           totalLength: earliestYear + currentYear,
         } as LevelElementDTO;
       }
     }
+  };
+  public static getYears = (
+    startYear: number,
+    endYear: number,
+    yearMultiplier: number
+  ): Array<number> => {
+    return Array.from(
+      { length: Math.floor(Math.abs(startYear - endYear) / yearMultiplier) },
+      (_, i) => -startYear + i * yearMultiplier
+    );
   };
 
   public static getMonths = (startDate: Date, endDate: Date): Array<Date> => {
@@ -71,16 +83,5 @@ export default class MeterLevelsService {
   public static getDays = (startDate: Date, endDate: Date): Array<Date> => {
     const totalDays = differenceInDays(endDate, startDate);
     return Array.from({ length: totalDays }, (_, i) => addDays(startDate, i));
-  };
-
-  public static getYears = (
-    startYear: number,
-    endYear: number,
-    yearMultiplier: number
-  ): Array<number> => {
-    return Array.from(
-      { length: Math.floor(Math.abs(startYear - endYear) / yearMultiplier) },
-      (_, i) => -startYear + i * yearMultiplier
-    );
   };
 }
