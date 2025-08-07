@@ -9,6 +9,7 @@ import MeterLevelsService from "@/util/service/MeterLevelsService";
 import EventPresentationLayer from "../PresentationLayer/EventPresentationLayer";
 import { VirtualItem } from "@/util/dto/VirtualScrollDTO/VirtualItem";
 import LevelElementDTO from "@/util/dto/VirtualScrollDTO/LevelElementDTO";
+import { debounce } from "lodash";
 
 interface VirtualScrollState {
   scrollOffset: number;
@@ -115,6 +116,10 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
     virtualMeterState.scrollOffset,
     virtualMeterState.cachedOffsetChunks,
   ]);
+  const debouncedUpdateVirtualItems = useMemo(
+    () => debounce(updateVirtualItems, 50),
+    [updateVirtualItems]
+  );
   const slidingUpdateVirtualItems = () => {
     const centralIndex = MeterService.calculateCentralIndex(
       meterComponentRef.current!.scrollLeft +
@@ -124,10 +129,9 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       virtualMeterState.elementWidth
     );
     // if calculated CentralIndex falls between the range skip update virtual index
-    if (MeterService.isInMiddlePercentage(centralIndex, virtualIndexes, 50)) {
+    if (MeterService.isInMiddlePercentage(centralIndex, virtualIndexes, 70))
       return;
-    }
-    updateVirtualItems();
+    debouncedUpdateVirtualItems();
   };
   const updateStatesOnLevelChange = (
     newLevel: number,
@@ -225,13 +229,42 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
     lastDragTimeRef.current = Date.now();
   };
   const handleMouseMove = (event: React.MouseEvent) => {
-    if (!isDraggingRef.current) return;
+    if (!isDraggingRef.current || !meterComponentRef.current) return;
+
     const moveX = event.pageX - startXRef.current;
-    if (meterComponentRef.current) {
-      meterComponentRef.current.scrollLeft =
-        virtualMeterState.scrollOffset - moveX;
+    const newScrollLeft = virtualMeterState.scrollOffset - moveX;
+
+    //checks if the scrollLeft has left the limited boundary and releases the chunk
+    if (newScrollLeft <= 0) {
+      const currentAbsoluteOffset =
+        virtualMeterState.cachedOffsetChunks *
+          MeterConstants.cacheOffsetChunkLength +
+        newScrollLeft;
+
+      const clampedOffset = Math.max(0, currentAbsoluteOffset);
+      const newCachedOffsetChunks = Math.floor(
+        clampedOffset / MeterConstants.cacheOffsetChunkLength
+      );
+      const newScrollOffset =
+        clampedOffset % MeterConstants.cacheOffsetChunkLength;
+
+      if (
+        newCachedOffsetChunks !== virtualMeterState.cachedOffsetChunks ||
+        newScrollOffset !== virtualMeterState.scrollOffset
+      ) {
+        setVirtualMeterState((prev) => ({
+          ...prev,
+          cachedOffsetChunks: newCachedOffsetChunks,
+          scrollOffset: newScrollOffset,
+        }));
+      }
+
+      meterComponentRef.current.scrollLeft = newScrollOffset;
+    } else {
+      meterComponentRef.current.scrollLeft = newScrollLeft;
     }
   };
+
   const handleMouseUp = (event: React.MouseEvent) => {
     isDraggingRef.current = false;
     const endTime = Date.now();

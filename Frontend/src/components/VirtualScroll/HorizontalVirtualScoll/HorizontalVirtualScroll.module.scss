@@ -16,7 +16,7 @@
   height: 100%;
   width: 100%;
   user-select: none;
-  overflow: hidden; //hidden default, scroll for testing purposes
+  overflow: scroll; //hidden default, scroll for testing purposes
   z-index: 2;
   // will-change: scroll-position, transform;
 }

@@ -117,23 +117,6 @@ export default class MeterService {
     return scrollOffset;
   };
 
-  public static calculateCenterYearForLevel = (
-    scrollOffset: number,
-    screenWidth: number,
-    elementWidth: number,
-    level: number
-  ): number => {
-    const centerOffset = scrollOffset + screenWidth / 2;
-    const currentIndex = centerOffset / elementWidth;
-    return (
-      this.getEarliestYearForLevel(level) -
-      currentIndex *
-        (level > 2
-          ? this.getYearMultiplier(level)
-          : 1 / this.getYearMultiplier(level))
-    );
-  };
-
   public static calculateNewZoomValue = (
     zoomValue: number,
     zoomDirection: number

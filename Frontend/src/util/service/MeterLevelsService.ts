@@ -57,7 +57,9 @@ export default class MeterLevelsService {
           virtualIndexes[virtualIndexes.length - 1] * yearMultiplier;
         return {
           levelElements: this.getYears(startYear, endYear, yearMultiplier),
-          totalLength: earliestYear + currentYear,
+          totalLength: Math.floor(
+            (earliestYear + currentYear) / yearMultiplier
+          ),
         } as LevelElementDTO;
       }
     }
@@ -68,7 +70,9 @@ export default class MeterLevelsService {
     yearMultiplier: number
   ): Array<number> => {
     return Array.from(
-      { length: Math.floor(Math.abs(startYear - endYear) / yearMultiplier) },
+      {
+        length: Math.floor(Math.abs(startYear - endYear) / yearMultiplier) + 1,
+      },
       (_, i) => -startYear + i * yearMultiplier
     );
   };
