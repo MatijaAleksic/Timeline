@@ -11,7 +11,7 @@ import { VirtualItem } from "@/util/dto/VirtualScrollDTO/VirtualItem";
 import LevelElementDTO from "@/util/dto/VirtualScrollDTO/LevelElementDTO";
 import { debounce } from "lodash";
 
-interface VirtualScrollState {
+export interface VirtualScrollState {
   scrollOffset: number;
   elementWidth: number;
   zoomValue: number;
@@ -22,20 +22,26 @@ interface VirtualScrollState {
 
 interface IProps {
   screenWidth: number;
+  startState: VirtualScrollState;
 }
 const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
   screenWidth,
+  startState,
 }) => {
   // Virtual Scroll State
   const [virtualMeterState, setVirtualMeterState] =
-    useState<VirtualScrollState>({
-      scrollOffset: 0,
-      elementWidth: screenWidth / 2,
-      zoomValue: MeterConstants.maxZoomValue / 2,
-      level: MeterConstants.startLevel,
-      virtualItems: [],
-      cachedOffsetChunks: 0,
-    });
+    useState<VirtualScrollState>(
+      startState
+        ? startState
+        : {
+            scrollOffset: 0,
+            elementWidth: screenWidth / 2,
+            zoomValue: MeterConstants.maxZoomValue / 2,
+            level: MeterConstants.startLevel,
+            virtualItems: [],
+            cachedOffsetChunks: 0,
+          }
+    );
 
   // References
   const isDraggingRef = useRef<boolean>(false);
