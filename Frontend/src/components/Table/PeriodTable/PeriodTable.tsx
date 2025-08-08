@@ -63,6 +63,8 @@ const PeriodTable: FunctionComponent<IProps> = ({ initialPeriodTableDTO }) => {
     setPeriods(periodTableDTO.periods);
   };
 
+  console.log(periods);
+
   const handleSort = (column: string) => {
     if (sortColumn === column) {
       setSortDirection((prev) =>
@@ -228,10 +230,10 @@ const PeriodTable: FunctionComponent<IProps> = ({ initialPeriodTableDTO }) => {
               {/* <td>{period.id}</td> */}
               <td>{period.title}</td>
               <td>{period.level}</td>
-              <td>{period.startDay}</td>
+              <td>{period.startYear}</td>
               <td>{period.startMonth}</td>
               <td>{period.startDay}</td>
-              <td>{period.endDay}</td>
+              <td>{period.endYear}</td>
               <td>{period.endMonth}</td>
               <td>{period.endDay}</td>
               <td>

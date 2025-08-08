@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import styles from "./EventPresentationLayer.module.scss";
 import MeterService from "@/util/service/MeterService";
 import MeterConstants from "@/util/constants/MeterConstants";
-import { VirtualItem } from "../../../util/dto/VirtualScrollDTO/VirtualItem";
+import { VirtualItemDTO } from "../../../util/dto/VirtualScrollDTO/VirtualItemDTO";
 import React from "react";
 import {
   EventTimelineDTO,
@@ -17,11 +17,13 @@ import TimelineQueryDTO from "@/util/dto/VirtualScrollDTO/QueryTimelineDTO";
 interface IProps {
   elementWidth: number;
   level: number;
-  virtualItems: VirtualItem[];
+  scrollOffsetBeforeElements: number;
+  virtualItems: VirtualItemDTO[];
 }
 
-const EventPresentationLayer = React.memo<IProps>(
-  ({ level, elementWidth, virtualItems }) => {
+const EventPresentationLayer: React.FunctionComponent<IProps> =
+  // React.memo<IProps>(
+  ({ level, elementWidth, scrollOffsetBeforeElements, virtualItems }) => {
     const [events, setEvents] = useState<EventTimelineDTO[]>([]);
     const [periods, setPeriods] = useState<PeriodTimelineDTO[]>([]);
 
@@ -36,7 +38,6 @@ const EventPresentationLayer = React.memo<IProps>(
         );
 
       const handler = setTimeout(() => {
-        console.log("Debounced FETCH");
         fetchTimelineElements(timelineQuery);
       }, 1000);
 
@@ -54,11 +55,19 @@ const EventPresentationLayer = React.memo<IProps>(
       setEvents(timelineElements.events);
       setPeriods(timelineElements.periods);
     };
+
+    // const configurePeriods = (periods: PeriodDTO[]) : PresentationLayerPeriodDTO[] => {
+    //   let alreadyConfiguredEvents:
+    //   return [];
+    // }
+
     if (virtualItems.length === 0) return;
 
     // console.log("events", events);
     // console.log("periods", periods);
-    // console.log("elementWidth", elementWidth);
+    console.log("elementWidth", elementWidth);
+    // console.log(virtualItems);
+
     return (
       <>
         {periods.map((periodObject: PeriodTimelineDTO, index: number) => {
@@ -70,6 +79,7 @@ const EventPresentationLayer = React.memo<IProps>(
           //     level
           //   )
           // )
+
           return (
             <div
               key={index}
@@ -78,18 +88,21 @@ const EventPresentationLayer = React.memo<IProps>(
                 console.log(`${periodObject.title} CLICKED!`);
               }}
               style={{
-                left: MeterService.calculateOffsetForLevelAndDate(
+                transform: `translateX(${MeterService.calculateOffsetForLevelAndDate(
                   periodObject.startYear,
                   level,
-                  elementWidth
-                ), // event offset on presentation layer
+                  elementWidth,
+                  scrollOffsetBeforeElements
+                )}px)`,
                 width: MeterService.calculateEventWidth(
                   periodObject.startYear,
                   periodObject.endYear,
                   level,
-                  elementWidth
+                  elementWidth,
+                  scrollOffsetBeforeElements
                 ),
-                top: 0 * MeterConstants.eventWidth, // Top-margin for presentation layer
+                background: MeterService.getRandomColor(),
+                top: 1 * MeterConstants.eventWidth, // Top-margin for presentation layer
               }}
             >
               <div
@@ -100,21 +113,21 @@ const EventPresentationLayer = React.memo<IProps>(
         })}
       </>
     );
-  },
+  };
 
-  (prevProps, nextProps) => {
-    if (
-      prevProps.virtualItems.length !== 0 &&
-      nextProps.virtualItems.length !== 0
-    )
-      return (
-        prevProps.level === nextProps.level &&
-        prevProps.virtualItems[0].index === nextProps.virtualItems[0].index &&
-        prevProps.virtualItems[prevProps.virtualItems.length - 1].index ===
-          nextProps.virtualItems[nextProps.virtualItems.length - 1].index
-      );
-    return false;
-  }
-);
-EventPresentationLayer.displayName = "EventPresentationLayer";
+// (prevProps, nextProps) => {
+//   if (
+//     prevProps.virtualItems.length !== 0 &&
+//     nextProps.virtualItems.length !== 0
+//   )
+//     return (
+//       prevProps.level === nextProps.level &&
+//       prevProps.virtualItems[0].index === nextProps.virtualItems[0].index &&
+//       prevProps.virtualItems[prevProps.virtualItems.length - 1].index ===
+//         nextProps.virtualItems[nextProps.virtualItems.length - 1].index
+//     );
+//   return false;
+// }
+// );
+// EventPresentationLayer.displayName = "EventPresentationLayer";
 export default EventPresentationLayer;

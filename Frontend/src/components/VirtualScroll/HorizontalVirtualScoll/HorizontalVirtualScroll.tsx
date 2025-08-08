@@ -7,7 +7,7 @@ import MeterContent from "../../Meter/MeterContent";
 import MeterService from "@/util/service/MeterService";
 import MeterLevelsService from "@/util/service/MeterLevelsService";
 import EventPresentationLayer from "../PresentationLayer/EventPresentationLayer";
-import { VirtualItem } from "@/util/dto/VirtualScrollDTO/VirtualItem";
+import { VirtualItemDTO } from "@/util/dto/VirtualScrollDTO/VirtualItemDTO";
 import LevelElementDTO from "@/util/dto/VirtualScrollDTO/LevelElementDTO";
 import { debounce } from "lodash";
 
@@ -16,7 +16,7 @@ export interface VirtualScrollState {
   elementWidth: number;
   zoomValue: number;
   level: number;
-  virtualItems: VirtualItem[];
+  virtualItems: VirtualItemDTO[];
   cachedOffsetChunks: number;
 }
 
@@ -365,7 +365,7 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
       virtualMeterState.elementWidth
     );
 
-    let newVirtualItems: VirtualItem[] = [];
+    let newVirtualItems: VirtualItemDTO[] = [];
 
     if (
       newRange &&
@@ -488,11 +488,21 @@ const HorizontalVirtualScroll: React.FunctionComponent<IProps> = ({
             onMouseMove={handleMouseMove}
             onMouseLeave={() => handleMouseLeave()}
             ref={presentationLayerComponentRef}
+            style={{
+              transform: `translateX(${
+                virtualIndexes[0] * virtualMeterState.elementWidth -
+                virtualMeterState.cachedOffsetChunks *
+                  MeterConstants.cacheOffsetChunkLength
+              }px)`,
+            }}
           >
             <EventPresentationLayer
               elementWidth={virtualMeterState.elementWidth}
               level={virtualMeterState.level}
               virtualItems={virtualMeterState.virtualItems}
+              scrollOffsetBeforeElements={
+                virtualIndexes[0] * virtualMeterState.elementWidth
+              }
             />
           </div>
         </div>

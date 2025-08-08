@@ -1,4 +1,4 @@
-export interface VirtualItem {
+export interface VirtualItemDTO {
   index: number;
   start: number;
   end: number;

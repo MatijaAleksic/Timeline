@@ -1,6 +1,5 @@
 import MeterConstants from "../constants/MeterConstants";
-import { RefObject } from "react";
-import { VirtualItem } from "../dto/VirtualScrollDTO/VirtualItem";
+import { VirtualItemDTO } from "../dto/VirtualScrollDTO/VirtualItemDTO";
 import TimelineQueryDTO from "../dto/VirtualScrollDTO/QueryTimelineDTO";
 
 export default class MeterService {
@@ -8,8 +7,8 @@ export default class MeterService {
     overScanStart: number,
     overScanEnd: number,
     elementWidth: number
-  ): VirtualItem[] => {
-    const items: VirtualItem[] = [];
+  ): VirtualItemDTO[] => {
+    const items: VirtualItemDTO[] = [];
     for (let i = overScanStart; i <= overScanEnd; i++) {
       items.push({
         index: i,
@@ -134,37 +133,45 @@ export default class MeterService {
     startDate: Date | number,
     endDate: Date | number,
     level: number,
-    elementWidth: number
+    elementWidth: number,
+    scrollOffsetBeforeElements: number
   ) => {
     return (
-      this.calculateOffsetForLevelAndDate(endDate, level, elementWidth) -
-      this.calculateOffsetForLevelAndDate(startDate, level, elementWidth)
+      this.calculateOffsetForLevelAndDate(
+        endDate,
+        level,
+        elementWidth,
+        scrollOffsetBeforeElements
+      ) -
+      this.calculateOffsetForLevelAndDate(
+        startDate,
+        level,
+        elementWidth,
+        scrollOffsetBeforeElements
+      )
     );
   };
 
   public static calculateOffsetForLevelAndDate = (
     date: Date | number,
     level: number,
-    elementWidth: number
+    elementWidth: number,
+    scrollOffsetBeforeElements: number
   ) => {
     let calculatedOffset: number = 0;
     const yearMultiplier = this.getYearMultiplier(level);
 
-    // Days
-    if (level === 1) {
-      // If days implemented, logic here has to be implemented
-    }
-    //Months
-    else if (level === 2) {
+    // Days/Months
+    if (level === 2 || level === 1) {
     }
     // 1, 10, 100, ...
     else {
-      calculatedOffset =
-        (this.getEarliestYearForLevel(level) / yearMultiplier +
-          (date as number)) *
+      const elementOffset =
+        ((this.getEarliestYearForLevel(level) + (date as number)) /
+          yearMultiplier) *
         elementWidth;
+      calculatedOffset = elementOffset - scrollOffsetBeforeElements;
     }
-
     return calculatedOffset;
   };
 
@@ -207,6 +214,28 @@ export default class MeterService {
         } as TimelineQueryDTO;
       }
     }
+  };
+
+  public static getRandomColor = () => {
+    const colors = [
+      "#48b5b5",
+      "#208c6c",
+      "#ba7a45",
+      "#4b7d28",
+      "#483d8b",
+      "#963232",
+      "#5a9ca6", // muted teal
+      "#31715d", // medium forest green
+      "#5b7b38", // olive green
+      "#554a89", // dusty indigo
+      "#8b3a3a", // medium brick red
+      "#609090", // desaturated cyan
+      "#4f6d45", // medium moss green
+      "#9a6f3a", // medium golden brown
+      "#4d4382", // medium slate blue
+    ];
+    const index = Math.floor(Math.random() * colors.length);
+    return colors[index];
   };
 
   // public static checkIfEventYearSpanInRange = (
