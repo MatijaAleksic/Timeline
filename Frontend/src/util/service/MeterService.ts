@@ -32,29 +32,8 @@ export default class MeterService {
   public static getEarliestYearForLevel = (level: number): number => {
     switch (level) {
       case 1:
-        return MeterConstants.earliestYearLevel1;
       case 2:
-        return MeterConstants.earliestYearLevel2;
-      case 3:
-        return MeterConstants.earliestYearLevel3;
-      case 4:
-        return MeterConstants.earliestYearLevel4;
-      case 5:
-        return MeterConstants.earliestYearLevel5;
-      case 6:
-        return MeterConstants.earliestYearLevel6;
-      case 7:
-        return MeterConstants.earliestYearLevel7;
-      case 8:
-        return MeterConstants.earliestYearLevel8;
-      case 9:
-        return MeterConstants.earliestYearLevel9;
-      case 10:
-        return MeterConstants.earliestYearLevel10;
-      case 11:
-        return MeterConstants.earliestYearLevel11;
-      case 12:
-        return MeterConstants.earliestYearLevel12;
+        return MeterConstants.earliestYearLevel1And2;
       default:
         return MeterConstants.earliestYearRestLevels;
     }
@@ -65,7 +44,12 @@ export default class MeterService {
     virtualIndexes: number[],
     middlePercent: number
   ): boolean {
-    if (virtualIndexes.length === 0 || middlePercent <= 0 || middlePercent >= 100) return false;
+    if (
+      virtualIndexes.length === 0 ||
+      middlePercent <= 0 ||
+      middlePercent >= 100
+    )
+      return false;
 
     const startFraction = (1 - middlePercent / 100) / 2;
     const endFraction = 1 - startFraction;
@@ -76,7 +60,6 @@ export default class MeterService {
     const pos = virtualIndexes.indexOf(centralIndex);
     return pos !== -1 && pos >= startIndex && pos < endIndex;
   }
-
 
   public static getRange = (
     clientWidth: number,
@@ -97,11 +80,7 @@ export default class MeterService {
     clientWidth: number,
     elementWidth: number
   ): number => {
-    return Math.floor(
-      (scrollLeft +
-        clientWidth / 2) /
-      elementWidth
-    );
+    return Math.floor((scrollLeft + clientWidth / 2) / elementWidth);
   };
 
   public static calculateOffsetForLevelTransition = (
@@ -131,28 +110,11 @@ export default class MeterService {
       newLevel < 3
         ? (earliestYearNew - centerYear) * newYearMultiplier * newElementWidth
         : ((earliestYearNew - centerYear) / newYearMultiplier) *
-        newElementWidth;
+          newElementWidth;
 
     // 4. Adjust so center year appears at screen center
     const scrollOffset = Math.max(0, offsetInNewLevel - screenWidth / 2);
     return scrollOffset;
-  };
-
-  public static calculateCenterYearForLevel = (
-    scrollOffset: number,
-    screenWidth: number,
-    elementWidth: number,
-    level: number
-  ): number => {
-    const centerOffset = scrollOffset + screenWidth / 2;
-    const currentIndex = centerOffset / elementWidth;
-    return (
-      this.getEarliestYearForLevel(level) -
-      currentIndex *
-      (level > 2
-        ? this.getYearMultiplier(level)
-        : 1 / this.getYearMultiplier(level))
-    );
   };
 
   public static calculateNewZoomValue = (
